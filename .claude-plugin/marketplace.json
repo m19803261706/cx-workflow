@@ -11,7 +11,7 @@
   "plugins": [
     {
       "name": "cx-workflow",
-      "source": ".",
+      "source": "./",
       "description": "CX 开发工作流技能体 — PRD→Design→Plan→Exec→Summary 完整闭环，含 Bug 修复路径和四档 GitHub 同步模式",
       "version": "2.0.0",
       "author": {
