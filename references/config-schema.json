@@ -1,0 +1,261 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "cx-workflow Config Schema",
+  "description": "Configuration schema for .claude/cx/config.json — cx-workflow plugin settings",
+  "type": "object",
+  "required": [
+    "version",
+    "developer_id",
+    "github_sync",
+    "current_feature"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Config schema version for future migration compatibility",
+      "enum": ["2.0"],
+      "default": "2.0"
+    },
+    "developer_id": {
+      "type": "string",
+      "description": "Developer identifier (prefix for feature directories and git commits)",
+      "minLength": 1,
+      "maxLength": 50,
+      "pattern": "^[a-z0-9_-]+$",
+      "example": "alice",
+      "notes": [
+        "Set during cx-init, typically GitHub username or short name",
+        "Used to prefix feature directories: features/alice-payment-system",
+        "Allows multiple devs to work in same repo with separate feature directories"
+      ]
+    },
+    "github_sync": {
+      "type": "string",
+      "description": "GitHub integration mode",
+      "enum": ["off", "local", "collab", "full"],
+      "default": "collab",
+      "definitions": {
+        "off": "No GitHub integration; all artifacts local only",
+        "local": "Dev locally; cx-summary creates one summary Issue at end",
+        "collab": "PRD + Design Docs as Issues immediately; execution local; summary Issue + PR at end",
+        "full": "All artifacts (PRD, Design, ADR, Plan, Summary) as Issues; team alignment at each stage"
+      }
+    },
+    "current_feature": {
+      "type": "string",
+      "description": "Currently active feature slug (empty string if none)",
+      "pattern": "^[a-z0-9_-]*$",
+      "example": "auth-system",
+      "notes": [
+        "Set by cx-prd when starting new feature",
+        "Used to load context on SessionStart hook",
+        "Cleared after cx-summary completes"
+      ]
+    },
+    "agent_teams": {
+      "type": "boolean",
+      "description": "Enable Agent Teams mode for frontend/backend parallel work with contract alignment",
+      "default": false,
+      "notes": [
+        "When true: cx-exec spawns separate frontend-agent and backend-agent",
+        "Both agents follow same design.md contracts",
+        "SubagentStop hook validates outputs match contract",
+        "Experimental feature; requires Claude Code Agent Teams support"
+      ]
+    },
+    "background_agents": {
+      "type": "boolean",
+      "description": "Allow background agents to run GitHub sync operations asynchronously",
+      "default": false,
+      "notes": [
+        "When true: cx-summary GitHub operations (create Issue, PR) run in background",
+        "When false: all GitHub operations block until complete",
+        "Useful for slow networks or large repos"
+      ]
+    },
+    "code_review": {
+      "type": "boolean",
+      "description": "Enable smart code review workflow after cx-exec completion",
+      "default": true,
+      "notes": [
+        "When true: cx-exec completion triggers AskUserQuestion for review options",
+        "Options: Full audit / Quick check / Skip",
+        "When false: skip review, proceed directly to cx-summary",
+        "Full audit uses code-reviewer and code-cleanup subagents"
+      ]
+    },
+    "auto_format": {
+      "type": "object",
+      "description": "Auto-formatting settings for PostToolUse hook",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable automatic code formatting after file writes",
+          "default": true
+        },
+        "formatter": {
+          "type": "string",
+          "description": "Formatter to use",
+          "enum": ["auto", "prettier", "black", "gofmt"],
+          "default": "auto",
+          "notes": [
+            "auto: detect from project (package.json / pyproject.toml / go.mod)",
+            "prettier: JavaScript/TypeScript/JSON/YAML",
+            "black: Python",
+            "gofmt: Go"
+          ]
+        }
+      },
+      "required": ["enabled", "formatter"]
+    },
+    "hooks": {
+      "type": "object",
+      "description": "Fine-grained control over cx-workflow hooks",
+      "properties": {
+        "session_start": {
+          "type": "boolean",
+          "description": "Enable SessionStart hook (loads current feature context)",
+          "default": true
+        },
+        "pre_compact": {
+          "type": "boolean",
+          "description": "Enable PreCompact hook (saves context snapshot before compaction)",
+          "default": true
+        },
+        "prompt_refresh_interval": {
+          "type": "integer",
+          "description": "Number of conversation turns between target refresh injections",
+          "minimum": 0,
+          "maximum": 100,
+          "default": 5,
+          "notes": [
+            "Every N turns, UserPromptSubmit hook injects: 'Current task: #{id}, Remaining: X'",
+            "0 = disable prompt injection"
+          ]
+        },
+        "stop_verify": {
+          "type": "boolean",
+          "description": "Enable Stop hook (verify no in_progress tasks before user disconnect)",
+          "default": true
+        },
+        "post_edit_format": {
+          "type": "boolean",
+          "description": "Enable PostToolUse hook (auto-format code after file writes)",
+          "default": true
+        },
+        "notification": {
+          "type": "boolean",
+          "description": "Enable desktop notifications on task completion",
+          "default": true,
+          "notes": [
+            "Supports: macOS (osascript), Linux (notify-send), WSL (powershell)",
+            "Notifies on: cx-exec batch completion, cx-fix completion"
+          ]
+        },
+        "permission_auto_approve": {
+          "type": "boolean",
+          "description": "Enable PermissionRequest hook (auto-approve safe operations)",
+          "default": true,
+          "notes": [
+            "Auto-approved: git add/commit/push, gh issue/pr, npm test, pytest, cargo test",
+            "Other commands: require user confirmation"
+          ]
+        }
+      },
+      "required": [
+        "session_start",
+        "pre_compact",
+        "prompt_refresh_interval",
+        "stop_verify",
+        "post_edit_format",
+        "notification",
+        "permission_auto_approve"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "description": "Minimal config (solo dev, no GitHub)",
+      "value": {
+        "version": "2.0",
+        "developer_id": "alice",
+        "github_sync": "off",
+        "current_feature": "",
+        "agent_teams": false,
+        "background_agents": false,
+        "code_review": true,
+        "auto_format": {
+          "enabled": true,
+          "formatter": "auto"
+        },
+        "hooks": {
+          "session_start": true,
+          "pre_compact": true,
+          "prompt_refresh_interval": 5,
+          "stop_verify": true,
+          "post_edit_format": true,
+          "notification": true,
+          "permission_auto_approve": true
+        }
+      }
+    },
+    {
+      "description": "Team config (GitHub collab mode, code review, agent teams enabled)",
+      "value": {
+        "version": "2.0",
+        "developer_id": "alice",
+        "github_sync": "collab",
+        "current_feature": "payment-gateway",
+        "agent_teams": true,
+        "background_agents": true,
+        "code_review": true,
+        "auto_format": {
+          "enabled": true,
+          "formatter": "prettier"
+        },
+        "hooks": {
+          "session_start": true,
+          "pre_compact": true,
+          "prompt_refresh_interval": 5,
+          "stop_verify": true,
+          "post_edit_format": true,
+          "notification": true,
+          "permission_auto_approve": true
+        }
+      }
+    },
+    {
+      "description": "Full transparency config (all GitHub, frequent prompts, no background ops)",
+      "value": {
+        "version": "2.0",
+        "developer_id": "bob",
+        "github_sync": "full",
+        "current_feature": "",
+        "agent_teams": false,
+        "background_agents": false,
+        "code_review": true,
+        "auto_format": {
+          "enabled": true,
+          "formatter": "black"
+        },
+        "hooks": {
+          "session_start": true,
+          "pre_compact": true,
+          "prompt_refresh_interval": 2,
+          "stop_verify": true,
+          "post_edit_format": true,
+          "notification": true,
+          "permission_auto_approve": true
+        }
+      }
+    }
+  ],
+  "notes": [
+    "This schema describes .claude/cx/config.json, created and maintained by cx-workflow",
+    "Do NOT edit directly unless you know what you do; use /cx-config command instead",
+    "github_sync modes: off (pure local) → local (summary issue) → collab (design review) → full (all issues)",
+    "All boolean settings default to true for safety and visibility",
+    "Agent Teams and Background Agents are experimental; enable only if needed"
+  ]
+}

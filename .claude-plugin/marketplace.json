@@ -1,0 +1,25 @@
+{
+  "name": "cx-workflow-marketplace",
+  "owner": {
+    "name": "chengxuan",
+    "email": "m19803261706@163.com"
+  },
+  "metadata": {
+    "description": "CX 开发工作流插件市场 — 从需求到交付的完整闭环工具集",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "cx-workflow",
+      "source": ".",
+      "description": "CX 开发工作流技能体 — PRD→Design→Plan→Exec→Summary 完整闭环，含 Bug 修复路径和四档 GitHub 同步模式",
+      "version": "2.0.0",
+      "author": {
+        "name": "chengxuan"
+      },
+      "license": "GPL-3.0",
+      "keywords": ["workflow", "project-management", "prd", "chinese"],
+      "category": "productivity"
+    }
+  ]
+}
