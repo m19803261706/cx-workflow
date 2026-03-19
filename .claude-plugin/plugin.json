@@ -1,7 +1,7 @@
 {
-  "name": "cx-workflow",
-  "version": "3.0.0",
-  "description": "CX 纯插件工作流 3.0 — 只保留 cx 命令，项目级 .claude/cx 为唯一运行时真相。支持自动路由的新功能链路、低打断执行、--all 团队模式，以及 GitHub 作为同步镜像的闭环能力。",
+  "name": "cx",
+  "version": "3.1.0",
+  "description": "CX 官方兼容工作流 3.1 — 采用 /cx:* 命名空间命令，项目级 .claude/cx 为运行时真相，插件 hooks 由官方机制自动接线，支持低打断执行与 --all 团队模式。",
   "author": {
     "name": "chengxuan",
     "url": "https://github.com/m19803261706"

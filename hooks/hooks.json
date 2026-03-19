@@ -1,4 +1,5 @@
 {
+  "description": "CX official-compatible hooks for project-level .claude/cx runtime state.",
   "hooks": {
     "SessionStart": [
       {
@@ -51,12 +52,33 @@
         ]
       }
     ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop-failure.sh"
+          }
+        ]
+      }
+    ],
+    "ConfigChange": [
+      {
+        "matcher": "project_settings|local_settings",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/config-change.sh"
+          }
+        ]
+      }
+    ],
     "SubagentStop": [
       {
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "校验子代理的输出是否符合 API 契约。检查 .claude/cx/features/*/design.md 中定义的接口规范，确认实现的路径、请求体、响应体、状态码是否一致。如有偏差，列出差异并建议修正。"
+            "prompt": "校验子代理的输出是否符合 API 契约。检查 .claude/cx/功能/*/设计.md 中定义的接口规范，确认实现的路径、请求体、响应体、状态码是否一致。如有偏差，列出差异并建议修正。"
           }
         ]
       }

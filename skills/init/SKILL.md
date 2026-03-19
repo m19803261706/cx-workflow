@@ -1,16 +1,17 @@
 ---
-name: cx-init
+name: init
 description: >
   CX 工作流 — 项目初始化。每个项目都单独确认 developer_id、GitHub 同步策略、
   agent teams、code review、worktree isolation、auto memory，并建立项目级
-  .claude/cx 运行时真相目录。仅在用户明确调用 /cx-init 时执行。
+  .claude/cx 运行时真相目录。仅在用户明确调用 `/cx:init` 时执行。
+disable-model-invocation: true
 ---
 
-# cx-init — 初始化纯 CX 3.0 项目环境
+# cx-init — 初始化纯 CX 3.1 项目环境
 
 ## 概述
 
-`cx-init` 是未来纯 `cx 3.0` 中唯一一次重配置向导。
+`cx:init` 是未来纯 `cx 3.1` 中唯一一次重配置向导。
 
 它负责:
 
@@ -22,7 +23,7 @@ description: >
 - 如果没有 remote，默认建议创建 GitHub 仓库并绑定
 - 补齐最小项目规则段
 
-初始化完成后，项目应直接可以进入 `/cx-prd` 或 `/cx-fix`。
+初始化完成后，项目应直接可以进入 `/cx:prd` 或 `/cx:fix`。
 
 ## 执行原则
 
@@ -128,15 +129,16 @@ GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 }
 ```
 
-### Step 6: 安装插件级 hooks 接线
+### Step 6: 校验插件 hooks 依赖条件
 
-将插件层 hooks 注册到项目 `.claude/settings.json`。
+项目初始化不再向 `.claude/settings.json` 写入 hooks。
 
 关键点:
 
-- 使用插件目录下的 hook 脚本
+- 插件 hooks 由插件自身 `hooks/hooks.json` 自动提供
 - 不再复制 hook 到项目 `.claude/cx/hooks/`
 - 运行时 hook 只读取项目级 `配置.json` 与 feature 级 `状态.json`
+- `cx:init` 只负责告知当前项目已具备被插件 hooks 读取的运行时真相
 
 ### Step 7: 检查并建议 GitHub 接入
 
@@ -163,7 +165,6 @@ GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 - 项目级 `.claude/cx/配置.json` 已创建
 - 项目级 `.claude/cx/状态.json` 已创建
 - `.claude/cx/功能/` 与 `.claude/cx/修复/` 已存在
-- `.claude/settings.json` 已接入插件 hooks
 - GitHub 接入状态已明确
 - 项目可以直接进入下一步
 
@@ -171,5 +172,5 @@ GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 
 初始化完成后，默认提示:
 
-- 如果是新功能 → `/cx-prd`
-- 如果是缺陷修复 → `/cx-fix`
+- 如果是新功能 → `/cx:prd`
+- 如果是缺陷修复 → `/cx:fix`

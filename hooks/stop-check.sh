@@ -31,16 +31,16 @@ case "$FEATURE_STATUS" in
     echo "cx: 当前功能「${FEATURE_TITLE}」已阻塞（${BLOCK_REASON:-unknown}）。${BLOCK_MESSAGE}"
     ;;
   completed)
-    echo "cx: 当前功能「${FEATURE_TITLE}」已完成但尚未汇总，退出前记得 /cx-summary。"
+    echo "cx: 当前功能「${FEATURE_TITLE}」已完成但尚未汇总，退出前记得 /cx:summary。"
     ;;
   summarized)
     exit 0
     ;;
   *)
     if [[ -n "$CURRENT_TASK" ]]; then
-      echo "cx: 当前停在「${FEATURE_TITLE}」的 ${CURRENT_TASK}，下次可用 /cx-exec 继续。"
+      echo "cx: 当前停在「${FEATURE_TITLE}」的 ${CURRENT_TASK}，下次可用 /cx:exec 继续。"
     else
-      echo "cx: 当前功能「${FEATURE_TITLE}」尚未完成，下次可用 /cx-exec 继续。"
+      echo "cx: 当前功能「${FEATURE_TITLE}」尚未完成，下次可用 /cx:exec 继续。"
     fi
     ;;
 esac

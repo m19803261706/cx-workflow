@@ -22,6 +22,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `cx-summary` 改为只做闭环，GitHub 为同步镜像
 - README、workflow-guide、skill 文档与模板全部升级到纯 `cx 3.0`
 
+## [3.1.0] - 2026-03-20
+
+### Added
+- `StopFailure` 与 `ConfigChange` 两个 2026 官方 hooks 事件的最小支持
+- 插件 hooks 失败态与配置变更快照文件
+
+### Changed
+- 插件名称收敛为 `cx`，命令面统一改为 `/cx:*`
+- 强副作用 skills 改为手动触发，符合 2026 skills frontmatter 建议
+- `cx-init` 不再向项目 `.claude/settings.json` 写入 hooks，改为完全依赖插件 `hooks/hooks.json`
+- README、workflow-guide、模板和技能文档对齐 2026 官方插件规范
+
 ## [2.0.0] - 2026-02-06
 
 ### Added

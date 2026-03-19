@@ -10,10 +10,10 @@
   },
   "plugins": [
     {
-      "name": "cx-workflow",
+      "name": "cx",
       "source": "./",
-      "description": "CX 开发工作流技能体 — PRD→Design→Plan→Exec→Summary 完整闭环，含 Bug 修复路径和四档 GitHub 同步模式",
-      "version": "2.0.0",
+      "description": "CX 官方兼容工作流技能体 — /cx:* 命令空间、项目级 .claude/cx 真相模型、低打断执行与 GitHub 同步镜像",
+      "version": "3.1.0",
       "author": {
         "name": "chengxuan"
       },

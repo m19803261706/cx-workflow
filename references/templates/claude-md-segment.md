@@ -1,4 +1,4 @@
-# CLAUDE.md CX 3.0 Segment Template
+# CLAUDE.md CX 3.1 Segment Template
 
 Keep this segment concise. It should summarize the active CX runtime state, not duplicate workflow docs.
 
@@ -8,10 +8,10 @@ Keep this segment concise. It should summarize the active CX runtime state, not 
 
 ```markdown
 <!-- CX-WORKFLOW-START -->
-## CX 工作流 (v3.0)
+## CX 工作流 (v3.1)
 
 ### 命令
-/cx-prd <功能名> | /cx-fix <描述> | /cx-exec | /cx-status | /cx-summary
+/cx:prd <功能名> | /cx:fix <描述> | /cx:exec | /cx:status | /cx:summary
 
 ### 当前进度
 - 功能: [中文功能名]

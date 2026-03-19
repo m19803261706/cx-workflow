@@ -31,31 +31,38 @@ jq empty \
   tests/fixtures/minimal-project/.claude/cx/功能/示例功能/状态.json
 
 echo "[check] cx-init per-project developer_id prompt"
-rg '每个项目都单独确认 developer_id' skills/cx-init/SKILL.md
+rg '每个项目都单独确认 developer_id' skills/init/SKILL.md
 
 echo "[check] cx-init suggests creating GitHub remote"
-rg '默认建议创建 GitHub 仓库并绑定' skills/cx-init/SKILL.md
+rg '默认建议创建 GitHub 仓库并绑定' skills/init/SKILL.md
 
 echo "[check] cx-init uses project-level 配置.json wording"
-rg '配置.json' skills/cx-init/SKILL.md
+rg '配置.json' skills/init/SKILL.md
 
-echo "[check] runtime helper and stop hook exist"
+echo "[check] cx-init no longer writes project settings hooks"
+! rg 'settings\\.json|plugin-dir' scripts/cx-init-setup.sh
+
+echo "[check] runtime helper and hook scripts exist"
 test -f hooks/cx-runtime.sh
 test -f hooks/stop-check.sh
+test -f hooks/stop-failure.sh
+test -f hooks/config-change.sh
 
 echo "[check] hook shell syntax"
-bash -n hooks/cx-runtime.sh hooks/session-start.sh hooks/pre-compact.sh hooks/prompt-submit.sh hooks/post-edit.sh hooks/stop-check.sh
+bash -n hooks/cx-runtime.sh hooks/session-start.sh hooks/pre-compact.sh hooks/prompt-submit.sh hooks/post-edit.sh hooks/stop-check.sh hooks/stop-failure.sh hooks/config-change.sh
 
-echo "[check] hooks use 3.0 Chinese runtime paths"
+echo "[check] hooks use 3.1 Chinese runtime paths"
 rg '配置.json|状态.json|功能/' hooks/cx-runtime.sh hooks/session-start.sh hooks/pre-compact.sh hooks/prompt-submit.sh hooks/post-edit.sh hooks/stop-check.sh
 
 echo "[check] hooks no longer depend on old config or fixed refresh"
 ! rg 'config\\.json|features/' hooks/cx-runtime.sh hooks/session-start.sh hooks/pre-compact.sh hooks/prompt-submit.sh hooks/post-edit.sh hooks/stop-check.sh
 ! rg 'prompt_refresh_interval|\\.prompt-submit-counter' hooks/prompt-submit.sh
 
-echo "[check] hooks manifest wires stop command"
+echo "[check] hooks manifest wires 2026 official events"
 jq empty hooks/hooks.json
 rg 'stop-check.sh' hooks/hooks.json
+rg 'stop-failure.sh' hooks/hooks.json
+rg 'config-change.sh' hooks/hooks.json
 
 echo "[check] session-start summarizes current feature"
 SESSION_OUTPUT=$(PROJECT_ROOT=tests/fixtures/minimal-project bash hooks/session-start.sh)
@@ -74,7 +81,19 @@ test -z "$PROMPT_OUTPUT"
 
 echo "[check] stop hook reminds unfinished feature"
 STOP_OUTPUT=$(PROJECT_ROOT=tests/fixtures/minimal-project bash hooks/stop-check.sh)
-printf '%s\n' "$STOP_OUTPUT" | rg '/cx-exec'
+printf '%s\n' "$STOP_OUTPUT" | rg '/cx:exec'
+
+echo "[check] stop-failure writes failure snapshot"
+rm -f tests/fixtures/minimal-project/.claude/cx/最近失败.json
+printf '%s' '{"error":"rate_limit","message":"Too many requests"}' | PROJECT_ROOT=tests/fixtures/minimal-project bash hooks/stop-failure.sh
+test -f tests/fixtures/minimal-project/.claude/cx/最近失败.json
+rg '"error": "rate_limit"' tests/fixtures/minimal-project/.claude/cx/最近失败.json
+
+echo "[check] config-change writes config snapshot"
+rm -f tests/fixtures/minimal-project/.claude/cx/最近配置变更.json
+printf '%s' '{"source":"project_settings","file_path":".claude/settings.json"}' | PROJECT_ROOT=tests/fixtures/minimal-project bash hooks/config-change.sh
+test -f tests/fixtures/minimal-project/.claude/cx/最近配置变更.json
+rg '"source": "project_settings"' tests/fixtures/minimal-project/.claude/cx/最近配置变更.json
 
 echo "[check] prompt-submit surfaces blocked reason only when needed"
 TMP_DIR=$(mktemp -d)
@@ -89,25 +108,28 @@ BLOCKED_PROMPT=$(PROJECT_ROOT="$TMP_DIR" bash hooks/prompt-submit.sh)
 printf '%s\n' "$BLOCKED_PROMPT" | rg 'needs_decision'
 rm -f tests/fixtures/minimal-project/.claude/cx/context-snapshot.md
 
-echo "[check] prd and plan follow pure cx 3.0 flow"
-rg '自动判断是否需要 Design' skills/cx-prd/SKILL.md
-rg '仅当 PRD 明显引入新技术时' skills/cx-plan/SKILL.md
-! rg -F '{dev_id}-{feature}' skills/cx-prd/SKILL.md skills/cx-design/SKILL.md skills/cx-adr/SKILL.md skills/cx-plan/SKILL.md
+echo "[check] prd and plan follow pure cx 3.1 flow"
+rg '自动判断是否需要 Design' skills/prd/SKILL.md
+rg '仅当 PRD 明显引入新技术时' skills/plan/SKILL.md
+! rg -F '{dev_id}-{feature}' skills/prd/SKILL.md skills/design/SKILL.md skills/adr/SKILL.md skills/plan/SKILL.md
 rg '功能/' references/templates/prd.md references/templates/design.md references/templates/task.md
 
-echo "[check] execution chain follows pure cx 3.0 semantics"
-rg '/cx-exec --all' skills/cx-exec/SKILL.md
-rg -F '3+ 专业代理' skills/cx-exec/SKILL.md
-rg -F '[cx:<feature-slug>] [task:<n>]' skills/cx-exec/SKILL.md
-rg 'reason_type' skills/cx-status/SKILL.md skills/cx-exec/SKILL.md
-rg 'GitHub 为同步镜像' skills/cx-summary/SKILL.md skills/cx-help/SKILL.md
-rg '配置.json' skills/cx-config/SKILL.md
-! rg 'background_agents|prompt_refresh_interval' skills/cx-config/SKILL.md
+echo "[check] execution chain follows pure cx 3.1 semantics"
+rg '/cx:exec --all' skills/exec/SKILL.md
+rg -F '3+ 专业代理' skills/exec/SKILL.md
+rg -F '[cx:<feature-slug>] [task:<n>]' skills/exec/SKILL.md
+rg 'reason_type' skills/status/SKILL.md skills/exec/SKILL.md
+rg 'GitHub 为同步镜像' skills/summary/SKILL.md skills/help/SKILL.md
+rg '配置.json' skills/config/SKILL.md
+! rg 'background_agents|prompt_refresh_interval' skills/config/SKILL.md
+rg 'disable-model-invocation: true' skills/init/SKILL.md skills/prd/SKILL.md skills/plan/SKILL.md skills/design/SKILL.md skills/adr/SKILL.md skills/exec/SKILL.md skills/fix/SKILL.md skills/summary/SKILL.md skills/config/SKILL.md skills/scope/SKILL.md
 rg '修复/' references/templates/fix.md
 rg '总结.md' references/templates/summary.md
 
-echo "[check] public docs and metadata present pure cx 3.0"
-rg '"version": "3.0.0"' .claude-plugin/plugin.json
+echo "[check] public docs and metadata present pure cx 3.1"
+rg '"name": "cx"' .claude-plugin/plugin.json .claude-plugin/marketplace.json
+rg '"version": "3.1.0"' .claude-plugin/plugin.json .claude-plugin/marketplace.json
 rg '只保留 `cx`' README.md references/workflow-guide.md
 ! rg -F '/tc' README.md references/workflow-guide.md
-rg '纯 cx 3.0' CHANGELOG.md
+rg '/cx:init' README.md references/workflow-guide.md skills/help/SKILL.md
+rg '纯 cx 3.1|/cx:\*' README.md references/workflow-guide.md CHANGELOG.md

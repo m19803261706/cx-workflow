@@ -1,10 +1,11 @@
 ---
-name: cx-prd
+name: prd
 description: >
   CX 工作流 — 需求收集与规模评估。当用户提到"新功能"、"需求"、"PRD"、
   "我想做一个"、"帮我规划"、"收集需求"、"功能规划"时触发。
   多轮对话收集需求，自动评估规模，保存到本地
   .claude/cx/功能/{feature_title}/需求.md，并自动判断是否需要 Design。
+disable-model-invocation: true
 ---
 
 # cx-prd: 需求收集与规模评估
@@ -14,8 +15,8 @@ description: >
 ## 使用方法
 
 ```text
-/cx-prd {功能名}
-/cx-prd
+/cx:prd {功能名}
+/cx:prd
 ```
 
 ## 运行边界
@@ -105,9 +106,9 @@ mkdir -p "$FEATURE_DIR/任务"
 
 `cx-prd` 必须自动判断是否需要 Design，然后用勾选式问答让用户确认，而不是静默决定。
 
-- `S`：通常直接进入 `/cx-plan`
-- `M`：进入 `/cx-design`
-- `L`：进入 `/cx-design`，并在重大架构决策时补 `/cx-adr`
+- `S`：通常直接进入 `/cx:plan`
+- `M`：进入 `/cx:design`
+- `L`：进入 `/cx:design`，并在重大架构决策时补 `/cx:adr`
 
 如果用户选择“仍要完整流程”，可以让小功能也走设计，但默认不强迫。
 
@@ -122,4 +123,4 @@ mkdir -p "$FEATURE_DIR/任务"
 
 - 文档：`.claude/cx/功能/{功能标题}/需求.md`
 - 状态：项目级 `状态.json` 更新 `current_feature`、`features[slug]`
-- 后续路由：自动建议 `/cx-plan` 或 `/cx-design`
+- 后续路由：自动建议 `/cx:plan` 或 `/cx:design`

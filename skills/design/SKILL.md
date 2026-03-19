@@ -1,10 +1,11 @@
 ---
-name: cx-design
+name: design
 description: >
   CX 工作流 — 技术设计与执行契约。当用户提到"技术设计"、"Design Doc"、
   "API 设计"、"接口设计"、"架构设计"、"系统设计"时触发。
   读取 PRD 生成设计文档，保存到本地 .claude/cx/功能/{feature_title}/设计.md。
   该步骤只服务中大 feature 的执行契约，不强加给所有小功能。
+disable-model-invocation: true
 ---
 
 # cx-design: 技术设计与执行契约
@@ -14,8 +15,8 @@ description: >
 ## 使用方法
 
 ```text
-/cx-design {功能名}
-/cx-design
+/cx:design {功能名}
+/cx:design
 ```
 
 ## 设计原则
@@ -89,7 +90,7 @@ DESIGN_FILE="$FEATURE_DIR/设计.md"
 
 ## 什么时候需要 ADR
 
-只有在这些情况出现时，才建议进入 `/cx-adr`：
+只有在这些情况出现时，才建议进入 `/cx:adr`：
 
 - 明显引入新技术
 - 存储或通信方案存在实质性取舍

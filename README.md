@@ -2,41 +2,46 @@
 
 纯 `cx` 工作流插件，面向 Claude Code 的项目级开发内核。
 
-## 这次 3.0 的重点
+作为插件技能，命令遵循 Claude Code 2026 官方命名空间规范：`/cx:*`。
+
+## 这次 3.1 的重点
 
 - 只保留 `cx`
+- 插件命名空间正式收敛为 `cx`
 - 项目级 `.claude/cx` 是唯一运行时真相
 - 可见目录与文档中文化，JSON 协议保持英文稳定
 - 命令默认自动路由，普通执行尽量少打断
+- 强副作用命令默认手动触发
 - `--all` 专门用于高自治 agent teams
 - GitHub 只作为同步镜像，不承担主控
+- 插件 hooks 通过官方 `hooks/hooks.json` 自动生效，不再由 init 写入项目 settings
 
 ## 核心命令
 
-- `/cx-init`
-- `/cx-help`
-- `/cx-status`
-- `/cx-config`
-- `/cx-prd`
-- `/cx-design`
-- `/cx-adr`
-- `/cx-plan`
-- `/cx-exec`
-- `/cx-fix`
-- `/cx-summary`
+- `/cx:init`
+- `/cx:help`
+- `/cx:status`
+- `/cx:config`
+- `/cx:prd`
+- `/cx:design`
+- `/cx:adr`
+- `/cx:plan`
+- `/cx:exec`
+- `/cx:fix`
+- `/cx:summary`
 
 ## 工作流主线
 
 ### 新功能
 
 ```text
-/cx-prd → /cx-design（按需）→ /cx-plan → /cx-exec → /cx-summary
+/cx:prd → /cx:design（按需）→ /cx:plan → /cx:exec → /cx:summary
 ```
 
 ### Bug 修复
 
 ```text
-/cx-fix
+/cx:fix
 ```
 
 ## 项目级目录
@@ -60,10 +65,10 @@
 
 ## 默认行为
 
-- `/cx-plan` 默认轻量，只有明显引入新技术时才额外做技术识别
-- `/cx-exec` 默认自动推进当前功能
-- `/cx-exec --all` 进入团队模式，按任务图自适应组织 3+ 专业代理
-- `/cx-summary` 只负责闭环，不接管执行态
+- `/cx:plan` 默认轻量，只有明显引入新技术时才额外做技术识别
+- `/cx:exec` 默认自动推进当前功能
+- `/cx:exec --all` 进入团队模式，按任务图自适应组织 3+ 专业代理
+- `/cx:summary` 只负责闭环，不接管执行态
 
 ## GitHub 同步
 
@@ -79,7 +84,7 @@ GitHub 是同步镜像，不是运行时真相。
 在项目里运行一次：
 
 ```text
-/cx-init
+/cx:init
 ```
 
 初始化时会一次性确认：

@@ -1,13 +1,14 @@
 ---
-name: cx-config
+name: config
 description: >
   CX 工作流 — 配置管理。查看或修改项目级 `.claude/cx/配置.json`
-  中公开的少量字段。仅在用户明确调用 /cx-config 时执行。
+  中公开的少量字段。仅在用户明确调用 `/cx:config` 时执行。
+disable-model-invocation: true
 ---
 
 # cx-config: 项目配置管理
 
-`cx-config` 只管理项目级公开配置，不暴露实现细节开关。
+`cx:config` 只管理项目级公开配置，不暴露实现细节开关。
 
 ## 配置来源
 
@@ -17,7 +18,7 @@ description: >
 .claude/cx/配置.json
 ```
 
-全局插件配置只用于 `cx-init` 提供默认值，不参与后续运行时决策。
+全局插件配置只用于 `cx:init` 提供默认值，不参与后续运行时决策。
 
 ## 公开字段
 
@@ -60,5 +61,5 @@ description: >
 
 ## 与初始化的关系
 
-`cx-init` 负责一次性问清关键项目决策；
-`cx-config` 负责后续查看和小范围修改，不再重复初始化向导。
+`cx:init` 负责一次性问清关键项目决策；
+`cx:config` 负责后续查看和小范围修改，不再重复初始化向导。

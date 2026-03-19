@@ -1,10 +1,11 @@
 ---
-name: cx-scope
+name: scope
 description: >
   CX 工作流 — 项目蓝图探讨。当用户提到"蓝图"、"整体规划"、"项目范围"、
   "scope"、"项目探讨"、"功能方案"时触发。多轮对话探讨项目或功能方案，
-  将结果保存到本地 .claude/cx/features/{dev_id}-{feature}/scope.md，
+  将结果保存到本地 `.claude/cx/功能/{功能标题}/范围.md`，
   可选同步到 GitHub Issue（基于 config.github_sync 模式）。
+disable-model-invocation: true
 ---
 
 # cx-scope: 项目与功能探讨
@@ -14,8 +15,8 @@ description: >
 ## 使用方法
 
 ```
-/cx-scope                  # 项目级蓝图探讨
-/cx-scope {功能名}          # 功能级方案探讨
+/cx:scope                  # 项目级蓝图探讨
+/cx:scope {功能名}          # 功能级方案探讨
 ```
 
 ## 核心步骤
@@ -24,11 +25,8 @@ description: >
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
-DEVELOPER_ID=$(jq -r '.developer_id' "$PROJECT_ROOT/.claude/cx/config.json" 2>/dev/null || echo "cx")
-
-# 创建功能目录
-FEATURE_SLUG="{feature_name_slugified}"
-FEATURE_DIR="$PROJECT_ROOT/.claude/cx/features/${DEVELOPER_ID}-${FEATURE_SLUG}"
+FEATURE_TITLE="{功能标题}"
+FEATURE_DIR="$PROJECT_ROOT/.claude/cx/功能/${FEATURE_TITLE}"
 mkdir -p "$FEATURE_DIR"
 ```
 
@@ -82,7 +80,7 @@ mkdir -p "$FEATURE_DIR"
 
 ### Step 5: 保存到本地
 
-生成结构化 scope.md 文档，保存到 `.claude/cx/features/{dev_id}-{feature}/scope.md`。
+生成结构化 `范围.md` 文档，保存到 `.claude/cx/功能/{功能标题}/范围.md`。
 
 **项目级模板**：
 ```markdown
@@ -138,9 +136,9 @@ Phase 2: ...
 
 ### Step 6: GitHub 同步（可选）
 
-根据 `config.github_sync`：
+根据 `配置.json.github_sync`：
 - **off**：仅保存本地，不创建 Issue
-- **local/collab/full**：创建 GitHub Issue（标签 `doc:scope`），并在 .claude/cx/features/{dev_id}-{feature}/scope.json 中记录 Issue 编号
+- **local/collab/full**：创建 GitHub Issue（标签 `doc:scope`），并在 `.claude/cx/功能/{功能标题}/范围.json` 中记录 Issue 编号
 
 ### Step 7: 下一步引导
 
@@ -152,28 +150,28 @@ Phase 2: ...
       "header": "下一步",
       "multiSelect": false,
       "options": [
-        {"label": "开始 PRD", "description": "运行 /cx-prd {功能名}"},
+        {"label": "开始 PRD", "description": "运行 /cx:prd {功能名}"},
         {"label": "继续探讨", "description": "再开一轮"},
-        {"label": "保存稍后", "description": "先 review scope.md"}
+        {"label": "保存稍后", "description": "先 review 范围.md"}
       ]
     }
   ]
 }
 ```
 
-如果选择开始 PRD，自动执行 `/cx-prd {功能名}`（会自动读取本地 scope.md 作为上下文）。
+如果选择开始 PRD，自动执行 `/cx:prd {功能名}`（会自动读取本地 `范围.md` 作为上下文）。
 
 ## 本地文件结构
 
 ```
-.claude/cx/features/
-└── {dev_id}-{feature}/
-    ├── scope.md           ← Scope 文档
-    ├── scope.json         ← Issue 编号（仅 collab/full 模式）
-    ├── prd.md            ← PRD（后续）
-    ├── design.md         ← Design Doc（后续）
-    ├── tasks/            ← 任务文件（后续）
-    └── status.json       ← 整体进度（后续）
+.claude/cx/功能/
+└── {功能标题}/
+    ├── 范围.md           ← Scope 文档
+    ├── 范围.json         ← Issue 编号（仅 collab/full 模式）
+    ├── 需求.md           ← PRD（后续）
+    ├── 设计.md           ← Design Doc（后续）
+    ├── 任务/             ← 任务文件（后续）
+    └── 状态.json         ← 整体进度（后续）
 ```
 
 ## Explore Subagent 使用
@@ -191,7 +189,7 @@ Task tool 参数:
 
 ## 进度追踪
 
-使用本地 `status.json` 记录 Scope 状态：
+使用本地 `状态.json` 记录 Scope 状态：
 
 ```json
 {
@@ -203,6 +201,6 @@ Task tool 参数:
 }
 ```
 
-## 与 cx-plan 的闭环
+## 与 cx:plan 的闭环
 
-当所有功能完成后，cx-exec 会自动检测 Scope 中的模块状态，更新状态为已完成。所有模块完成时，关闭 Scope Issue。
+当所有功能完成后，`cx:exec` 会自动检测 Scope 中的模块状态，更新状态为已完成。所有模块完成时，关闭 Scope Issue。

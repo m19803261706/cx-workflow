@@ -1,10 +1,11 @@
 ---
-name: cx-adr
+name: adr
 description: >
   CX 工作流 — 架构决策记录。当用户提到"架构决策"、"技术选型"、
   "ADR"、"为什么选择 X"、"架构方案对比"时可能触发（通常由 cx-design 自动调用）。
   仅在 L 规模或重大架构取舍出现时记录，保存到本地
   .claude/cx/功能/{feature_title}/架构决策.md。
+disable-model-invocation: true
 ---
 
 # cx-adr: 架构决策记录
@@ -14,8 +15,8 @@ description: >
 ## 使用方法
 
 ```text
-/cx-adr {决策标题}
-/cx-adr
+/cx:adr {决策标题}
+/cx:adr
 ```
 
 ## 触发边界

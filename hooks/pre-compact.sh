@@ -79,13 +79,13 @@ cat >> "$SNAPSHOT_FILE" << EOF
 
 ## 恢复建议
 
-- 查看进度: \`/cx-status\`
+- 查看进度: \`/cx:status\`
 EOF
 
 case "$FEATURE_STATUS" in
   completed)
     cat >> "$SNAPSHOT_FILE" << EOF
-- 收尾汇总: \`/cx-summary\`
+- 收尾汇总: \`/cx:summary\`
 EOF
     ;;
   summarized)
@@ -95,7 +95,7 @@ EOF
     ;;
   *)
     cat >> "$SNAPSHOT_FILE" << EOF
-- 继续执行: \`/cx-exec\`
+- 继续执行: \`/cx:exec\`
 EOF
     ;;
 esac

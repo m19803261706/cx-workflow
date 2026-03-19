@@ -13,7 +13,6 @@ AGENT_TEAMS="true"
 CODE_REVIEW="true"
 WORKTREE_ISOLATION="true"
 AUTO_MEMORY="true"
-PLUGIN_DIR=""
 
 log_success() {
   echo -e "${GREEN}✓${NC} $1"
@@ -35,7 +34,7 @@ show_help() {
   cat <<EOF
 usage: cx-init-setup.sh [OPTIONS]
 
-Initialize cx-workflow 3.0 for a project.
+Initialize cx 3.1 for a project.
 
 OPTIONS:
   --developer-id <id>          (required) Per-project developer display name
@@ -44,7 +43,6 @@ OPTIONS:
   --code-review <bool>         Enable post-exec code review: true / false
   --worktree-isolation <bool>  Prefer git worktrees: true / false
   --auto-memory <bool>         Enable workflow memory artifacts: true / false
-  --plugin-dir <path>          (required) Path to cx-workflow plugin root
   --help                       Show this help message
 EOF
 }
@@ -74,10 +72,6 @@ parse_arguments() {
         ;;
       --auto-memory)
         AUTO_MEMORY="$2"
-        shift 2
-        ;;
-      --plugin-dir)
-        PLUGIN_DIR="$2"
         shift 2
         ;;
       --help)
@@ -119,10 +113,6 @@ validate_arguments() {
   validate_bool "$WORKTREE_ISOLATION"
   validate_bool "$AUTO_MEMORY"
 
-  if [[ -z "$PLUGIN_DIR" || ! -d "$PLUGIN_DIR" ]]; then
-    log_error "Missing or invalid --plugin-dir"
-    exit 1
-  fi
 }
 
 detect_project_root() {
@@ -145,7 +135,7 @@ detect_remote_state() {
 create_directories() {
   local cx_root="$PROJECT_ROOT/.claude/cx"
 
-  log_info "Creating cx 3.0 directory structure..."
+  log_info "Creating cx 3.1 directory structure..."
   mkdir -p "$cx_root/功能"
   mkdir -p "$cx_root/修复"
   log_success "Created .claude/cx/功能 and .claude/cx/修复"
@@ -210,88 +200,12 @@ EOF
   log_success "Created .claude/cx/状态.json"
 }
 
-build_hooks_json() {
-  cat <<EOF
-  "hooks": {
-    "SessionStart": [{
-      "hooks": [{
-        "type": "command",
-        "command": "bash $PLUGIN_DIR/hooks/session-start.sh",
-        "timeout": 10
-      }]
-    }],
-    "PreCompact": [{
-      "hooks": [{
-        "type": "command",
-        "command": "bash $PLUGIN_DIR/hooks/pre-compact.sh",
-        "timeout": 5
-      }]
-    }],
-    "UserPromptSubmit": [{
-      "hooks": [{
-        "type": "command",
-        "command": "bash $PLUGIN_DIR/hooks/prompt-submit.sh",
-        "timeout": 3
-      }]
-    }],
-    "PostToolUse": [{
-      "matcher": "Write|Edit",
-      "hooks": [{
-        "type": "command",
-        "command": "bash $PLUGIN_DIR/hooks/post-edit.sh",
-        "timeout": 15
-      }]
-    }],
-    "Stop": [{
-      "hooks": [{
-        "type": "command",
-        "command": "bash $PLUGIN_DIR/hooks/stop-check.sh",
-        "timeout": 5
-      }]
-    }]
-  }
-EOF
-}
-
-install_hooks_config() {
-  local claude_dir="$PROJECT_ROOT/.claude"
-  local settings_file="$claude_dir/settings.json"
-  local hooks_json
-
-  mkdir -p "$claude_dir"
-  hooks_json=$(build_hooks_json)
-
-  log_info "Installing plugin-level hooks into .claude/settings.json..."
-
-  if [[ ! -f "$settings_file" ]]; then
-    cat > "$settings_file" <<EOF
-{
-$hooks_json
-}
-EOF
-    log_success "Created .claude/settings.json with plugin hooks"
-    return
-  fi
-
-  if grep -q '"SessionStart"' "$settings_file"; then
-    log_warning ".claude/settings.json already has hook configuration, skipping merge"
-    return
-  fi
-
-  local tmp_file
-  tmp_file=$(mktemp)
-  sed '$ s/}$/,/' "$settings_file" > "$tmp_file"
-  printf '%s\n' "$hooks_json" >> "$tmp_file"
-  echo "}" >> "$tmp_file"
-  mv "$tmp_file" "$settings_file"
-  log_success "Merged plugin hooks into .claude/settings.json"
-}
-
 update_gitignore() {
   local gitignore="$PROJECT_ROOT/.gitignore"
   local entries_to_add=(
-    ".claude/cx/.prompt-submit-counter"
     ".claude/cx/context-snapshot.md"
+    ".claude/cx/最近失败.json"
+    ".claude/cx/最近配置变更.json"
   )
 
   if [[ ! -f "$gitignore" ]]; then
@@ -318,7 +232,7 @@ main() {
 
   echo ""
   echo "=========================================="
-  echo "  cx-workflow 3.0 Initialization"
+  echo "  cx 3.1 Initialization"
   echo "=========================================="
   echo ""
 
@@ -327,7 +241,6 @@ main() {
   create_directories
   create_config
   create_status
-  install_hooks_config
   update_gitignore
 
   echo ""
@@ -338,6 +251,7 @@ main() {
   echo "GITHUB_SYNC=$GITHUB_SYNC"
   echo "CONFIG_FILE=$PROJECT_ROOT/.claude/cx/配置.json"
   echo "STATUS_FILE=$PROJECT_ROOT/.claude/cx/状态.json"
+  echo "HOOKS_MODE=plugin-managed"
   echo ""
 }
 

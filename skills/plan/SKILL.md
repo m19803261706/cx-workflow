@@ -1,10 +1,11 @@
 ---
-name: cx-plan
+name: plan
 description: >
   CX 工作流 — 任务规划与契约下沉。当用户提到"规划任务"、"制定计划"、
   "plan"、"拆分任务"时触发。读取设计文档（小功能则读取 PRD），
   生成任务分解，创建子任务文件并将契约下沉到任务中。
   产物保存到本地 .claude/cx/功能/{feature_title}/任务/。
+disable-model-invocation: true
 ---
 
 # cx-plan: 任务规划与契约下沉
@@ -14,8 +15,8 @@ description: >
 ## 使用方法
 
 ```text
-/cx-plan {功能名}
-/cx-plan
+/cx:plan {功能名}
+/cx:plan
 ```
 
 ## 规划原则
@@ -114,7 +115,7 @@ feature 级 `状态.json` 至少包含：
 规划完成后默认建议：
 
 ```text
-下一步：/cx-exec
+下一步：/cx:exec
 ```
 
-如果任务图中存在清晰并行组，再在状态中标注 `parallel_group`，供 `/cx-exec --all` 使用。
+如果任务图中存在清晰并行组，再在状态中标注 `parallel_group`，供 `/cx:exec --all` 使用。
