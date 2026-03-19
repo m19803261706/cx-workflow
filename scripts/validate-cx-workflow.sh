@@ -88,3 +88,9 @@ mv "$TMP_DIR/feature-status.json" "$TMP_DIR/.claude/cx/功能/示例功能/状�
 BLOCKED_PROMPT=$(PROJECT_ROOT="$TMP_DIR" bash hooks/prompt-submit.sh)
 printf '%s\n' "$BLOCKED_PROMPT" | rg 'needs_decision'
 rm -f tests/fixtures/minimal-project/.claude/cx/context-snapshot.md
+
+echo "[check] prd and plan follow pure cx 3.0 flow"
+rg '自动判断是否需要 Design' skills/cx-prd/SKILL.md
+rg '仅当 PRD 明显引入新技术时' skills/cx-plan/SKILL.md
+! rg -F '{dev_id}-{feature}' skills/cx-prd/SKILL.md skills/cx-design/SKILL.md skills/cx-adr/SKILL.md skills/cx-plan/SKILL.md
+rg '功能/' references/templates/prd.md references/templates/design.md references/templates/task.md

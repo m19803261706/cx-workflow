@@ -3,241 +3,123 @@ name: cx-prd
 description: >
   CX 工作流 — 需求收集与规模评估。当用户提到"新功能"、"需求"、"PRD"、
   "我想做一个"、"帮我规划"、"收集需求"、"功能规划"时触发。
-  多轮对话收集需求，自动评估规模 S/M/L，保存到本地
-  .claude/cx/features/{dev_id}-{feature}/prd.md，
-  根据规模智能路由：S→cx-plan，M/L→cx-design。
+  多轮对话收集需求，自动评估规模，保存到本地
+  .claude/cx/功能/{feature_title}/需求.md，并自动判断是否需要 Design。
 ---
 
 # cx-prd: 需求收集与规模评估
 
-多轮对话收集功能需求，自动评估规模，决定后续工作流路径。
+把模糊想法收敛成可执行需求，并决定后续是否进入设计阶段。
 
 ## 使用方法
 
+```text
+/cx-prd {功能名}
+/cx-prd
 ```
-/cx-prd {功能名}       # 指定功能开始需求收集
-/cx-prd               # 提示输入功能名
-```
+
+## 运行边界
+
+- 项目级 `.claude/cx/配置.json` 与 `.claude/cx/状态.json` 是唯一运行时真相
+- 可见目录与文档名使用中文，内部状态引用始终使用稳定 `slug`
+- `cx-prd` 负责需求收敛，不负责把流程做重
 
 ## 核心步骤
 
-### Step 0: 初始化本地环境
+### Step 0: 建立功能目录与 slug
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
-CONFIG="$PROJECT_ROOT/.claude/cx/config.json"
-DEVELOPER_ID=$(jq -r '.developer_id' "$CONFIG" 2>/dev/null || echo "cx")
-FEATURE_SLUG="{feature_name_slugified}"
-FEATURE_DIR="$PROJECT_ROOT/.claude/cx/features/${DEVELOPER_ID}-${FEATURE_SLUG}"
-mkdir -p "$FEATURE_DIR"
+CX_DIR="$PROJECT_ROOT/.claude/cx"
+CONFIG_FILE="$CX_DIR/配置.json"
+PROJECT_STATUS="$CX_DIR/状态.json"
+
+FEATURE_TITLE="{功能标题}"
+FEATURE_SLUG="{feature-slug}"
+FEATURE_DIR="$CX_DIR/功能/$FEATURE_TITLE"
+
+mkdir -p "$FEATURE_DIR/任务"
 ```
 
-### Step 1: 项目识别
+同时在项目级 `状态.json` 中登记：
 
-自动检测技术栈（Python/Node/Java/Rust/Go、框架等）。保存到 prd.json 中供后续参考。
-
-### Step 2: 代码结构与关联代码扫描
-
-启动 Explore subagent（通过 Task tool）：
-- 项目目录树
-- 技术栈细节
-- 搜索关键词相关的已有代码
-- 找出可复用模块、接口、数据结构
-
-输出供用户在对话中参考的上下文摘要。
-
-### Step 3: 多轮对话收集需求
-
-**第一轮**：基础信息
 ```json
 {
-  "questions": [
-    {
-      "question": "这个功能的核心用户场景有哪些？",
-      "header": "场景",
-      "multiSelect": true,
-      "options": [
-        {"label": "用户交互", "description": "终端用户直接使用"},
-        {"label": "系统处理", "description": "后台自动处理"},
-        {"label": "数据管理", "description": "数据存储和查询"},
-        {"label": "外部对接", "description": "与第三方集成"}
-      ]
-    },
-    {
-      "question": "预计影响哪些代码层？",
-      "header": "代码层",
-      "multiSelect": true,
-      "options": [
-        {"label": "前端界面"},
-        {"label": "后端服务"},
-        {"label": "数据层"},
-        {"label": "基础设施"}
-      ]
+  "current_feature": "feature-slug",
+  "features": {
+    "feature-slug": {
+      "title": "功能标题",
+      "path": "功能/功能标题",
+      "status": "drafting"
     }
-  ]
+  }
 }
 ```
 
-**循环对话**：每轮收集后展示理解，询问是否有补充或修正，直到用户确认无误。
+### Step 1: 读取现有上下文
 
-### Step 4: 优先级确认
+- 扫描项目技术栈和已有模块
+- 查找与本功能最接近的页面、接口、数据结构
+- 如果项目里已经有相关 `需求.md / 设计.md / 修复记录.md`，只提炼与本次需求相关的部分
 
-```json
-{
-  "questions": [
-    {
-      "question": "这个功能的优先级？",
-      "header": "优先级",
-      "multiSelect": false,
-      "options": [
-        {"label": "P0 紧急", "description": "阻塞其他工作"},
-        {"label": "P1 高", "description": "当前迭代必须完成"},
-        {"label": "P2 中", "description": "近期完成"},
-        {"label": "P3 低", "description": "可延后"}
-      ]
-    }
-  ]
-}
+### Step 2: 多轮问答收敛需求
+
+优先使用 Claude Code 的勾选式问答收集这些信息：
+
+- 核心用户场景
+- 影响层级：前端、后端、数据层、基础设施
+- 是否涉及新增接口、数据库结构、状态模型
+- 验收标准与明确的 out-of-scope
+
+每轮都先复述理解，再继续追问缺口；普通细节不做开放式盘问。
+
+### Step 3: 生成项目级需求文档
+
+写入：
+
+```text
+.claude/cx/功能/{功能标题}/需求.md
 ```
 
-### Step 5: 保存到本地
+文档里至少包含：
 
-生成 prd.md 保存到 `.claude/cx/features/{dev_id}-{feature}/prd.md`。
+- 功能标题
+- 稳定 slug
+- 背景与目标
+- 用户场景
+- 功能需求
+- 验收标准
+- 风险与未决问题
 
-**模板**：
-```markdown
-# PRD: {功能名}
+### Step 4: 自动评估规模
 
-## 基本信息
-- **创建时间**: {ISO 时间}
-- **优先级**: P0/P1/P2/P3
-- **技术栈**: {自动检测结果}
+根据这些维度给出 `S / M / L` 建议：
 
-## 功能概述
-{多轮对话生成的完整描述}
+- 影响文件和模块数量
+- 是否跨前后端
+- 是否新增或改动 API
+- 是否涉及数据库或状态机
+- 是否引入新技术或重大架构决策
 
-## 用户场景
-{场景列表及详细描述}
+### Step 5: 自动判断是否需要 Design
 
-## 详细需求
-{整理后的需求，按逻辑分组}
+`cx-prd` 必须自动判断是否需要 Design，然后用勾选式问答让用户确认，而不是静默决定。
 
-## 现有代码基础
-{代码扫描发现的可复用模块、接口、数据结构}
+- `S`：通常直接进入 `/cx-plan`
+- `M`：进入 `/cx-design`
+- `L`：进入 `/cx-design`，并在重大架构决策时补 `/cx-adr`
 
-## 代码影响范围
-{受影响的代码层和模块}
+如果用户选择“仍要完整流程”，可以让小功能也走设计，但默认不强迫。
 
-## 验收标准
-- [ ] {标准1}
-- [ ] {标准2}
-```
+### Step 6: 路由到下一步
 
-同时生成 prd.json 记录元数据：
-```json
-{
-  "feature_name": "{feature}",
-  "slug": "{feature_slug}",
-  "priority": "P1",
-  "tech_stack": ["node", "react"],
-  "created_at": "2024-01-15T10:00:00Z",
-  "github_issue": null,
-  "scale": null
-}
-```
+- 小功能：`PRD → Plan`
+- 中大功能：`PRD → Design → Plan`
 
-### Step 6: 自动规模评估
+只有在需求确实成熟后，才把 feature 状态从 `drafting` 推进到 `planned` 前的下一阶段。
 
-基于 PRD 内容综合评估：
+## 输出物
 
-| 维度 | S（小） | M（中） | L（大） |
-|------|---------|---------|---------|
-| 影响文件数 | 1-3 | 4-10 | 10+ |
-| 涉及层级 | 单层 | 前后端 | 全栈 |
-| 新增 API | 0 | 1-3 | 4+ |
-| 新增表 | 0 | 1-2 | 3+ |
-| 架构变更 | 无 | 小调整 | 新技术 |
-
-**评分规则**：
-```
-影响层级: 单层+0, 前后端+1, 全栈+2
-新增 API: 0个+0, 1-3个+1, 4+个+2
-数据库: 无+0, 1-2张+1, 3+张+2
-架构变更: 无+0, 有+2
-
-总分: 0-1→S, 2-4→M, 5+→L
-```
-
-保存评估结果到 prd.json。
-
-### Step 7: GitHub 同步（可选）
-
-根据 `config.github_sync`：
-- **off**：仅保存本地
-- **local/collab/full**：创建 GitHub Issue（标签 `doc:prd`），记录 Issue 编号
-
-### Step 8: 规模路由
-
-显示评估结果和建议流程：
-
-```
-规模评估: {S/M/L}
-  影响层级: {层级}
-  新增 API: {数量}
-  数据库变更: {是/否}
-
-建议流程: {根据规模给出}
-```
-
-```json
-{
-  "questions": [
-    {
-      "question": "是否继续下一步？",
-      "header": "下一步",
-      "multiSelect": false,
-      "options": [
-        {"label": "继续 {S→规划|M/L→设计} (推荐)", "description": "自动执行下一个 skill"},
-        {"label": "仍要完整流程", "description": "所有规模都走 Design→Plan→Exec"},
-        {"label": "稍后处理", "description": "先 review PRD"}
-      ]
-    }
-  ]
-}
-```
-
-## 规模特定路由
-
-**S 规模**：PRD → cx-plan（跳过 Design）
-```
-原因: 变更范围小，无需前后端对齐文档
-```
-
-**M 规模**：PRD → cx-design（需要 API 契约）
-```
-原因: 前后端都有变更，需要 API 契约对齐
-```
-
-**L 规模**：PRD → cx-design + cx-adr（完整链路）
-```
-原因: 全栈变更，需要完整设计和架构决策
-```
-
-## Explore Subagent 使用
-
-Step 2 启动代码扫描：
-
-```
-Task tool 参数:
-  subagent_type: "Explore"
-  description: "扫描项目结构、技术栈、关联代码"
-  prompt: "列出项目目录树、检测技术栈、找出与 {关键词} 相关的已有代码"
-```
-
-## 进度追踪
-
-本地 prd.json 记录完整元数据，供后续 skills 读取。
-
-## 与 cx-scope 的关联
-
-如果 cx-scope 已有功能方案记录，自动读取 scope.md 作为 PRD 对话的上下文，避免重复讨论。
+- 文档：`.claude/cx/功能/{功能标题}/需求.md`
+- 状态：项目级 `状态.json` 更新 `current_feature`、`features[slug]`
+- 后续路由：自动建议 `/cx-plan` 或 `/cx-design`

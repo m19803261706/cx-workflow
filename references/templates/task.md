@@ -1,11 +1,13 @@
-# 任务 {number}: {title}
+# 任务 {number}：[title]
+
+- 保存路径：`.claude/cx/功能/{feature_title}/任务/任务-{number}.md`
 
 ## 元信息
 
-- 功能: {feature_title}
-- slug: {feature_slug}
-- 阶段: {phase_name}
-- 依赖: {depends_on}
+- 功能标题：{feature_title}
+- 稳定 slug：{feature_slug}
+- 阶段：{phase_name}
+- 依赖：{depends_on}
 
 ## 任务目标
 
@@ -13,9 +15,9 @@
 
 ## 目标文件
 
-- 修改: `{modified_files}`
-- 新增: `{created_files}`
-- 测试: `{test_files}`
+- 修改：`{modified_files}`
+- 新增：`{created_files}`
+- 测试：`{test_files}`
 
 ## 验收标准
 
@@ -40,7 +42,7 @@
 
 ## 阻塞处理
 
-如任务进入 `blocked`，请在 feature 级 `状态.json` 中记录:
+如任务进入 `blocked`，请在 feature 级 `状态.json` 中记录：
 
 ```json
 {
