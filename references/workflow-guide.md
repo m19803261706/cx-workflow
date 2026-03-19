@@ -75,7 +75,9 @@ bash scripts/cx-core-migrate.sh
 ### 5. `/cx:exec`
 
 - 默认自动推进可执行任务
+- 完成一个 task 后必须重新调度，不能在 task 边界自然停下
 - 只在关键决策点暂停
+- 当同一 `parallel_group` 出现 `2+ ready` 任务时，可以问用户一次是否切到团队模式；若用户未明确切换，默认继续串行
 - 在 claim 前先调用 worktree 绑定检查，确认 runner 当前 checkout 与 feature 绑定一致
 - 同一 feature 如果已经绑定到另一个 worktree，必须先走 handoff，不能直接并行 claim
 - 每个 task 独立 commit，并追加 `[cx:<feature-slug>] [task:<n>]`

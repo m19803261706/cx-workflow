@@ -194,6 +194,7 @@ test -f scripts/cx-core-worktree.sh
 test -f scripts/cx-workflow-prd.sh
 test -f scripts/cx-workflow-plan.sh
 test -f scripts/cx-workflow-exec.sh
+test -f scripts/cx-workflow-exec-dispatch.sh
 test -f scripts/cx-workflow-design.sh
 test -f scripts/cx-workflow-status.sh
 test -f scripts/cx-workflow-summary.sh
@@ -205,6 +206,7 @@ bash -n \
   scripts/cx-workflow-prd.sh \
   scripts/cx-workflow-plan.sh \
   scripts/cx-workflow-exec.sh \
+  scripts/cx-workflow-exec-dispatch.sh \
   scripts/cx-workflow-design.sh \
   scripts/cx-workflow-status.sh \
   scripts/cx-workflow-summary.sh \
@@ -404,15 +406,32 @@ cat > "$WORKFLOW_SCENARIO_DIR/plan.json" <<'EOF'
     },
     {
       "number": 2,
-      "title": "推进执行态",
+      "title": "推进执行态 A",
       "phase": 2,
-      "parallel": false,
+      "parallel": true,
       "depends_on": [1],
-      "goal": "更新执行状态。",
+      "parallel_group": "exec-fanout",
+      "goal": "更新执行状态 A。",
       "modified_files": ["scripts/cx-workflow-exec.sh"],
       "created_files": [],
       "test_files": ["scripts/validate-cx-workflow.sh"],
-      "acceptance": ["执行能开始", "执行能完成"],
+      "acceptance": ["执行 A 能开始", "执行 A 能完成"],
+      "api_contracts": ["无"],
+      "enum_contracts": ["无"],
+      "field_mappings": ["无"]
+    },
+    {
+      "number": 3,
+      "title": "推进执行态 B",
+      "phase": 2,
+      "parallel": true,
+      "depends_on": [1],
+      "parallel_group": "exec-fanout",
+      "goal": "更新执行状态 B。",
+      "modified_files": ["scripts/cx-workflow-exec-dispatch.sh"],
+      "created_files": [],
+      "test_files": ["scripts/validate-cx-workflow.sh"],
+      "acceptance": ["执行 B 能开始", "执行 B 能完成"],
       "api_contracts": ["无"],
       "enum_contracts": ["无"],
       "field_mappings": ["无"]
@@ -430,14 +449,25 @@ CX_CORE_NOW=2026-03-20T10:11:00Z CX_WORKFLOW_NOW=2026-03-20T10:11:00Z bash scrip
   --plan-json-file "$WORKFLOW_SCENARIO_DIR/plan.json" >/dev/null
 test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/任务/任务-1.md"
 test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/任务/任务-2.md"
+test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/任务/任务-3.md"
 jq -e '.status == "planned" and .workflow.current_phase == "plan" and .workflow.next_route == "cx-exec"' \
   "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/状态.json" >/dev/null
-jq -e '.tasks[0].status == "ready" and .tasks[1].status == "pending"' \
+jq -e '.tasks[0].status == "ready" and .tasks[1].status == "pending" and .tasks[2].status == "pending"' \
   "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/状态.json" >/dev/null
 jq -e '.lifecycle.stage == "ready" and .workflow.current_phase == "plan" and .workflow.next_route == "cx-exec"' \
   "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json" >/dev/null
-jq -e '.tasks[0].status == "ready" and .tasks[1].status == "pending"' \
+jq -e '.tasks[0].status == "ready" and .tasks[1].status == "pending" and .tasks[2].status == "pending"' \
   "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json" >/dev/null
+
+echo "[check] workflow exec dispatch chooses next work instead of stopping at task boundary"
+DISPATCH_OUTPUT=$(bash scripts/cx-workflow-exec-dispatch.sh \
+  --project-root "$WORKFLOW_SCENARIO_DIR" \
+  --feature workflow-smoke \
+  --runner codex \
+  --session-id codex-exec-001 \
+  --mode auto)
+printf '%s\n' "$DISPATCH_OUTPUT" | rg '^decision=continue$'
+printf '%s\n' "$DISPATCH_OUTPUT" | rg '^selected_tasks=1$'
 
 echo "[check] workflow exec runner advances tasks and unlocks dependencies"
 CX_CORE_NOW=2026-03-20T10:12:00Z CX_WORKFLOW_NOW=2026-03-20T10:12:00Z bash scripts/cx-workflow-exec.sh \
@@ -466,8 +496,29 @@ CX_CORE_NOW=2026-03-20T10:13:00Z CX_WORKFLOW_NOW=2026-03-20T10:13:00Z bash scrip
   --commit abc123 >/dev/null
 jq -e '.completed == 1 and .in_progress == 0 and .tasks[0].status == "completed" and .tasks[0].commit == "abc123" and .tasks[1].status == "ready"' \
   "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/状态.json" >/dev/null
-jq -e '.lifecycle.stage == "executing" and .lease.claimed_tasks == [] and .tasks[0].status == "completed" and .tasks[1].status == "ready"' \
+jq -e '.lifecycle.stage == "executing" and .lease.claimed_tasks == [] and .tasks[0].status == "completed" and .tasks[1].status == "ready" and .tasks[2].status == "ready"' \
   "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json" >/dev/null
+
+echo "[check] workflow exec dispatch surfaces parallel-ready choice after task completion"
+DISPATCH_OUTPUT=$(bash scripts/cx-workflow-exec-dispatch.sh \
+  --project-root "$WORKFLOW_SCENARIO_DIR" \
+  --feature workflow-smoke \
+  --runner codex \
+  --session-id codex-exec-001 \
+  --mode auto)
+printf '%s\n' "$DISPATCH_OUTPUT" | rg '^decision=ask_parallel$'
+printf '%s\n' "$DISPATCH_OUTPUT" | rg '^selected_tasks=2$'
+printf '%s\n' "$DISPATCH_OUTPUT" | rg '^parallel_tasks=2,3$'
+printf '%s\n' "$DISPATCH_OUTPUT" | rg '^recommended_mode=sequential$'
+
+DISPATCH_OUTPUT=$(bash scripts/cx-workflow-exec-dispatch.sh \
+  --project-root "$WORKFLOW_SCENARIO_DIR" \
+  --feature workflow-smoke \
+  --runner codex \
+  --session-id codex-exec-001 \
+  --mode all)
+printf '%s\n' "$DISPATCH_OUTPUT" | rg '^decision=parallel$'
+printf '%s\n' "$DISPATCH_OUTPUT" | rg '^selected_tasks=2,3$'
 
 CX_CORE_NOW=2026-03-20T10:14:00Z CX_WORKFLOW_NOW=2026-03-20T10:14:00Z bash scripts/cx-workflow-exec.sh \
   --project-root "$WORKFLOW_SCENARIO_DIR" \
@@ -478,7 +529,7 @@ CX_CORE_NOW=2026-03-20T10:14:00Z CX_WORKFLOW_NOW=2026-03-20T10:14:00Z bash scrip
   --worktree-path /worktrees/workflow-smoke \
   --action start \
   --task 2 >/dev/null
-CX_CORE_NOW=2026-03-20T10:15:00Z CX_WORKFLOW_NOW=2026-03-20T10:15:00Z bash scripts/cx-workflow-exec.sh \
+CX_CORE_NOW=2026-03-20T10:14:30Z CX_WORKFLOW_NOW=2026-03-20T10:14:30Z bash scripts/cx-workflow-exec.sh \
   --project-root "$WORKFLOW_SCENARIO_DIR" \
   --feature workflow-smoke \
   --runner codex \
@@ -488,7 +539,34 @@ CX_CORE_NOW=2026-03-20T10:15:00Z CX_WORKFLOW_NOW=2026-03-20T10:15:00Z bash scrip
   --action complete \
   --task 2 \
   --commit def456 >/dev/null
-jq -e '.status == "completed" and .completed == 2 and .workflow.next_route == "cx-summary" and .tasks[1].commit == "def456"' \
+DISPATCH_OUTPUT=$(bash scripts/cx-workflow-exec-dispatch.sh \
+  --project-root "$WORKFLOW_SCENARIO_DIR" \
+  --feature workflow-smoke \
+  --runner codex \
+  --session-id codex-exec-001 \
+  --mode auto)
+printf '%s\n' "$DISPATCH_OUTPUT" | rg '^decision=continue$'
+printf '%s\n' "$DISPATCH_OUTPUT" | rg '^selected_tasks=3$'
+CX_CORE_NOW=2026-03-20T10:15:00Z CX_WORKFLOW_NOW=2026-03-20T10:15:00Z bash scripts/cx-workflow-exec.sh \
+  --project-root "$WORKFLOW_SCENARIO_DIR" \
+  --feature workflow-smoke \
+  --runner codex \
+  --session-id codex-exec-001 \
+  --branch codex/workflow-smoke \
+  --worktree-path /worktrees/workflow-smoke \
+  --action start \
+  --task 3 >/dev/null
+CX_CORE_NOW=2026-03-20T10:15:30Z CX_WORKFLOW_NOW=2026-03-20T10:15:30Z bash scripts/cx-workflow-exec.sh \
+  --project-root "$WORKFLOW_SCENARIO_DIR" \
+  --feature workflow-smoke \
+  --runner codex \
+  --session-id codex-exec-001 \
+  --branch codex/workflow-smoke \
+  --worktree-path /worktrees/workflow-smoke \
+  --action complete \
+  --task 3 \
+  --commit ghi789 >/dev/null
+jq -e '.status == "completed" and .completed == 3 and .workflow.next_route == "cx-summary" and .tasks[1].commit == "def456" and .tasks[2].commit == "ghi789"' \
   "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/状态.json" >/dev/null
 jq -e '.lifecycle.stage == "completed" and .workflow.next_route == "cx-summary" and .lease.claimed_tasks == []' \
   "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json" >/dev/null
@@ -872,6 +950,7 @@ test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-core-claim.sh"
 test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-workflow-prd.sh"
 test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-workflow-plan.sh"
 test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-workflow-exec.sh"
+test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-workflow-exec-dispatch.sh"
 test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-workflow-design.sh"
 test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-workflow-status.sh"
 test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-workflow-summary.sh"
@@ -886,6 +965,7 @@ test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-status/SKILL.md"
 test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-status/SKILL.md"
 test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/core/workflow/protocols/summary.md"
 test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/scripts/cx-core-migrate.sh"
+test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/scripts/cx-workflow-exec-dispatch.sh"
 test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/scripts/cx-workflow-plan.sh"
 test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/scripts/cx-workflow-exec.sh"
 test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/scripts/cx-workflow-design.sh"

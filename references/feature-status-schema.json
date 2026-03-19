@@ -173,7 +173,7 @@
           },
           "status": {
             "type": "string",
-            "enum": ["pending", "in_progress", "blocked", "completed"]
+            "enum": ["pending", "ready", "in_progress", "blocked", "completed"]
           },
           "reason_type": {
             "type": "string",
