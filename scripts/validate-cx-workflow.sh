@@ -541,6 +541,12 @@ rg -F '在 claim 前先调用 worktree 绑定检查' references/workflow-guide.m
 rg '修复/' references/templates/fix.md
 rg '总结.md' references/templates/summary.md
 
+echo "[check] codex adapter docs exist and describe dual-runner contract"
+test -f docs/codex-adapter-guide.md
+test -f references/codex-skill-contract.md
+rg 'runner `codex`|lease|handoff|worktree' docs/codex-adapter-guide.md references/codex-skill-contract.md
+rg 'CC 创建 feature A.*Codex 创建 feature B|CC 规划.*Codex 执行|Codex 规划.*CC 执行|中途 handoff' docs/codex-adapter-guide.md references/workflow-guide.md
+
 echo "[check] public docs and metadata present pure cx 3.1"
 rg '"name": "cx"' .claude-plugin/plugin.json .claude-plugin/marketplace.json
 rg '"version": "3.1.0"' .claude-plugin/plugin.json .claude-plugin/marketplace.json

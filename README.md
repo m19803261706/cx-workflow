@@ -1,6 +1,6 @@
 # cx-workflow
 
-纯 `cx` 工作流插件，面向 Claude Code 的项目级开发内核。
+纯 `cx` 工作流插件，面向 Claude Code 的项目级开发内核，并逐步演进为共享 `cx core` 的多运行器工作流。
 
 作为插件技能，命令遵循 Claude Code 2026 官方命名空间规范：`/cx:*`。
 
@@ -15,6 +15,7 @@
 - `--all` 专门用于高自治 agent teams
 - GitHub 只作为同步镜像，不承担主控
 - 插件 hooks 通过官方 `hooks/hooks.json` 自动生效，不再由 init 写入项目 settings
+- Claude Code 现在被视为共享 `cx core` 上的 `cc` adapter
 
 ## 核心命令
 
@@ -101,6 +102,8 @@ GitHub 是同步镜像，不是运行时真相。
 详细协议和行为说明见：
 
 - `references/workflow-guide.md`
+- `docs/codex-adapter-guide.md`
+- `references/codex-skill-contract.md`
 - `references/config-schema.json`
 - `references/project-status-schema.json`
 - `references/feature-status-schema.json`

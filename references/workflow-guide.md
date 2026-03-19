@@ -8,6 +8,7 @@
 - 只保留 `cx`
 - 插件命令遵循官方 namespaced 形式：`/cx:*`
 - 项目级 `.claude/cx` 是运行时真相
+- 共享 `cx core` 允许 `cc` / `codex` 两个 runner 协作
 - GitHub 是同步镜像，不是主控面
 - 中文目录与文档名面向使用者，英文 JSON 协议面向脚本
 - 默认自动路由，普通执行尽量不打断用户
@@ -134,6 +135,13 @@
 - 不同 feature 可以落在不同 worktree 并行执行
 - 同一 feature 未经 handoff 不能在多个 worktree 中同时执行
 - `plan` 负责写推荐，`exec` 负责在 claim 前校验当前位置并拒绝错位 checkout
+
+## 双运行器场景
+
+- CC 创建 feature A，同时 Codex 创建 feature B
+- CC 规划，Codex 执行
+- Codex 规划，CC 执行
+- 任一方向都可以中途 handoff
 
 ## Hook 设计
 
