@@ -1,0 +1,17 @@
+{
+  "runner": "codex",
+  "session_id": "codex-task-owner",
+  "branch": "codex/dual-runner-task-lock",
+  "worktree_path": "/worktrees/dual-runner-task-lock",
+  "started_at": "2026-03-20T08:45:00Z",
+  "last_heartbeat": "2026-03-20T09:00:00Z",
+  "claimed_feature": null,
+  "claimed_tasks": [1],
+  "state": "active",
+  "runtime_artifacts": {
+    "root": ".claude/cx/runtime/codex/codex-task-owner",
+    "state_file": ".claude/cx/runtime/codex/codex-task-owner/session.json",
+    "transcript": ".claude/cx/runtime/codex/codex-task-owner/transcript.md",
+    "heartbeat_file": ".claude/cx/runtime/codex/codex-task-owner/heartbeat.json"
+  }
+}

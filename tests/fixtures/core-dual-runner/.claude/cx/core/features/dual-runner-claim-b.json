@@ -1,0 +1,44 @@
+{
+  "slug": "dual-runner-claim-b",
+  "title": "Dual runner claim B",
+  "lifecycle": {
+    "stage": "ready",
+    "updated_at": "2026-03-20T09:00:00Z"
+  },
+  "planning_owner": null,
+  "execution_owner": null,
+  "worktree": {
+    "branch": "codex/dual-runner-claim-b",
+    "worktree_path": "/worktrees/dual-runner-claim-b",
+    "binding_status": "unbound"
+  },
+  "lease": {
+    "runner": "cx",
+    "session_id": "cx-placeholder-claim-b",
+    "branch": "cx/dual-runner-claim-b",
+    "worktree_path": "/worktrees/dual-runner-claim-b",
+    "claimed_feature": "dual-runner-claim-b",
+    "claimed_tasks": [],
+    "claimed_at": "2026-03-19T23:00:00Z",
+    "last_heartbeat": "2026-03-19T23:00:00Z",
+    "expires_at": "2026-03-20T00:00:00Z"
+  },
+  "docs": {},
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Claim on a free feature",
+      "status": "ready",
+      "owner_session_id": null,
+      "path": ".claude/cx/core/features/dual-runner-claim-b/tasks/1.md"
+    },
+    {
+      "id": 2,
+      "title": "Keep the second session separate",
+      "status": "pending",
+      "owner_session_id": null,
+      "path": ".claude/cx/core/features/dual-runner-claim-b/tasks/2.md"
+    }
+  ],
+  "handoffs": []
+}

@@ -1,0 +1,17 @@
+{
+  "runner": "codex",
+  "session_id": "codex-claim-001",
+  "branch": "codex/dual-runner-claim-a",
+  "worktree_path": "/worktrees/dual-runner-claim-a",
+  "started_at": "2026-03-20T08:50:00Z",
+  "last_heartbeat": "2026-03-20T09:00:00Z",
+  "claimed_feature": "dual-runner-claim-a",
+  "claimed_tasks": [1],
+  "state": "active",
+  "runtime_artifacts": {
+    "root": ".claude/cx/runtime/codex/codex-claim-001",
+    "state_file": ".claude/cx/runtime/codex/codex-claim-001/session.json",
+    "transcript": ".claude/cx/runtime/codex/codex-claim-001/transcript.md",
+    "heartbeat_file": ".claude/cx/runtime/codex/codex-claim-001/heartbeat.json"
+  }
+}

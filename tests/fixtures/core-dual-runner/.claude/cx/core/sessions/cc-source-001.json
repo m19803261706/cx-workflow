@@ -1,0 +1,17 @@
+{
+  "runner": "cc",
+  "session_id": "cc-source-001",
+  "branch": "cc/dual-runner-handoff",
+  "worktree_path": "/worktrees/dual-runner-handoff",
+  "started_at": "2026-03-20T08:40:00Z",
+  "last_heartbeat": "2026-03-20T09:00:00Z",
+  "claimed_feature": "dual-runner-handoff",
+  "claimed_tasks": [1, 2],
+  "state": "active",
+  "runtime_artifacts": {
+    "root": ".claude/cx/runtime/cc/cc-source-001",
+    "state_file": ".claude/cx/runtime/cc/cc-source-001/session.json",
+    "transcript": ".claude/cx/runtime/cc/cc-source-001/transcript.md",
+    "heartbeat_file": ".claude/cx/runtime/cc/cc-source-001/heartbeat.json"
+  }
+}

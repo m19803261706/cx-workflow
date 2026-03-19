@@ -1,0 +1,96 @@
+{
+  "version": "1.0",
+  "current_feature": "dual-runner-claim-a",
+  "features": {
+    "dual-runner-claim-a": {
+      "slug": "dual-runner-claim-a",
+      "title": "Dual runner claim A",
+      "path": ".claude/cx/core/features/dual-runner-claim-a.json",
+      "lifecycle": "executing",
+      "worktree_path": "/worktrees/dual-runner-claim-a",
+      "lease_session_id": "codex-claim-001",
+      "last_updated": "2026-03-20T09:00:00Z"
+    },
+    "dual-runner-claim-b": {
+      "slug": "dual-runner-claim-b",
+      "title": "Dual runner claim B",
+      "path": ".claude/cx/core/features/dual-runner-claim-b.json",
+      "lifecycle": "ready",
+      "worktree_path": "/worktrees/dual-runner-claim-b",
+      "lease_session_id": null,
+      "last_updated": "2026-03-20T09:00:00Z"
+    },
+    "dual-runner-task-lock": {
+      "slug": "dual-runner-task-lock",
+      "title": "Dual runner task lock",
+      "path": ".claude/cx/core/features/dual-runner-task-lock.json",
+      "lifecycle": "ready",
+      "worktree_path": "/worktrees/dual-runner-task-lock",
+      "lease_session_id": null,
+      "last_updated": "2026-03-20T09:00:00Z"
+    },
+    "dual-runner-handoff": {
+      "slug": "dual-runner-handoff",
+      "title": "Dual runner handoff",
+      "path": ".claude/cx/core/features/dual-runner-handoff.json",
+      "lifecycle": "executing",
+      "worktree_path": "/worktrees/dual-runner-handoff",
+      "lease_session_id": "cc-source-001",
+      "last_updated": "2026-03-20T09:00:00Z"
+    }
+  },
+  "active_sessions": {
+    "codex-claim-001": {
+      "runner": "codex",
+      "session_id": "codex-claim-001",
+      "branch": "codex/dual-runner-claim-a",
+      "worktree_path": "/worktrees/dual-runner-claim-a",
+      "started_at": "2026-03-20T08:50:00Z",
+      "last_heartbeat": "2026-03-20T09:00:00Z",
+      "claimed_feature": "dual-runner-claim-a",
+      "claimed_tasks": [1]
+    },
+    "codex-task-owner": {
+      "runner": "codex",
+      "session_id": "codex-task-owner",
+      "branch": "codex/dual-runner-task-lock",
+      "worktree_path": "/worktrees/dual-runner-task-lock",
+      "started_at": "2026-03-20T08:45:00Z",
+      "last_heartbeat": "2026-03-20T09:00:00Z",
+      "claimed_feature": null,
+      "claimed_tasks": [1]
+    },
+    "cc-source-001": {
+      "runner": "cc",
+      "session_id": "cc-source-001",
+      "branch": "cc/dual-runner-handoff",
+      "worktree_path": "/worktrees/dual-runner-handoff",
+      "started_at": "2026-03-20T08:40:00Z",
+      "last_heartbeat": "2026-03-20T09:00:00Z",
+      "claimed_feature": "dual-runner-handoff",
+      "claimed_tasks": [1, 2]
+    },
+    "codex-target-001": {
+      "runner": "codex",
+      "session_id": "codex-target-001",
+      "branch": "codex/dual-runner-handoff",
+      "worktree_path": "/worktrees/dual-runner-handoff",
+      "started_at": "2026-03-20T08:55:00Z",
+      "last_heartbeat": "2026-03-20T09:00:00Z",
+      "claimed_feature": null,
+      "claimed_tasks": []
+    }
+  },
+  "runtime_roots": {
+    "projects": ".claude/cx/core/projects",
+    "features": ".claude/cx/core/features",
+    "sessions": ".claude/cx/core/sessions",
+    "handoffs": ".claude/cx/core/handoffs",
+    "worktrees": ".claude/cx/core/worktrees",
+    "artifacts": {
+      "cx": ".claude/cx/runtime/cx",
+      "cc": ".claude/cx/runtime/cc",
+      "codex": ".claude/cx/runtime/codex"
+    }
+  }
+}

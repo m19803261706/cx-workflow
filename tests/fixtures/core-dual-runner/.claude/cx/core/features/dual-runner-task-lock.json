@@ -1,0 +1,44 @@
+{
+  "slug": "dual-runner-task-lock",
+  "title": "Dual runner task lock",
+  "lifecycle": {
+    "stage": "ready",
+    "updated_at": "2026-03-20T09:00:00Z"
+  },
+  "planning_owner": null,
+  "execution_owner": null,
+  "worktree": {
+    "branch": "codex/dual-runner-task-lock",
+    "worktree_path": "/worktrees/dual-runner-task-lock",
+    "binding_status": "unbound"
+  },
+  "lease": {
+    "runner": "cx",
+    "session_id": "cx-placeholder-task-lock",
+    "branch": "cx/dual-runner-task-lock",
+    "worktree_path": "/worktrees/dual-runner-task-lock",
+    "claimed_feature": "dual-runner-task-lock",
+    "claimed_tasks": [],
+    "claimed_at": "2026-03-19T23:00:00Z",
+    "last_heartbeat": "2026-03-19T23:00:00Z",
+    "expires_at": "2026-03-20T00:00:00Z"
+  },
+  "docs": {},
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Task-level conflict stays blocked",
+      "status": "claimed",
+      "owner_session_id": "codex-task-owner",
+      "path": ".claude/cx/core/features/dual-runner-task-lock/tasks/1.md"
+    },
+    {
+      "id": 2,
+      "title": "Keep the feature free for the lease claim",
+      "status": "ready",
+      "owner_session_id": null,
+      "path": ".claude/cx/core/features/dual-runner-task-lock/tasks/2.md"
+    }
+  ],
+  "handoffs": []
+}
