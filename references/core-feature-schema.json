@@ -302,6 +302,22 @@
           "title": {
             "type": "string"
           },
+          "phase": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "parallel": {
+            "type": "boolean"
+          },
+          "depends_on": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/task_identifier"
+            }
+          },
+          "parallel_group": {
+            "type": "string"
+          },
           "status": {
             "type": "string",
             "enum": [
