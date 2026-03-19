@@ -53,12 +53,15 @@
 
 - 默认轻量拆任务
 - 仅当 PRD 明显引入新技术时，才进入技术识别支线
+- 先记录 feature 的推荐 worktree，再拆任务和状态
 - 产物：`.claude/cx/功能/{功能标题}/任务/任务-{n}.md`
 
 ### 5. `/cx:exec`
 
 - 默认自动推进可执行任务
 - 只在关键决策点暂停
+- 在 claim 前先调用 worktree 绑定检查，确认 runner 当前 checkout 与 feature 绑定一致
+- 同一 feature 如果已经绑定到另一个 worktree，必须先走 handoff，不能直接并行 claim
 - 每个 task 独立 commit，并追加 `[cx:<feature-slug>] [task:<n>]`
 
 ### 6. `/cx:exec --all`
@@ -123,6 +126,13 @@
 ```
 
 恢复依赖 hook 和状态文件，而不是模型记忆。
+
+## Worktree 规则
+
+- 一个 feature 绑定一个 preferred worktree
+- 不同 feature 可以落在不同 worktree 并行执行
+- 同一 feature 未经 handoff 不能在多个 worktree 中同时执行
+- `plan` 负责写推荐，`exec` 负责在 claim 前校验当前位置并拒绝错位 checkout
 
 ## Hook 设计
 

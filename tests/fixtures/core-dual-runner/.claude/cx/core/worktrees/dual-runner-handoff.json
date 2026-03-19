@@ -1,0 +1,13 @@
+{
+  "feature_slug": "dual-runner-handoff",
+  "preferred_worktree_path": "/worktrees/dual-runner-handoff",
+  "preferred_branch": "cc/dual-runner-handoff",
+  "binding_status": "bound",
+  "updated_at": "2026-03-20T09:00:00Z",
+  "bound_at": "2026-03-20T08:40:00Z",
+  "runner": "cc",
+  "session_id": "cc-source-001",
+  "current_worktree_path": "/worktrees/dual-runner-handoff",
+  "current_branch": "cc/dual-runner-handoff",
+  "record_path": ".claude/cx/core/worktrees/dual-runner-handoff.json"
+}

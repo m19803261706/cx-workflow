@@ -102,6 +102,11 @@ feature 级 `状态.json` 至少包含：
       "status": "pending"
     }
   ],
+  "worktree": {
+    "preferred_branch": "codex/vector-memory",
+    "preferred_worktree_path": "/worktrees/vector-memory",
+    "binding_status": "recommended"
+  },
   "docs": {
     "prd": "需求.md",
     "design": "设计.md",
@@ -115,7 +120,7 @@ feature 级 `状态.json` 至少包含：
 规划完成后默认建议：
 
 ```text
-下一步：/cx:exec
+下一步：/cx:exec（先完成 worktree 绑定检查）
 ```
 
 如果任务图中存在清晰并行组，再在状态中标注 `parallel_group`，供 `/cx:exec --all` 使用。

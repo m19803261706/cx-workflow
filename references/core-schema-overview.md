@@ -52,6 +52,24 @@ Each session captures:
 The project registry keeps only active sessions.
 Historical detail belongs in feature handoffs or runner-specific artifacts.
 
+### 4. Worktree Registry
+
+The worktree registry is the feature-facing map from feature slug to a preferred checkout.
+It lets the control plane distinguish:
+
+- the recommended worktree for a feature
+- the checkout a runner is currently using
+- the branch that should travel with that checkout
+
+The rule is intentionally strict:
+
+- one feature owns one preferred worktree at a time
+- different features may live in different worktrees and execute in parallel
+- the same feature cannot be claimed from two worktrees at once unless a handoff has transferred the lease
+
+Planning writes the recommendation first.
+Execution validates the current checkout against that recommendation before claim.
+
 ## Ownership Model
 
 ### Execution Lease
@@ -96,6 +114,7 @@ That binding travels through both the feature record and the session record so a
 - keep branch ownership visible
 
 One feature may keep the same worktree across multiple sessions and handoffs.
+A feature can change worktrees only after the old lease is released or handed off, so concurrent claims never split one feature across multiple checkouts.
 
 ## Runtime Storage Boundaries
 

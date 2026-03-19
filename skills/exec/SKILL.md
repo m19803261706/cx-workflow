@@ -34,6 +34,23 @@ disable-model-invocation: true
 - 从项目级 `.claude/cx/状态.json` 找到对应中文目录
 - 从 `.claude/cx/功能/{功能标题}/状态.json` 读取 `tasks / phases / execution_order`
 
+### Step 0.5: 校验 worktree 绑定
+
+在 claim 之前先做 worktree 校验，确保 runner 当前 checkout 与 feature 绑定一致：
+
+```bash
+bash scripts/cx-core-worktree.sh \
+  --feature {feature-slug} \
+  --runner {runner} \
+  --session-id {session-id} \
+  --branch {branch} \
+  --worktree-path {preferred-worktree-path}
+```
+
+- 如果脚本返回推荐 worktree，说明还在规划阶段，先落盘推荐再继续
+- 如果脚本拒绝当前 checkout，先走 handoff 或切换到正确 worktree，不能直接 claim
+- 同一 feature 只能在一个 worktree 中持有活跃执行权，除非已经发生 handoff
+
 ### Step 1: 选择可执行任务
 
 默认选择所有“依赖已满足”的任务，而不是只跑一个就停。

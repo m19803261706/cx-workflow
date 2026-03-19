@@ -1,0 +1,13 @@
+{
+  "feature_slug": "dual-runner-task-lock",
+  "preferred_worktree_path": "/worktrees/dual-runner-task-lock",
+  "preferred_branch": "codex/dual-runner-task-lock",
+  "binding_status": "recommended",
+  "updated_at": "2026-03-20T09:00:00Z",
+  "bound_at": null,
+  "runner": null,
+  "session_id": null,
+  "current_worktree_path": null,
+  "current_branch": null,
+  "record_path": ".claude/cx/core/worktrees/dual-runner-task-lock.json"
+}

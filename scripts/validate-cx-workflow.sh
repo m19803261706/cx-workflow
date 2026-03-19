@@ -134,6 +134,10 @@ jq empty \
   tests/fixtures/core-dual-runner/.claude/cx/core/features/dual-runner-claim-b.json \
   tests/fixtures/core-dual-runner/.claude/cx/core/features/dual-runner-task-lock.json \
   tests/fixtures/core-dual-runner/.claude/cx/core/features/dual-runner-handoff.json \
+  tests/fixtures/core-dual-runner/.claude/cx/core/worktrees/dual-runner-claim-a.json \
+  tests/fixtures/core-dual-runner/.claude/cx/core/worktrees/dual-runner-claim-b.json \
+  tests/fixtures/core-dual-runner/.claude/cx/core/worktrees/dual-runner-task-lock.json \
+  tests/fixtures/core-dual-runner/.claude/cx/core/worktrees/dual-runner-handoff.json \
   tests/fixtures/core-dual-runner/.claude/cx/core/sessions/codex-claim-001.json \
   tests/fixtures/core-dual-runner/.claude/cx/core/sessions/codex-task-owner.json \
   tests/fixtures/core-dual-runner/.claude/cx/core/sessions/cc-source-001.json \
@@ -142,6 +146,7 @@ jq empty \
 echo "[check] core claim script exists"
 test -f scripts/cx-core-claim.sh
 test -f scripts/cx-core-handoff.sh
+test -f scripts/cx-core-worktree.sh
 test -f references/templates/core-feature.md
 
 echo "[check] core claim keeps different features isolated"
@@ -221,6 +226,65 @@ HandoffRecordPath=$(jq -r '.handoffs[-1].record_path' \
   "$CORE_SCENARIO_DIR/.claude/cx/core/features/dual-runner-handoff.json")
 test -f "$CORE_SCENARIO_DIR/$HandoffRecordPath"
 jq empty "$CORE_SCENARIO_DIR/$HandoffRecordPath"
+rm -rf "$CORE_SCENARIO_DIR"
+
+echo "[check] core worktree recommendation records preferred checkout"
+CORE_SCENARIO_DIR=$(mktemp -d)
+cp -R tests/fixtures/core-dual-runner/. "$CORE_SCENARIO_DIR"
+CX_CORE_NOW=2026-03-20T10:08:00Z PROJECT_ROOT="$CORE_SCENARIO_DIR" bash scripts/cx-core-worktree.sh \
+  --feature dual-runner-task-lock
+jq -e '.binding_status == "recommended" and .preferred_worktree_path == "/worktrees/dual-runner-task-lock" and .preferred_branch == "codex/dual-runner-task-lock"' \
+  "$CORE_SCENARIO_DIR/.claude/cx/core/worktrees/dual-runner-task-lock.json" >/dev/null
+rm -rf "$CORE_SCENARIO_DIR"
+
+echo "[check] core worktree binding succeeds for distinct features"
+CORE_SCENARIO_DIR=$(mktemp -d)
+cp -R tests/fixtures/core-dual-runner/. "$CORE_SCENARIO_DIR"
+CX_CORE_NOW=2026-03-20T10:09:00Z PROJECT_ROOT="$CORE_SCENARIO_DIR" bash scripts/cx-core-worktree.sh \
+  --runner cc \
+  --session-id cc-claim-002 \
+  --branch cc/dual-runner-claim-b \
+  --worktree-path /worktrees/dual-runner-claim-b \
+  --current-branch cc/dual-runner-claim-b \
+  --current-worktree-path /worktrees/dual-runner-claim-b \
+  --feature dual-runner-claim-b
+CX_CORE_NOW=2026-03-20T10:09:30Z PROJECT_ROOT="$CORE_SCENARIO_DIR" bash scripts/cx-core-worktree.sh \
+  --runner cc \
+  --session-id cc-task-lock-002 \
+  --branch cc/dual-runner-task-lock \
+  --worktree-path /worktrees/dual-runner-task-lock \
+  --current-branch cc/dual-runner-task-lock \
+  --current-worktree-path /worktrees/dual-runner-task-lock \
+  --feature dual-runner-task-lock
+jq -e '.binding_status == "bound" and .preferred_worktree_path == "/worktrees/dual-runner-claim-b" and .runner == "cc" and .session_id == "cc-claim-002"' \
+  "$CORE_SCENARIO_DIR/.claude/cx/core/worktrees/dual-runner-claim-b.json" >/dev/null
+jq -e '.binding_status == "bound" and .preferred_worktree_path == "/worktrees/dual-runner-task-lock" and .runner == "cc" and .session_id == "cc-task-lock-002"' \
+  "$CORE_SCENARIO_DIR/.claude/cx/core/worktrees/dual-runner-task-lock.json" >/dev/null
+test "$(jq -r '.preferred_worktree_path' "$CORE_SCENARIO_DIR/.claude/cx/core/worktrees/dual-runner-claim-b.json")" != \
+  "$(jq -r '.preferred_worktree_path' "$CORE_SCENARIO_DIR/.claude/cx/core/worktrees/dual-runner-task-lock.json")"
+jq -e '.worktree.binding_status == "bound" and .worktree.worktree_path == "/worktrees/dual-runner-claim-b"' \
+  "$CORE_SCENARIO_DIR/.claude/cx/core/features/dual-runner-claim-b.json" >/dev/null
+jq -e '.worktree.binding_status == "bound" and .worktree.worktree_path == "/worktrees/dual-runner-task-lock"' \
+  "$CORE_SCENARIO_DIR/.claude/cx/core/features/dual-runner-task-lock.json" >/dev/null
+rm -rf "$CORE_SCENARIO_DIR"
+
+echo "[check] core worktree binding rejects wrong checkout for same feature"
+CORE_SCENARIO_DIR=$(mktemp -d)
+cp -R tests/fixtures/core-dual-runner/. "$CORE_SCENARIO_DIR"
+if CX_CORE_NOW=2026-03-20T10:10:00Z PROJECT_ROOT="$CORE_SCENARIO_DIR" bash scripts/cx-core-worktree.sh \
+  --runner cc \
+  --session-id cc-claim-003 \
+  --branch cc/dual-runner-claim-a \
+  --worktree-path /worktrees/dual-runner-claim-a \
+  --current-branch cc/dual-runner-claim-a \
+  --current-worktree-path /worktrees/dual-runner-claim-b \
+  --feature dual-runner-claim-a; then
+  echo "wrong worktree binding should fail" >&2
+  rm -rf "$CORE_SCENARIO_DIR"
+  exit 1
+fi
+jq -e '.binding_status == "bound" and .preferred_worktree_path == "/worktrees/dual-runner-claim-a"' \
+  "$CORE_SCENARIO_DIR/.claude/cx/core/worktrees/dual-runner-claim-a.json" >/dev/null
 rm -rf "$CORE_SCENARIO_DIR"
 
 echo "[check] core project cross references stay non-dangling"
@@ -401,11 +465,16 @@ echo "[check] execution chain follows pure cx 3.1 semantics"
 rg '/cx:exec --all' skills/exec/SKILL.md
 rg -F '3+ 专业代理' skills/exec/SKILL.md
 rg -F '[cx:<feature-slug>] [task:<n>]' skills/exec/SKILL.md
+rg 'worktree 校验|当前 checkout 与 feature 绑定一致' skills/exec/SKILL.md
+rg 'preferred_worktree_path|binding_status' skills/plan/SKILL.md
 rg 'reason_type' skills/status/SKILL.md skills/exec/SKILL.md
 rg 'GitHub 为同步镜像' skills/summary/SKILL.md skills/help/SKILL.md
 rg '配置.json' skills/config/SKILL.md
 ! rg 'background_agents|prompt_refresh_interval' skills/config/SKILL.md
 rg 'disable-model-invocation: true' skills/init/SKILL.md skills/prd/SKILL.md skills/plan/SKILL.md skills/design/SKILL.md skills/adr/SKILL.md skills/exec/SKILL.md skills/fix/SKILL.md skills/summary/SKILL.md skills/config/SKILL.md skills/scope/SKILL.md
+rg -F 'preferred worktree' references/core-schema-overview.md references/workflow-guide.md
+rg -F 'handoff' references/core-schema-overview.md references/workflow-guide.md
+rg -F '在 claim 前先调用 worktree 绑定检查' references/workflow-guide.md
 rg '修复/' references/templates/fix.md
 rg '总结.md' references/templates/summary.md
 
