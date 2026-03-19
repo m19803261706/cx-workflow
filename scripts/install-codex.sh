@@ -158,13 +158,16 @@ install_shared_bundle() {
   local shared_dir="$root/cx-shared"
 
   mkdir -p "$shared_dir"
+  remove_target "$shared_dir/core"
   remove_target "$shared_dir/references"
   remove_target "$shared_dir/scripts"
 
   if [[ "$MODE" == "symlink" ]]; then
+    ln -s "$REPO_ROOT/core" "$shared_dir/core"
     ln -s "$REPO_ROOT/references" "$shared_dir/references"
     ln -s "$REPO_ROOT/scripts" "$shared_dir/scripts"
   else
+    cp -R "$REPO_ROOT/core" "$shared_dir/core"
     cp -R "$REPO_ROOT/references" "$shared_dir/references"
     cp -R "$REPO_ROOT/scripts" "$shared_dir/scripts"
     chmod +x "$shared_dir"/scripts/*.sh
@@ -175,6 +178,7 @@ install_shared_bundle() {
 
 这是 `cx` 在 Codex 侧安装后的共享资源目录。
 
+- `core/`：共享控制面与共享工作流大脑
 - `references/`：共享协议、模板与说明
 - `scripts/`：共享 core 脚本
 

@@ -11,6 +11,11 @@ disable-model-invocation: true
 
 默认像一个稳健主程一样持续推进；带 `--all` 时，再升级成高自治 agent teams。
 
+先阅读：
+
+- `core/workflow/README.md`
+- `core/workflow/protocols/exec.md`
+
 ## 使用方法
 
 ```text

@@ -5,6 +5,11 @@ description: "Codex 侧 CX 状态查看。展示共享 core 中的 feature、own
 
 # CX Status (Codex Adapter)
 
+先阅读：
+
+- `../cx-shared/core/workflow/README.md`
+- `../cx-shared/core/workflow/protocols/status.md`
+
 优先读取：
 
 - `.claude/cx/core/projects/*.json`

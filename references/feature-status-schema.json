@@ -226,6 +226,77 @@
         }
       },
       "additionalProperties": false
+    },
+    "workflow": {
+      "type": "object",
+      "required": [
+        "protocol_version",
+        "current_phase",
+        "completion_status",
+        "question_mode",
+        "next_route",
+        "last_transition_at"
+      ],
+      "properties": {
+        "protocol_version": {
+          "type": "string",
+          "enum": ["1.0"]
+        },
+        "current_phase": {
+          "type": "string",
+          "enum": [
+            "scope",
+            "prd",
+            "design",
+            "adr",
+            "plan",
+            "exec",
+            "fix",
+            "status",
+            "summary"
+          ]
+        },
+        "completion_status": {
+          "type": "string",
+          "enum": ["collecting", "ready", "blocked", "done"]
+        },
+        "question_mode": {
+          "type": "string",
+          "enum": ["conversation", "checklist", "hybrid"]
+        },
+        "size": {
+          "type": ["string", "null"],
+          "enum": ["S", "M", "L", null]
+        },
+        "needs_design": {
+          "type": ["boolean", "null"]
+        },
+        "needs_adr": {
+          "type": ["boolean", "null"]
+        },
+        "next_route": {
+          "type": ["string", "null"],
+          "enum": [
+            "cx-prd",
+            "cx-design",
+            "cx-adr",
+            "cx-plan",
+            "cx-exec",
+            "cx-fix",
+            "cx-status",
+            "cx-summary",
+            null
+          ]
+        },
+        "decision_basis": {
+          "type": "string"
+        },
+        "last_transition_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false

@@ -1,11 +1,12 @@
 # Codex Adapter Guide
 
-Codex 不是 `cx core` 的旁路工具，而是共享控制平面上的第二个正式运行器。
+Codex 不是 `cx core` 的旁路工具，而是共享控制平面与共享工作流大脑上的第二个正式运行器。
 
 目标很明确：
 
 - 让 Codex 以 runner `codex` 身份接入共享 `cx core`
 - 与 Claude Code 的 `cc` adapter 共用一套 feature / lease / handoff / worktree 规则
+- 与 Claude Code 的 `cc` adapter 共用一套 PRD / Design / Plan / Exec / Fix / Status / Summary 规则
 - 支持并行 feature、跨运行器 handoff，以及中途接手继续执行
 
 ## 安装方式
@@ -50,6 +51,7 @@ Codex adapter 安装后的 skill 包还必须做到：
 - 所有 `cx-*` skills 都可以从同一个仓库产出
 - 共享引用通过 `cx-shared/` 复用协议、模板和脚本
 - 不复制第二套 `cx core`
+- phase 行为优先引用 `cx-shared/core/workflow/protocols/*.md`
 
 Codex adapter 不应该：
 

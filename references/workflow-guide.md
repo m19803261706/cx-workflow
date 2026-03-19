@@ -2,6 +2,7 @@
 
 纯 `cx 3.1` 的参考指南。目标很简单：插件层提供能力，项目级 `.claude/cx` 提供真相。
 在双运行器模式下，Claude Code 插件只是共享 `cx core` 上的 `cc` adapter，不再把自己视为整个系统。
+从这版开始，`core/workflow/` 也开始承载共享工作流大脑。
 
 ## 核心原则
 
@@ -9,6 +10,7 @@
 - 插件命令遵循官方 namespaced 形式：`/cx:*`
 - 项目级 `.claude/cx` 是运行时真相
 - 共享 `cx core` 允许 `cc` / `codex` 两个 runner 协作
+- `shared workflow core` 统一 PRD / Design / Plan / Exec / Fix / Status / Summary 的规则
 - GitHub 是同步镜像，不是主控面
 - 中文目录与文档名面向使用者，英文 JSON 协议面向脚本
 - 默认自动路由，普通执行尽量不打断用户
@@ -46,6 +48,7 @@ bash scripts/cx-core-migrate.sh
 - 多轮收集需求
 - 自动评估规模
 - 自动判断是否需要 Design
+- 通过共享 runner `scripts/cx-workflow-prd.sh` 做确定性落盘
 - 产物：`.claude/cx/功能/{功能标题}/需求.md`
 
 ### 2. `/cx:design`
@@ -150,6 +153,16 @@ bash scripts/cx-core-migrate.sh
 - CC 规划，Codex 执行
 - Codex 规划，CC 执行
 - 任一方向都可以中途 handoff
+
+## Shared Workflow Core
+
+共享工作流层位于：
+
+- `core/workflow/README.md`
+- `core/workflow/protocols/*.md`
+
+这些协议定义的不是某个 adapter 的私有行为，而是两边共用的流程规则。
+adapter 只负责入口与交互载体，不能再各自重新解释 PRD、Plan 或 Exec 语义。
 
 ## Codex Adapter 安装
 

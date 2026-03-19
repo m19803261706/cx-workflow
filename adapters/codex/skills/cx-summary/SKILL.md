@@ -7,6 +7,8 @@ description: "Codex 侧 CX 汇总闭环。汇总 feature 结果、更新共享�
 
 先阅读：
 
+- `../cx-shared/core/workflow/README.md`
+- `../cx-shared/core/workflow/protocols/summary.md`
 - `../cx-shared/references/codex-skill-contract.md`
 - `../cx-shared/references/templates/summary.md`
 

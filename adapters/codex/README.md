@@ -5,6 +5,7 @@
 目标很明确：
 
 - 与 Claude Code 插件共用同一套 `cx core`
+- 与 Claude Code 插件共用同一套 `shared workflow core`
 - 让 Codex 以 runner `codex` 身份接入共享控制平面
 - 支持独立安装到用户级或项目级技能目录
 
@@ -34,6 +35,7 @@ bash scripts/install-codex.sh --scope project --project-root /path/to/project
 
 - `skills/`：Codex 侧真正可安装的 skill 包
 - 安装后会额外生成 `cx-shared/`
+  - `core/`：共享控制面与共享工作流大脑
   - `references/`：共享协议与模板
   - `scripts/`：共享 core 脚本
 

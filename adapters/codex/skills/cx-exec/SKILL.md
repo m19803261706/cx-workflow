@@ -7,6 +7,8 @@ description: "Codex 侧 CX 任务执行。先做 worktree 检查，再 claim lea
 
 先阅读：
 
+- `../cx-shared/core/workflow/README.md`
+- `../cx-shared/core/workflow/protocols/exec.md`
 - `../cx-shared/references/codex-skill-contract.md`
 - `../cx-shared/references/core-schema-overview.md`
 

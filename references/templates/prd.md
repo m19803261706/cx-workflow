@@ -3,6 +3,8 @@
 - 保存路径：`.claude/cx/功能/[功能标题]/需求.md`
 - 稳定 slug：`[feature-slug]`
 - 当前状态：`drafting`
+- 共享 workflow 协议：`1.0`
+- 下一步建议：`cx-design / cx-plan`
 
 ## 背景与目标
 
@@ -42,4 +44,5 @@
 
 - 建议规模：`S / M / L`
 - 是否需要 Design：[是/否]
+- 问答模式：`conversation / checklist / hybrid`
 - 判断依据：[简述]

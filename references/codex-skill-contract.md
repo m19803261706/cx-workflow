@@ -1,6 +1,10 @@
 # Codex Skill Contract
 
 这份契约定义 Codex 侧 `cx` 技能必须遵守的共享语义。
+这些语义同时覆盖：
+
+- 共享控制平面
+- 共享工作流大脑
 
 ## 1. 运行器身份
 
@@ -10,6 +14,7 @@
 ## 2. 命令语义
 
 Codex 侧允许用 skill 名、别名或自然语言触发，但行为必须和 Claude Code 的 `/cx:*` 语义对齐。
+尤其不能在 `PRD / Design / Plan / Exec / Fix / Status / Summary` 上长出第二套流程脑子。
 
 最小命令面：
 

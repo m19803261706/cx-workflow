@@ -10,6 +10,11 @@ disable-model-invocation: true
 
 先快修，只有问题明显复杂时才升级成更重的调查。
 
+先阅读：
+
+- `core/workflow/README.md`
+- `core/workflow/protocols/fix.md`
+
 ## 使用方法
 
 ```text

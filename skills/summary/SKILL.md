@@ -10,6 +10,11 @@ disable-model-invocation: true
 
 只负责收尾，不参与执行态主控。
 
+先阅读：
+
+- `core/workflow/README.md`
+- `core/workflow/protocols/summary.md`
+
 ## 使用方法
 
 ```text

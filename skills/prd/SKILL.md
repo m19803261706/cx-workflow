@@ -12,6 +12,12 @@ disable-model-invocation: true
 
 把模糊想法收敛成可执行需求，并决定后续是否进入设计阶段。
 
+先阅读：
+
+- `core/workflow/README.md`
+- `core/workflow/protocols/prd.md`
+- `references/templates/prd.md`
+
 ## 使用方法
 
 ```text
@@ -25,38 +31,31 @@ disable-model-invocation: true
 - 可见目录与文档名使用中文，内部状态引用始终使用稳定 `slug`
 - `cx-prd` 负责需求收敛，不负责把流程做重
 - Claude Code 侧以 runner `cc` 身份写共享状态；如果 feature 已由 `codex` 持有，先提示 handoff
+- 不要在长时间分析之后才落盘；最小 PRD scaffold 应该先由 shared runner 建好
 
 ## 核心步骤
 
-### Step 0: 建立功能目录与 slug
+### Step 0: 先按 shared workflow core 建立 feature scaffold
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
-CX_DIR="$PROJECT_ROOT/.claude/cx"
-CONFIG_FILE="$CX_DIR/配置.json"
-PROJECT_STATUS="$CX_DIR/状态.json"
-
-FEATURE_TITLE="{功能标题}"
-FEATURE_SLUG="{feature-slug}"
-FEATURE_DIR="$CX_DIR/功能/$FEATURE_TITLE"
-
-mkdir -p "$FEATURE_DIR/任务"
+bash scripts/cx-workflow-prd.sh \
+  --project-root "$PROJECT_ROOT" \
+  --title "{功能标题}" \
+  --slug "{feature-slug}" \
+  --runner cc \
+  --session-id "{session-id}" \
+  --size "{S|M|L}" \
+  --needs-design "{true|false}" \
+  --question-mode checklist
 ```
 
-同时在项目级 `状态.json` 中登记：
+这个 shared runner 负责确定性落盘：
 
-```json
-{
-  "current_feature": "feature-slug",
-  "features": {
-    "feature-slug": {
-      "title": "功能标题",
-      "path": "功能/功能标题",
-      "status": "drafting"
-    }
-  }
-}
-```
+- `.claude/cx/功能/{功能标题}/需求.md`
+- `.claude/cx/功能/{功能标题}/状态.json`
+- `.claude/cx/core/features/{feature-slug}.json`
+- `.claude/cx/core/projects/project.json`
 
 ### Step 1: 读取现有上下文
 
@@ -77,11 +76,7 @@ mkdir -p "$FEATURE_DIR/任务"
 
 ### Step 3: 生成项目级需求文档
 
-写入：
-
-```text
-.claude/cx/功能/{功能标题}/需求.md
-```
+在 shared runner 先完成最小落盘后，再把需求内容补充完整，而不是只停留在口头问答。
 
 文档里至少包含：
 
@@ -124,4 +119,5 @@ mkdir -p "$FEATURE_DIR/任务"
 
 - 文档：`.claude/cx/功能/{功能标题}/需求.md`
 - 状态：项目级 `状态.json` 更新 `current_feature`、`features[slug]`
+- shared core：`.claude/cx/core/features/{slug}.json` 与 `project.json`
 - 后续路由：自动建议 `/cx:plan` 或 `/cx:design`

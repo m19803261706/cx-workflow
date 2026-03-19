@@ -7,6 +7,8 @@ description: "Codex 侧 CX 任务规划。读取 PRD/Design，生成任务清单
 
 先阅读：
 
+- `../cx-shared/core/workflow/README.md`
+- `../cx-shared/core/workflow/protocols/plan.md`
 - `../cx-shared/references/codex-skill-contract.md`
 - `../cx-shared/references/templates/task.md`
 

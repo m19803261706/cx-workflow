@@ -7,6 +7,8 @@ description: "Codex 侧 CX 技术设计。基于 PRD 生成设计文档与契约
 
 先阅读：
 
+- `../cx-shared/core/workflow/README.md`
+- `../cx-shared/core/workflow/protocols/design.md`
 - `../cx-shared/references/codex-skill-contract.md`
 - `../cx-shared/references/templates/design.md`
 

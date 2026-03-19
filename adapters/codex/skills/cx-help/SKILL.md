@@ -9,6 +9,7 @@ description: "Codex 侧 CX 工作流帮助。解释共享 cx core、可用 skill
 
 先阅读：
 
+- `../cx-shared/core/workflow/README.md`
 - `../cx-shared/references/codex-skill-contract.md`
 - `../cx-shared/references/core-schema-overview.md`
 
@@ -29,6 +30,7 @@ description: "Codex 侧 CX 工作流帮助。解释共享 cx core、可用 skill
 ## Codex 侧必守规则
 
 - 共享真相始终在项目里的 `.claude/cx/core`
+- `shared workflow core` 才是 phase 规则真相，Codex 只是 adapter
 - Codex 运行时临时文件只写 `.claude/cx/runtime/codex/`
 - 如果 feature 当前由 `cc` 持有，不要静默覆盖，优先建议 handoff
 - 同一 feature 未经 handoff 不得跨 worktree 并发执行

@@ -12,6 +12,11 @@ disable-model-invocation: true
 
 把中大 feature 的关键决策、接口契约和测试重点先锁住，再进入任务规划。
 
+先阅读：
+
+- `core/workflow/README.md`
+- `core/workflow/protocols/design.md`
+
 ## 使用方法
 
 ```text

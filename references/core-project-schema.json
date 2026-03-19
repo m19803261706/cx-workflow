@@ -106,6 +106,35 @@
             ],
             "description": "Optional pointer to the active session that currently holds this feature lease. Runtime validation must ensure a non-null value resolves to an existing key in active_sessions."
           },
+          "workflow_phase": {
+            "type": ["string", "null"],
+            "enum": [
+              "scope",
+              "prd",
+              "design",
+              "adr",
+              "plan",
+              "exec",
+              "fix",
+              "status",
+              "summary",
+              null
+            ]
+          },
+          "next_route": {
+            "type": ["string", "null"],
+            "enum": [
+              "cx-prd",
+              "cx-design",
+              "cx-adr",
+              "cx-plan",
+              "cx-exec",
+              "cx-fix",
+              "cx-status",
+              "cx-summary",
+              null
+            ]
+          },
           "last_updated": {
             "type": "string",
             "format": "date-time"

@@ -29,6 +29,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - 插件 hooks 失败态与配置变更快照文件
 - 共享 `cx core` 控制平面：project / feature / session / handoff / worktree schema
 - `cx-core-claim.sh`、`cx-core-handoff.sh`、`cx-core-worktree.sh`、`cx-core-migrate.sh`
+- `core/workflow/` 共享工作流大脑：PRD / Design / Plan / Exec / Fix / Status / Summary 协议
+- 共享 workflow state schema：`references/workflow-state-schema.json`
+- 确定性 PRD runner：`scripts/cx-workflow-prd.sh`
 - Codex adapter 指南与技能契约文档
 - Codex adapter 可安装 skill 包与 `install-codex.sh`
 
@@ -40,6 +43,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Claude Code 插件被收敛为共享 `cx core` 上的 `cc` adapter
 - hooks 运行时快照改为写入 `.claude/cx/runtime/cc/`
 - 同一个仓库现在同时承载 CC 插件 adapter 与 Codex skill adapter
+- CC 与 Codex 的 phase skill 开始显式引用同一套 shared workflow core 协议，而不是各自维持流程脑子
 
 ### Rollout
 - Claude Code 最低版本要求为 `2.1.79`

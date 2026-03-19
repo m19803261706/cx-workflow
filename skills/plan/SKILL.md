@@ -12,6 +12,11 @@ disable-model-invocation: true
 
 把需求或设计真正变成能执行的任务图，而不是再写一层描述文档。
 
+先阅读：
+
+- `core/workflow/README.md`
+- `core/workflow/protocols/plan.md`
+
 ## 使用方法
 
 ```text

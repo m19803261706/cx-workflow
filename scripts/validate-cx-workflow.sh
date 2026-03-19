@@ -48,11 +48,23 @@ test -f references/core-feature-schema.json
 test -f references/core-session-schema.json
 test -f references/core-handoff-schema.json
 
+echo "[check] shared workflow core docs and schema exist"
+test -f core/README.md
+test -f core/workflow/README.md
+test -f core/workflow/protocols/prd.md
+test -f core/workflow/protocols/design.md
+test -f core/workflow/protocols/plan.md
+test -f core/workflow/protocols/exec.md
+test -f core/workflow/protocols/fix.md
+test -f core/workflow/protocols/status.md
+test -f core/workflow/protocols/summary.md
+test -f references/workflow-state-schema.json
+
 echo "[check] task template exists"
 test -f references/templates/task.md
 
 echo "[check] schema json parses"
-jq empty references/config-schema.json references/project-status-schema.json references/feature-status-schema.json
+jq empty references/config-schema.json references/project-status-schema.json references/feature-status-schema.json references/workflow-state-schema.json
 
 echo "[check] core schema json parses"
 jq empty \
@@ -63,6 +75,8 @@ jq empty \
 
 echo "[check] feature status schema carries reason_type"
 jq -e '.properties.blocked.required | index("reason_type")' references/feature-status-schema.json >/dev/null
+jq -e '.properties.workflow.required | index("current_phase")' references/feature-status-schema.json >/dev/null
+jq -e '.properties.workflow.required | index("next_route")' references/feature-status-schema.json >/dev/null
 
 echo "[check] core project schema carries control plane pointers"
 jq -e '.required | index("version")' references/core-project-schema.json >/dev/null
@@ -77,6 +91,8 @@ jq -e '.properties.active_sessions.propertyNames."$ref" == "#/definitions/sessio
 jq -e '.properties.current_feature.anyOf[0]."$ref" == "#/definitions/feature_slug" and .properties.current_feature.anyOf[1].type == "null"' references/core-project-schema.json >/dev/null
 jq -e '.properties.features.additionalProperties.properties.lease_session_id.anyOf[0]."$ref" == "#/definitions/session_identifier" and .properties.features.additionalProperties.properties.lease_session_id.anyOf[1].type == "null"' references/core-project-schema.json >/dev/null
 jq -e '.properties.active_sessions.additionalProperties.properties.claimed_tasks.items."$ref" == "#/definitions/task_identifier"' references/core-project-schema.json >/dev/null
+jq -e '.properties.features.additionalProperties.properties.workflow_phase' references/core-project-schema.json >/dev/null
+jq -e '.properties.features.additionalProperties.properties.next_route' references/core-project-schema.json >/dev/null
 
 echo "[check] core claimed_tasks identifiers are traceable"
 jq -e '.definitions.task_identifier.oneOf[0].type == "integer" and .definitions.task_identifier.oneOf[0].minimum == 1 and .definitions.task_identifier.oneOf[1].type == "string" and .definitions.task_identifier.oneOf[1].pattern == "^(task-[1-9][0-9]*|[a-z][a-z0-9._-]*)$"' references/core-project-schema.json >/dev/null
@@ -104,6 +120,8 @@ jq -e '.properties.lease.required | index("claimed_tasks")' references/core-feat
 jq -e '.properties.lease.required | index("claimed_at")' references/core-feature-schema.json >/dev/null
 jq -e '.properties.lease.required | index("expires_at")' references/core-feature-schema.json >/dev/null
 jq -e '.properties.lease.properties.claimed_tasks.items."$ref" == "#/definitions/task_identifier"' references/core-feature-schema.json >/dev/null
+jq -e '.properties.workflow.required | index("current_phase")' references/core-feature-schema.json >/dev/null
+jq -e '.properties.workflow.required | index("completion_status")' references/core-feature-schema.json >/dev/null
 
 echo "[check] core session schema carries runner lease ownership"
 jq -e '.required | index("runner")' references/core-session-schema.json >/dev/null
@@ -147,6 +165,7 @@ echo "[check] core claim script exists"
 test -f scripts/cx-core-claim.sh
 test -f scripts/cx-core-handoff.sh
 test -f scripts/cx-core-worktree.sh
+test -f scripts/cx-workflow-prd.sh
 test -f references/templates/core-feature.md
 
 echo "[check] core claim keeps different features isolated"
@@ -267,6 +286,45 @@ jq -e '.worktree.binding_status == "bound" and .worktree.worktree_path == "/work
 jq -e '.worktree.binding_status == "bound" and .worktree.worktree_path == "/worktrees/dual-runner-task-lock"' \
   "$CORE_SCENARIO_DIR/.claude/cx/core/features/dual-runner-task-lock.json" >/dev/null
 rm -rf "$CORE_SCENARIO_DIR"
+
+echo "[check] workflow prd runner scaffolds feature and shared core deterministically"
+WORKFLOW_SCENARIO_DIR=$(mktemp -d)
+git -C "$WORKFLOW_SCENARIO_DIR" init >/dev/null 2>&1
+(
+  cd "$WORKFLOW_SCENARIO_DIR"
+  bash "$REPO_ROOT/scripts/cx-init-setup.sh" \
+    --developer-id smoke \
+    --github-sync local \
+    --agent-teams false \
+    --code-review true \
+    --worktree-isolation true \
+    --auto-memory true >/dev/null
+)
+CX_CORE_NOW=2026-03-20T10:10:00Z CX_WORKFLOW_NOW=2026-03-20T10:10:00Z bash scripts/cx-workflow-prd.sh \
+  --project-root "$WORKFLOW_SCENARIO_DIR" \
+  --title "共享工作流冒烟" \
+  --slug "workflow-smoke" \
+  --runner codex \
+  --session-id codex-prd-001 \
+  --size M \
+  --background "验证 shared workflow core 的 PRD 落盘。" \
+  --scenarios "Codex 发起 feature|Claude Code 接手执行" \
+  --requirements "生成最小 PRD|注册 shared core" \
+  --acceptance "需求文档存在|shared core feature 已注册" \
+  --decision-basis "M 规模默认需要设计。" >/dev/null
+test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/需求.md"
+test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/状态.json"
+test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json"
+test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/worktrees/workflow-smoke.json"
+jq -e '.current_feature == "workflow-smoke"' "$WORKFLOW_SCENARIO_DIR/.claude/cx/状态.json" >/dev/null
+jq -e '.features["workflow-smoke"].status == "drafting"' "$WORKFLOW_SCENARIO_DIR/.claude/cx/状态.json" >/dev/null
+jq -e '.features["workflow-smoke"].workflow_phase == "prd" and .features["workflow-smoke"].next_route == "cx-design"' \
+  "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/projects/project.json" >/dev/null
+jq -e '.workflow.current_phase == "prd" and .workflow.next_route == "cx-design" and .workflow.needs_design == true and .workflow.size == "M"' \
+  "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/状态.json" >/dev/null
+jq -e '.workflow.current_phase == "prd" and .workflow.next_route == "cx-design" and .workflow.needs_design == true and .planning_owner.runner == "codex" and .planning_owner.session_id == "codex-prd-001"' \
+  "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json" >/dev/null
+rm -rf "$WORKFLOW_SCENARIO_DIR"
 
 echo "[check] core worktree binding rejects wrong checkout for same feature"
 CORE_SCENARIO_DIR=$(mktemp -d)
@@ -522,6 +580,9 @@ rg '自动判断是否需要 Design' skills/prd/SKILL.md
 rg '仅当 PRD 明显引入新技术时' skills/plan/SKILL.md
 ! rg -F '{dev_id}-{feature}' skills/prd/SKILL.md skills/design/SKILL.md skills/adr/SKILL.md skills/plan/SKILL.md
 rg '功能/' references/templates/prd.md references/templates/design.md references/templates/task.md
+rg 'shared workflow core|cx-workflow-prd.sh|core/workflow/protocols/prd.md' skills/prd/SKILL.md
+rg 'core/workflow/protocols/design.md' skills/design/SKILL.md
+rg 'core/workflow/protocols/plan.md' skills/plan/SKILL.md
 
 echo "[check] execution chain follows pure cx 3.1 semantics"
 rg '/cx:exec --all' skills/exec/SKILL.md
@@ -531,6 +592,10 @@ rg 'worktree 校验|当前 checkout 与 feature 绑定一致' skills/exec/SKILL.
 rg 'preferred_worktree_path|binding_status' skills/plan/SKILL.md
 rg 'reason_type' skills/status/SKILL.md skills/exec/SKILL.md
 rg 'GitHub 为同步镜像' skills/summary/SKILL.md skills/help/SKILL.md
+rg 'core/workflow/protocols/exec.md' skills/exec/SKILL.md
+rg 'core/workflow/protocols/fix.md' skills/fix/SKILL.md
+rg 'core/workflow/protocols/status.md' skills/status/SKILL.md
+rg 'core/workflow/protocols/summary.md' skills/summary/SKILL.md
 rg 'runner `cc`|共享 core|handoff' skills/init/SKILL.md skills/prd/SKILL.md skills/design/SKILL.md skills/adr/SKILL.md skills/plan/SKILL.md skills/exec/SKILL.md skills/fix/SKILL.md skills/status/SKILL.md skills/summary/SKILL.md references/workflow-guide.md
 rg '配置.json' skills/config/SKILL.md
 ! rg 'background_agents|prompt_refresh_interval' skills/config/SKILL.md
@@ -556,6 +621,8 @@ for skill in help init prd design adr plan exec fix status summary config scope;
   test -f "adapters/codex/skills/cx-$skill/agents/openai.yaml"
 done
 rg 'cx-shared|runtime/codex|handoff|lease|worktree' adapters/codex/skills/cx-*/SKILL.md
+rg 'core/workflow/protocols/prd.md' adapters/codex/skills/cx-prd/SKILL.md
+rg 'core/workflow/protocols/exec.md' adapters/codex/skills/cx-exec/SKILL.md
 rg 'display_name|short_description|default_prompt' adapters/codex/skills/cx-*/agents/openai.yaml
 
 echo "[check] install-codex.sh installs user-scope bundle"
@@ -563,8 +630,11 @@ CODEX_INSTALL_TMP=$(mktemp -d)
 bash scripts/install-codex.sh --target-root "$CODEX_INSTALL_TMP/.agents/skills"
 test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-help/SKILL.md"
 test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-exec/agents/openai.yaml"
+test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/core/workflow/README.md"
+test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/core/workflow/protocols/prd.md"
 test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/references/codex-skill-contract.md"
 test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-core-claim.sh"
+test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-workflow-prd.sh"
 rg 'runtime/codex' "$CODEX_INSTALL_TMP/.agents/skills/cx-exec/SKILL.md"
 rm -rf "$CODEX_INSTALL_TMP"
 
@@ -573,6 +643,7 @@ CODEX_INSTALL_TMP=$(mktemp -d)
 bash scripts/install-codex.sh --target-root "$CODEX_INSTALL_TMP/.agents/skills" --legacy-target-root "$CODEX_INSTALL_TMP/.codex/skills"
 test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-status/SKILL.md"
 test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-status/SKILL.md"
+test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/core/workflow/protocols/summary.md"
 test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/scripts/cx-core-migrate.sh"
 rm -rf "$CODEX_INSTALL_TMP"
 
@@ -607,5 +678,6 @@ rg '"version": "3.1.0"' .claude-plugin/plugin.json .claude-plugin/marketplace.js
 rg '只保留 `cx`' README.md references/workflow-guide.md
 ! rg -F '/tc' README.md references/workflow-guide.md
 rg '/cx:init' README.md references/workflow-guide.md skills/help/SKILL.md
+rg 'shared workflow core|core/workflow' README.md references/workflow-guide.md docs/codex-adapter-guide.md adapters/codex/README.md
 rg '纯 cx 3.1|/cx:\*|Codex skill adapter' README.md references/workflow-guide.md CHANGELOG.md
 rg '2.1.79|Codex 侧必须同步|先迁移|\.agents/skills|install-codex.sh' README.md CHANGELOG.md docs/codex-adapter-guide.md references/workflow-guide.md

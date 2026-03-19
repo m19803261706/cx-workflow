@@ -9,6 +9,11 @@ description: >
 
 快速回答“现在做到哪了、卡在哪、下一步是什么”。
 
+先阅读：
+
+- `core/workflow/README.md`
+- `core/workflow/protocols/status.md`
+
 ## 读取来源
 
 - `.claude/cx/配置.json`

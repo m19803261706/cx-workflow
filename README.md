@@ -20,6 +20,7 @@
 - 插件 hooks 通过官方 `hooks/hooks.json` 自动生效，不再由 init 写入项目 settings
 - Claude Code 现在被视为共享 `cx core` 上的 `cc` adapter
 - Codex 侧现在有独立的可安装 adapter skill 包
+- `core/workflow/` 开始承载共享 workflow core，避免 CC 与 Codex 各自维护一套流程脑子
 
 ## 核心命令
 
@@ -156,6 +157,9 @@ bash scripts/cx-core-migrate.sh
 
 详细协议和行为说明见：
 
+- `core/README.md`
+- `core/workflow/README.md`
+- `core/workflow/protocols/`
 - `references/workflow-guide.md`
 - `docs/codex-adapter-guide.md`
 - `references/codex-skill-contract.md`

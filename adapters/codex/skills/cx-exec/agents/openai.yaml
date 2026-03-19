@@ -1,4 +1,4 @@
 interface:
   display_name: "CX Exec"
   short_description: "执行 CX 任务并维护 lease"
-  default_prompt: "Execute the next cx task from Codex, enforce worktree and lease checks, implement the change, test it, and update shared state."
+  default_prompt: "Follow the shared cx workflow exec protocol, execute the next cx task from Codex, enforce worktree and lease checks, implement the change, test it, and update shared state."
