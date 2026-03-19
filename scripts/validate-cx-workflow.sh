@@ -547,6 +547,31 @@ test -f references/codex-skill-contract.md
 rg 'runner `codex`|lease|handoff|worktree' docs/codex-adapter-guide.md references/codex-skill-contract.md
 rg 'CC 创建 feature A.*Codex 创建 feature B|CC 规划.*Codex 执行|Codex 规划.*CC 执行|中途 handoff' docs/codex-adapter-guide.md references/workflow-guide.md
 
+echo "[check] migration helper upgrades legacy projects into shared core"
+test -f scripts/cx-core-migrate.sh
+bash -n scripts/cx-core-migrate.sh
+MIGRATION_TMP_DIR=$(mktemp -d)
+cp -R tests/fixtures/core-dual-runner/legacy-project/. "$MIGRATION_TMP_DIR"
+CX_CORE_NOW=2026-03-20T10:20:00Z PROJECT_ROOT="$MIGRATION_TMP_DIR" bash scripts/cx-core-migrate.sh
+jq empty \
+  "$MIGRATION_TMP_DIR/.claude/cx/core/projects/project.json" \
+  "$MIGRATION_TMP_DIR/.claude/cx/core/features/vector-memory.json" \
+  "$MIGRATION_TMP_DIR/.claude/cx/core/worktrees/vector-memory.json"
+jq -e '.current_feature == "vector-memory"' "$MIGRATION_TMP_DIR/.claude/cx/core/projects/project.json" >/dev/null
+jq -e '.features["vector-memory"].slug == "vector-memory"' "$MIGRATION_TMP_DIR/.claude/cx/core/projects/project.json" >/dev/null
+jq -e '.title == "向量记忆" and .docs.prd == "需求.md" and .docs.design == "设计.md" and .docs.summary == "总结.md"' \
+  "$MIGRATION_TMP_DIR/.claude/cx/core/features/vector-memory.json" >/dev/null
+jq -e '.tasks[0].id == 1 and .tasks[1].status == "in_progress"' \
+  "$MIGRATION_TMP_DIR/.claude/cx/core/features/vector-memory.json" >/dev/null
+test -f "$MIGRATION_TMP_DIR/.claude/cx/runtime/cc/最近失败.json"
+test -f "$MIGRATION_TMP_DIR/.claude/cx/runtime/cc/最近配置变更.json"
+test -f "$MIGRATION_TMP_DIR/.claude/cx/runtime/cc/context-snapshot.md"
+! test -f "$MIGRATION_TMP_DIR/.claude/cx/最近失败.json"
+! test -f "$MIGRATION_TMP_DIR/.claude/cx/最近配置变更.json"
+! test -f "$MIGRATION_TMP_DIR/.claude/cx/context-snapshot.md"
+rm -rf "$MIGRATION_TMP_DIR"
+rg 'cx-core-migrate.sh|先迁移' README.md references/workflow-guide.md skills/init/SKILL.md
+
 echo "[check] public docs and metadata present pure cx 3.1"
 rg '"name": "cx"' .claude-plugin/plugin.json .claude-plugin/marketplace.json
 rg '"version": "3.1.0"' .claude-plugin/plugin.json .claude-plugin/marketplace.json

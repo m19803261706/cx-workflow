@@ -1,0 +1,13 @@
+{
+  "initialized_at": "2026-03-19T16:00:00Z",
+  "last_updated": "2026-03-20T08:00:00Z",
+  "current_feature": "chengxuan-vector-memory",
+  "features": {
+    "chengxuan-vector-memory": {
+      "title": "向量记忆",
+      "path": "功能/向量记忆",
+      "status": "executing"
+    }
+  },
+  "fixes": {}
+}

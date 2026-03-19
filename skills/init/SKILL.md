@@ -46,6 +46,12 @@ GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 - 先建议初始化 Git
 - 初始化后再继续
 
+如果检测到已有旧版 `.claude/cx` 但还没有共享 `core/`：
+
+- 不要直接进入双运行器模式
+- 先建议运行 `bash scripts/cx-core-migrate.sh`
+- 迁移完成后，再继续 `/cx:init` 或后续命令
+
 ### Step 2: 一次性收集关键项目配置
 
 使用勾选式问答，按以下顺序确认:
@@ -140,6 +146,7 @@ GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 - 不再复制 hook 到项目 `.claude/cx/hooks/`
 - 运行时 hook 只读取项目级 `配置.json` 与 feature 级 `状态.json`
 - `cx:init` 只负责告知当前项目已具备被插件 hooks 读取的运行时真相
+- 如果项目是旧布局，先迁移到共享 `cx core`，再启用双运行器
 
 ### Step 7: 检查并建议 GitHub 接入
 

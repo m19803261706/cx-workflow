@@ -1,0 +1,10 @@
+{
+  "version": "3.0",
+  "developer_id": "chengxuan",
+  "github_sync": "local",
+  "current_feature": "chengxuan-vector-memory",
+  "agent_teams": true,
+  "code_review": true,
+  "auto_memory": true,
+  "worktree_isolation": true
+}

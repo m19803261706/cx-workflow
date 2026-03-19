@@ -31,6 +31,14 @@
 - 在每个项目单独确认 `developer_id`
 - 检查 Git / GitHub 接入状态
 
+如果项目已经带有旧版 `.claude/cx`，先运行：
+
+```text
+bash scripts/cx-core-migrate.sh
+```
+
+迁移完成后再进入双运行器模式。
+
 ## 需求到交付
 
 ### 1. `/cx:prd`

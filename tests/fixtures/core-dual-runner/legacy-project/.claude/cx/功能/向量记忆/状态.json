@@ -1,0 +1,24 @@
+{
+  "feature": "向量记忆",
+  "slug": "chengxuan-vector-memory",
+  "status": "executing",
+  "total": 2,
+  "completed": 1,
+  "tasks": [
+    {
+      "number": 1,
+      "title": "补充向量检索接口",
+      "status": "completed"
+    },
+    {
+      "number": 2,
+      "title": "接通记忆召回执行链",
+      "status": "in_progress"
+    }
+  ],
+  "docs": {
+    "prd": "需求.md",
+    "design": "设计.md",
+    "summary": "总结.md"
+  }
+}

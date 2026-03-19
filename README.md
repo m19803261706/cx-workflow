@@ -97,6 +97,21 @@ GitHub 是同步镜像，不是运行时真相。
 - 是否启用 worktree isolation
 - 是否启用 auto memory
 
+## 旧项目迁移
+
+如果项目里已经有旧版 `.claude/cx`，在启用双运行器前先迁移：
+
+```text
+bash scripts/cx-core-migrate.sh
+```
+
+迁移会：
+
+- 生成共享 `core/projects` / `core/features` / `core/worktrees`
+- 保留原有中文文档目录
+- 把旧的 root 级 runtime 快照移到 `runtime/cc/`
+- 为后续 CC + Codex 协作准备统一真相源
+
 ## 更多说明
 
 详细协议和行为说明见：
