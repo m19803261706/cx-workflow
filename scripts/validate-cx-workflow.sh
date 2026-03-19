@@ -94,3 +94,14 @@ rg '自动判断是否需要 Design' skills/cx-prd/SKILL.md
 rg '仅当 PRD 明显引入新技术时' skills/cx-plan/SKILL.md
 ! rg -F '{dev_id}-{feature}' skills/cx-prd/SKILL.md skills/cx-design/SKILL.md skills/cx-adr/SKILL.md skills/cx-plan/SKILL.md
 rg '功能/' references/templates/prd.md references/templates/design.md references/templates/task.md
+
+echo "[check] execution chain follows pure cx 3.0 semantics"
+rg '/cx-exec --all' skills/cx-exec/SKILL.md
+rg -F '3+ 专业代理' skills/cx-exec/SKILL.md
+rg -F '[cx:<feature-slug>] [task:<n>]' skills/cx-exec/SKILL.md
+rg 'reason_type' skills/cx-status/SKILL.md skills/cx-exec/SKILL.md
+rg 'GitHub 为同步镜像' skills/cx-summary/SKILL.md skills/cx-help/SKILL.md
+rg '配置.json' skills/cx-config/SKILL.md
+! rg 'background_agents|prompt_refresh_interval' skills/cx-config/SKILL.md
+rg '修复/' references/templates/fix.md
+rg '总结.md' references/templates/summary.md
