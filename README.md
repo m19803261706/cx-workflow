@@ -112,6 +112,12 @@ bash scripts/cx-core-migrate.sh
 - 把旧的 root 级 runtime 快照移到 `runtime/cc/`
 - 为后续 CC + Codex 协作准备统一真相源
 
+## Rollout 要求
+
+- Claude Code 最低版本：`2.1.79`
+- Codex 侧必须同步到新的 `cx core` 契约与技能语义后，才能和 CC 共用同一个项目
+- 已有项目先迁移，再开启双运行器；不要在旧 `.claude/cx` 上直接并行使用 CC 和 Codex
+
 ## 更多说明
 
 详细协议和行为说明见：

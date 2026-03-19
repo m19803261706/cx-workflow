@@ -579,3 +579,4 @@ rg '只保留 `cx`' README.md references/workflow-guide.md
 ! rg -F '/tc' README.md references/workflow-guide.md
 rg '/cx:init' README.md references/workflow-guide.md skills/help/SKILL.md
 rg '纯 cx 3.1|/cx:\*' README.md references/workflow-guide.md CHANGELOG.md
+rg '2.1.79|Codex 侧必须同步|先迁移' README.md CHANGELOG.md
