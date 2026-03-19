@@ -23,3 +23,12 @@ description: "Codex 侧 CX 技术设计。基于 PRD 生成设计文档与契约
 - 设计阶段不抢 lease
 - 如果 feature 已由 `cc` 执行中，允许补设计文档，但不要改执行 owner
 - 设计文档只沉淀决策与契约，不改动 runtime lease
+
+优先调用：
+
+```bash
+bash ../cx-shared/scripts/cx-workflow-design.sh \
+  --feature <feature-slug> \
+  --runner codex \
+  --session-id <session-id>
+```

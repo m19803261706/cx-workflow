@@ -16,6 +16,13 @@ description: >
 
 ## 读取来源
 
+优先调用共享 runner：
+
+```bash
+bash scripts/cx-workflow-status.sh \
+  --runner cc
+```
+
 - `.claude/cx/配置.json`
 - `.claude/cx/状态.json`
 - `.claude/cx/功能/{功能标题}/状态.json`

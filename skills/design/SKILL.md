@@ -75,6 +75,15 @@ DESIGN_FILE="$FEATURE_DIR/设计.md"
 
 ### Step 4: 写入项目文档并更新状态
 
+优先调用共享 runner：
+
+```bash
+bash scripts/cx-workflow-design.sh \
+  --feature <feature-slug> \
+  --runner cc \
+  --session-id <session-id>
+```
+
 写入：
 
 ```text

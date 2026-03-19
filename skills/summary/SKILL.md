@@ -49,6 +49,15 @@ disable-model-invocation: true
 
 ### Step 2: 生成总结文档
 
+优先调用共享 runner：
+
+```bash
+bash scripts/cx-workflow-summary.sh \
+  --feature <feature-slug> \
+  --runner cc \
+  --session-id <session-id>
+```
+
 输出到：
 
 ```text

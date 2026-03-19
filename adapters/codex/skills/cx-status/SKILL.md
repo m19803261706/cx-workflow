@@ -12,6 +12,11 @@ description: "Codex 侧 CX 状态查看。展示共享 core 中的 feature、own
 
 优先读取：
 
+```bash
+bash ../cx-shared/scripts/cx-workflow-status.sh \
+  --runner codex
+```
+
 - `.claude/cx/core/projects/*.json`
 - `.claude/cx/core/features/*.json`
 - `.claude/cx/core/worktrees/*.json`

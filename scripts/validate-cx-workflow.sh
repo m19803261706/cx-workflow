@@ -168,10 +168,21 @@ test -f scripts/cx-core-worktree.sh
 test -f scripts/cx-workflow-prd.sh
 test -f scripts/cx-workflow-plan.sh
 test -f scripts/cx-workflow-exec.sh
+test -f scripts/cx-workflow-design.sh
+test -f scripts/cx-workflow-status.sh
+test -f scripts/cx-workflow-summary.sh
+test -f scripts/cx-workflow-fix.sh
 test -f references/templates/core-feature.md
 
 echo "[check] workflow runner shell syntax"
-bash -n scripts/cx-workflow-prd.sh scripts/cx-workflow-plan.sh scripts/cx-workflow-exec.sh
+bash -n \
+  scripts/cx-workflow-prd.sh \
+  scripts/cx-workflow-plan.sh \
+  scripts/cx-workflow-exec.sh \
+  scripts/cx-workflow-design.sh \
+  scripts/cx-workflow-status.sh \
+  scripts/cx-workflow-summary.sh \
+  scripts/cx-workflow-fix.sh
 
 echo "[check] core claim keeps different features isolated"
 CORE_SCENARIO_DIR=$(mktemp -d)
@@ -330,6 +341,19 @@ jq -e '.workflow.current_phase == "prd" and .workflow.next_route == "cx-design" 
 jq -e '.workflow.current_phase == "prd" and .workflow.next_route == "cx-design" and .workflow.needs_design == true and .planning_owner.runner == "codex" and .planning_owner.session_id == "codex-prd-001"' \
   "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json" >/dev/null
 
+echo "[check] workflow design runner writes design doc and advances next route"
+CX_CORE_NOW=2026-03-20T10:10:30Z CX_WORKFLOW_NOW=2026-03-20T10:10:30Z bash scripts/cx-workflow-design.sh \
+  --project-root "$WORKFLOW_SCENARIO_DIR" \
+  --feature workflow-smoke \
+  --runner codex \
+  --session-id codex-design-001 \
+  --decision-basis "设计契约已确认，可以进入任务规划。" >/dev/null
+test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/设计.md"
+jq -e '.status == "planned" and .docs.design == "设计.md" and .workflow.current_phase == "design" and .workflow.next_route == "cx-plan"' \
+  "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/状态.json" >/dev/null
+jq -e '.lifecycle.stage == "planned" and .docs.design == ".claude/cx/功能/共享工作流冒烟/设计.md" and .workflow.current_phase == "design" and .workflow.next_route == "cx-plan" and .planning_owner.session_id == "codex-design-001"' \
+  "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json" >/dev/null
+
 cat > "$WORKFLOW_SCENARIO_DIR/plan.json" <<'EOF'
 {
   "phases": [
@@ -442,7 +466,70 @@ jq -e '.status == "completed" and .completed == 2 and .workflow.next_route == "c
   "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/状态.json" >/dev/null
 jq -e '.lifecycle.stage == "completed" and .workflow.next_route == "cx-summary" and .lease.claimed_tasks == []' \
   "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json" >/dev/null
+
+echo "[check] workflow status runner summarizes shared state and writes runtime snapshot"
+STATUS_OUTPUT=$(CX_CORE_NOW=2026-03-20T10:15:30Z CX_WORKFLOW_NOW=2026-03-20T10:15:30Z bash scripts/cx-workflow-status.sh \
+  --project-root "$WORKFLOW_SCENARIO_DIR" \
+  --feature workflow-smoke \
+  --runner codex)
+printf '%s\n' "$STATUS_OUTPUT" | rg 'current_feature=workflow-smoke'
+printf '%s\n' "$STATUS_OUTPUT" | rg 'next_route=cx-summary'
+printf '%s\n' "$STATUS_OUTPUT" | rg 'owner_runner=codex'
+test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/runtime/codex/当前状态.json"
+jq -e '.current_feature.slug == "workflow-smoke" and .current_feature.next_route == "cx-summary"' \
+  "$WORKFLOW_SCENARIO_DIR/.claude/cx/runtime/codex/当前状态.json" >/dev/null
+
+echo "[check] workflow summary runner archives completed feature"
+CX_CORE_NOW=2026-03-20T10:16:00Z CX_WORKFLOW_NOW=2026-03-20T10:16:00Z bash scripts/cx-workflow-summary.sh \
+  --project-root "$WORKFLOW_SCENARIO_DIR" \
+  --feature workflow-smoke \
+  --runner codex \
+  --session-id codex-exec-001 \
+  --deliverables "任务拆分完成|执行状态推进完成|共享闭环已归档" \
+  --test-command "bash scripts/validate-cx-workflow.sh" \
+  --test-result "通过" \
+  --review-result "通过" >/dev/null
+test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/总结.md"
+jq -e '.status == "summarized" and .workflow.current_phase == "summary" and .workflow.completion_status == "done" and .workflow.next_route == null' \
+  "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/状态.json" >/dev/null
+jq -e '.lifecycle.stage == "archived" and .workflow.current_phase == "summary" and .workflow.completion_status == "done" and .workflow.next_route == null and .worktree.binding_status == "released"' \
+  "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json" >/dev/null
+jq -e '.current_feature == null and .features["workflow-smoke"].status == "summarized"' \
+  "$WORKFLOW_SCENARIO_DIR/.claude/cx/状态.json" >/dev/null
+jq -e '.current_feature == null and .features["workflow-smoke"].lifecycle == "archived" and .features["workflow-smoke"].lease_session_id == null and .active_sessions["codex-exec-001"].claimed_feature == null and .active_sessions["codex-exec-001"].claimed_tasks == []' \
+  "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/projects/project.json" >/dev/null
+jq -e '.binding_status == "released"' \
+  "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/worktrees/workflow-smoke.json" >/dev/null
 rm -rf "$WORKFLOW_SCENARIO_DIR"
+
+echo "[check] workflow fix runner writes standalone fix record"
+FIX_SCENARIO_DIR=$(mktemp -d)
+git -C "$FIX_SCENARIO_DIR" init >/dev/null 2>&1
+(
+  cd "$FIX_SCENARIO_DIR"
+  bash "$REPO_ROOT/scripts/cx-init-setup.sh" \
+    --developer-id smoke \
+    --github-sync local \
+    --agent-teams false \
+    --code-review true \
+    --worktree-isolation true \
+    --auto-memory true >/dev/null
+)
+CX_CORE_NOW=2026-03-20T10:16:30Z CX_WORKFLOW_NOW=2026-03-20T10:16:30Z bash scripts/cx-workflow-fix.sh \
+  --project-root "$FIX_SCENARIO_DIR" \
+  --title "共享状态小修复" \
+  --slug core-fix-smoke \
+  --runner codex \
+  --problem "status 输出缺少统一快照" \
+  --root-cause "缺少共享 fix runner" \
+  --resolution "新增 shared fix runner|补齐 fixes 索引" \
+  --verification-command "bash scripts/validate-cx-workflow.sh" \
+  --verification-result "通过" \
+  --commit abcfix >/dev/null
+test -f "$FIX_SCENARIO_DIR/.claude/cx/修复/共享状态小修复/修复记录.md"
+jq -e '.fixes["core-fix-smoke"].title == "共享状态小修复" and .fixes["core-fix-smoke"].path == "修复/共享状态小修复"' \
+  "$FIX_SCENARIO_DIR/.claude/cx/状态.json" >/dev/null
+rm -rf "$FIX_SCENARIO_DIR"
 
 echo "[check] core worktree binding rejects wrong checkout for same feature"
 CORE_SCENARIO_DIR=$(mktemp -d)
@@ -714,6 +801,10 @@ rg 'core/workflow/protocols/exec.md' skills/exec/SKILL.md
 rg 'core/workflow/protocols/fix.md' skills/fix/SKILL.md
 rg 'core/workflow/protocols/status.md' skills/status/SKILL.md
 rg 'core/workflow/protocols/summary.md' skills/summary/SKILL.md
+rg 'cx-workflow-design.sh' skills/design/SKILL.md adapters/codex/skills/cx-design/SKILL.md
+rg 'cx-workflow-fix.sh' skills/fix/SKILL.md adapters/codex/skills/cx-fix/SKILL.md
+rg 'cx-workflow-status.sh' skills/status/SKILL.md adapters/codex/skills/cx-status/SKILL.md
+rg 'cx-workflow-summary.sh' skills/summary/SKILL.md adapters/codex/skills/cx-summary/SKILL.md
 rg 'runner `cc`|共享 core|handoff' skills/init/SKILL.md skills/prd/SKILL.md skills/design/SKILL.md skills/adr/SKILL.md skills/plan/SKILL.md skills/exec/SKILL.md skills/fix/SKILL.md skills/status/SKILL.md skills/summary/SKILL.md references/workflow-guide.md
 rg '配置.json' skills/config/SKILL.md
 ! rg 'background_agents|prompt_refresh_interval' skills/config/SKILL.md
@@ -755,6 +846,10 @@ test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-core-claim.sh"
 test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-workflow-prd.sh"
 test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-workflow-plan.sh"
 test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-workflow-exec.sh"
+test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-workflow-design.sh"
+test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-workflow-status.sh"
+test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-workflow-summary.sh"
+test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-workflow-fix.sh"
 rg 'runtime/codex' "$CODEX_INSTALL_TMP/.agents/skills/cx-exec/SKILL.md"
 rm -rf "$CODEX_INSTALL_TMP"
 
@@ -767,6 +862,10 @@ test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/core/workflow/protocols/summ
 test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/scripts/cx-core-migrate.sh"
 test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/scripts/cx-workflow-plan.sh"
 test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/scripts/cx-workflow-exec.sh"
+test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/scripts/cx-workflow-design.sh"
+test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/scripts/cx-workflow-status.sh"
+test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/scripts/cx-workflow-summary.sh"
+test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/scripts/cx-workflow-fix.sh"
 rm -rf "$CODEX_INSTALL_TMP"
 
 echo "[check] migration helper upgrades legacy projects into shared core"

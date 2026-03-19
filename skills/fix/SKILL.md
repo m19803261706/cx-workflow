@@ -33,6 +33,15 @@ disable-model-invocation: true
 
 这是 Claude Code 侧的 `cc` adapter 修复入口；如果当前问题归属的 feature 已由 `codex` 持有，先提示 handoff，再决定是否继续。
 
+优先调用共享 runner：
+
+```bash
+bash scripts/cx-workflow-fix.sh \
+  --title "<问题标题>" \
+  --runner cc \
+  --session-id <session-id>
+```
+
 ## 升级条件
 
 只有这些情况才把修复升级为复杂模式：
