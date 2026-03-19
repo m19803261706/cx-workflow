@@ -29,3 +29,12 @@ jq empty \
   tests/fixtures/minimal-project/.claude/cx/配置.json \
   tests/fixtures/minimal-project/.claude/cx/状态.json \
   tests/fixtures/minimal-project/.claude/cx/功能/示例功能/状态.json
+
+echo "[check] cx-init per-project developer_id prompt"
+rg '每个项目都单独确认 developer_id' skills/cx-init/SKILL.md
+
+echo "[check] cx-init suggests creating GitHub remote"
+rg '默认建议创建 GitHub 仓库并绑定' skills/cx-init/SKILL.md
+
+echo "[check] cx-init uses project-level 配置.json wording"
+rg '配置.json' skills/cx-init/SKILL.md
