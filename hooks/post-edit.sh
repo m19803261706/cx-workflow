@@ -1,75 +1,55 @@
 #!/bin/bash
 
-# Hook: PostToolUse
-# Purpose: Auto-format files after edit/write based on file type
-# Runs async (won't block Claude)
-# Respects config.auto_format.enabled setting
+set -euo pipefail
 
-set -e
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/cx-runtime.sh"
 
-# Anchor to project root
-PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo ".")
-CX_DIR="${PROJECT_ROOT}/.claude/cx"
-CONFIG_FILE="${CX_DIR}/config.json"
-
-# Check if config exists and auto_format is enabled
-if [[ ! -f "$CONFIG_FILE" ]]; then
+if ! cx_has_runtime || ! cx_require_jq; then
   exit 0
 fi
 
-AUTO_FORMAT_ENABLED=$(grep -o '"auto_format"\s*:\s*{[^}]*"enabled"\s*:\s*true' "$CONFIG_FILE" 2>/dev/null || echo "")
-
-if [[ -z "$AUTO_FORMAT_ENABLED" ]]; then
+AUTO_FORMAT_ENABLED=$(jq -r '.auto_format.enabled // false' "$(cx_config_file)" 2>/dev/null)
+if [[ "$AUTO_FORMAT_ENABLED" != "true" ]]; then
   exit 0
 fi
 
-# Read the last edited file path from environment variable (set by Claude Code)
-# The PostToolUse hook passes the file path via EDITED_FILE environment variable
+PAYLOAD=""
+if [[ ! -t 0 ]]; then
+  PAYLOAD=$(cat)
+fi
+
 EDITED_FILE="${EDITED_FILE:-}"
+if [[ -z "$EDITED_FILE" && -n "$PAYLOAD" ]]; then
+  EDITED_FILE=$(printf '%s' "$PAYLOAD" | jq -r '.tool_input.file_path // .tool_input.path // empty' 2>/dev/null)
+fi
 
-# If no file provided, try to infer from common patterns
-if [[ -z "$EDITED_FILE" ]]; then
+if [[ -z "$EDITED_FILE" || ! -f "$EDITED_FILE" ]]; then
   exit 0
 fi
 
-# Check if file exists
-if [[ ! -f "$EDITED_FILE" ]]; then
-  exit 0
-fi
-
-# Get file extension
 FILE_EXT="${EDITED_FILE##*.}"
 
-# Determine formatter and run it
 case "$FILE_EXT" in
-  js|ts|jsx|tsx|json|css|md)
-    # Try prettier
-    if command -v prettier &>/dev/null; then
-      prettier --write "$EDITED_FILE" &>/dev/null &
+  js|ts|jsx|tsx|json|css|md|yml|yaml)
+    if command -v prettier >/dev/null 2>&1; then
+      prettier --write "$EDITED_FILE" >/dev/null 2>&1 &
     fi
     ;;
   py)
-    # Try black
-    if command -v black &>/dev/null; then
-      black "$EDITED_FILE" &>/dev/null &
+    if command -v black >/dev/null 2>&1; then
+      black "$EDITED_FILE" >/dev/null 2>&1 &
     fi
     ;;
   go)
-    # Try gofmt
-    if command -v gofmt &>/dev/null; then
-      gofmt -w "$EDITED_FILE" &>/dev/null &
+    if command -v gofmt >/dev/null 2>&1; then
+      gofmt -w "$EDITED_FILE" >/dev/null 2>&1 &
     fi
     ;;
   rs)
-    # Try rustfmt
-    if command -v rustfmt &>/dev/null; then
-      rustfmt "$EDITED_FILE" &>/dev/null &
+    if command -v rustfmt >/dev/null 2>&1; then
+      rustfmt "$EDITED_FILE" >/dev/null 2>&1 &
     fi
     ;;
-  *)
-    # Unknown file type, skip
-    exit 0
-    ;;
 esac
-
-exit 0
