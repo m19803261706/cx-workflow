@@ -15,21 +15,31 @@ if [[ -z "$CURRENT_FEATURE" ]]; then
   exit 0
 fi
 
-STATUS_FILE=$(cx_feature_status_file "$CURRENT_FEATURE")
-if [[ -z "$STATUS_FILE" || ! -f "$STATUS_FILE" ]]; then
+FEATURE_TITLE=$(cx_feature_title "$CURRENT_FEATURE")
+if [[ -z "$FEATURE_TITLE" ]]; then
   exit 0
 fi
 
-FEATURE_TITLE=$(cx_feature_title "$CURRENT_FEATURE")
-FEATURE_STATUS=$(jq -r '.status // "drafting"' "$STATUS_FILE")
+FEATURE_STATUS=$(cx_feature_stage "$CURRENT_FEATURE")
+
+if cx_feature_has_foreign_owner "$CURRENT_FEATURE"; then
+  OWNER_RUNNER=$(cx_feature_owner_runner "$CURRENT_FEATURE")
+  OWNER_SESSION=$(cx_feature_owner_session "$CURRENT_FEATURE")
+  if cx_feature_lease_is_stale "$CURRENT_FEATURE"; then
+    echo "cx(cc): 当前功能「${FEATURE_TITLE}」仍由 ${OWNER_RUNNER} 会话 ${OWNER_SESSION} 持有，但租约已过期。先走 handoff/claim，再继续。"
+  else
+    echo "cx(cc): 当前功能「${FEATURE_TITLE}」当前由 ${OWNER_RUNNER} 会话 ${OWNER_SESSION} 持有。CC 侧不要直接继续；如需接手先走 handoff。"
+  fi
+  exit 0
+fi
 
 case "$FEATURE_STATUS" in
   blocked)
-    BLOCK_REASON=$(jq -r '.blocked.reason_type // empty' "$STATUS_FILE")
-    BLOCK_MESSAGE=$(jq -r '.blocked.message // empty' "$STATUS_FILE")
-    echo "cx: 当前功能「${FEATURE_TITLE}」已阻塞（${BLOCK_REASON:-unknown}）。${BLOCK_MESSAGE}"
+    BLOCK_REASON=$(cx_feature_block_reason "$CURRENT_FEATURE")
+    BLOCK_MESSAGE=$(cx_feature_block_message "$CURRENT_FEATURE")
+    echo "cx(cc): 当前功能「${FEATURE_TITLE}」已阻塞（${BLOCK_REASON:-unknown}）。${BLOCK_MESSAGE}"
     ;;
   completed)
-    echo "cx: 当前功能「${FEATURE_TITLE}」已完成，如本轮是收尾可直接 /cx:summary。"
+    echo "cx(cc): 当前功能「${FEATURE_TITLE}」已完成，如本轮是收尾可直接 /cx:summary。"
     ;;
 esac

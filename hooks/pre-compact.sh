@@ -15,29 +15,32 @@ if [[ -z "$CURRENT_FEATURE" ]]; then
   exit 0
 fi
 
-STATUS_FILE=$(cx_feature_status_file "$CURRENT_FEATURE")
-FEATURE_DIR=$(cx_feature_dir "$CURRENT_FEATURE")
-if [[ -z "$STATUS_FILE" || ! -f "$STATUS_FILE" || -z "$FEATURE_DIR" ]]; then
+FEATURE_TITLE=$(cx_feature_title "$CURRENT_FEATURE")
+FEATURE_STATUS=$(cx_feature_stage "$CURRENT_FEATURE")
+TOTAL_TASKS=$(cx_feature_total_tasks "$CURRENT_FEATURE")
+COMPLETED_TASKS=$(cx_feature_completed_tasks "$CURRENT_FEATURE")
+CURRENT_TASK=$(cx_feature_current_task "$CURRENT_FEATURE")
+BLOCK_REASON=$(cx_feature_block_reason "$CURRENT_FEATURE")
+BLOCK_MESSAGE=$(cx_feature_block_message "$CURRENT_FEATURE")
+WORKTREE_PATH=$(cx_feature_worktree_path "$CURRENT_FEATURE")
+WORKTREE_BRANCH=$(cx_feature_worktree_branch "$CURRENT_FEATURE")
+OWNER_RUNNER=$(cx_feature_owner_runner "$CURRENT_FEATURE")
+OWNER_SESSION=$(cx_feature_owner_session "$CURRENT_FEATURE")
+LATEST_HANDOFF=$(cx_feature_latest_handoff_record "$CURRENT_FEATURE")
+
+if [[ -z "$FEATURE_TITLE" ]]; then
   exit 0
 fi
 
-SNAPSHOT_FILE="$(cx_dir)/context-snapshot.md"
-FEATURE_TITLE=$(cx_feature_title "$CURRENT_FEATURE")
-FEATURE_STATUS=$(jq -r '.status // "drafting"' "$STATUS_FILE")
-TOTAL_TASKS=$(jq -r '.total // 0' "$STATUS_FILE")
-COMPLETED_TASKS=$(jq -r '.completed // 0' "$STATUS_FILE")
-CURRENT_TASK=$(jq -r '.tasks[] | select(.status == "in_progress") | "task-\(.number) \(.title)"' "$STATUS_FILE" | head -n 1)
-BLOCK_REASON=$(jq -r '.blocked.reason_type // empty' "$STATUS_FILE")
-BLOCK_MESSAGE=$(jq -r '.blocked.message // empty' "$STATUS_FILE")
-PRD_DOC=$(jq -r '.docs.prd // empty' "$STATUS_FILE")
-DESIGN_DOC=$(jq -r '.docs.design // empty' "$STATUS_FILE")
-SUMMARY_DOC=$(jq -r '.docs.summary // empty' "$STATUS_FILE")
+cx_ensure_runtime_dir
+SNAPSHOT_FILE="$(cx_runtime_dir)/context-snapshot.md"
 
 cat > "$SNAPSHOT_FILE" << EOF
 # CX 上下文快照
 
 生成时间: $(date '+%Y-%m-%d %H:%M:%S')
 
+- 当前运行器: cc
 - 当前功能: ${FEATURE_TITLE} (${CURRENT_FEATURE})
 - 状态: ${FEATURE_STATUS}
 - 进度: ${COMPLETED_TASKS}/${TOTAL_TASKS}
@@ -49,6 +52,18 @@ if [[ -n "$CURRENT_TASK" ]]; then
 EOF
 fi
 
+if [[ -n "$OWNER_RUNNER" ]]; then
+  cat >> "$SNAPSHOT_FILE" << EOF
+- 当前 owner: ${OWNER_RUNNER}/${OWNER_SESSION}
+EOF
+fi
+
+if [[ -n "$WORKTREE_PATH" ]]; then
+  cat >> "$SNAPSHOT_FILE" << EOF
+- 当前 worktree: ${WORKTREE_BRANCH} @ ${WORKTREE_PATH}
+EOF
+fi
+
 if [[ -n "$BLOCK_REASON" ]]; then
   cat >> "$SNAPSHOT_FILE" << EOF
 - 阻塞原因: ${BLOCK_REASON}
@@ -56,22 +71,9 @@ if [[ -n "$BLOCK_REASON" ]]; then
 EOF
 fi
 
-cat >> "$SNAPSHOT_FILE" << EOF
-
-## 文档入口
-
-- 需求: \`${FEATURE_DIR}/${PRD_DOC}\`
-EOF
-
-if [[ -n "$DESIGN_DOC" ]]; then
+if [[ -n "$LATEST_HANDOFF" ]]; then
   cat >> "$SNAPSHOT_FILE" << EOF
-- 设计: \`${FEATURE_DIR}/${DESIGN_DOC}\`
-EOF
-fi
-
-if [[ -n "$SUMMARY_DOC" ]]; then
-  cat >> "$SNAPSHOT_FILE" << EOF
-- 总结: \`${FEATURE_DIR}/${SUMMARY_DOC}\`
+- 最新 handoff: \`${LATEST_HANDOFF}\`
 EOF
 fi
 
@@ -82,20 +84,26 @@ cat >> "$SNAPSHOT_FILE" << EOF
 - 查看进度: \`/cx:status\`
 EOF
 
-case "$FEATURE_STATUS" in
-  completed)
-    cat >> "$SNAPSHOT_FILE" << EOF
+if cx_feature_has_foreign_owner "$CURRENT_FEATURE"; then
+  cat >> "$SNAPSHOT_FILE" << EOF
+- 当前 feature 由其他 runner 持有，先走 handoff，再继续 \`/cx:exec\`
+EOF
+else
+  case "$FEATURE_STATUS" in
+    completed)
+      cat >> "$SNAPSHOT_FILE" << EOF
 - 收尾汇总: \`/cx:summary\`
 EOF
-    ;;
-  summarized)
-    cat >> "$SNAPSHOT_FILE" << EOF
+      ;;
+    summarized)
+      cat >> "$SNAPSHOT_FILE" << EOF
 - 当前功能已汇总完成，可切换到下一个功能
 EOF
-    ;;
-  *)
-    cat >> "$SNAPSHOT_FILE" << EOF
+      ;;
+    *)
+      cat >> "$SNAPSHOT_FILE" << EOF
 - 继续执行: \`/cx:exec\`
 EOF
-    ;;
-esac
+      ;;
+  esac
+fi

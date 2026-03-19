@@ -22,6 +22,7 @@ disable-model-invocation: true
 - feature 完成后再进入 summary
 - `cx:summary` 不负责补救执行问题
 - `GitHub 为同步镜像`，项目级 `.claude/cx` 才是真相
+- 这是 Claude Code 侧的 `cc` adapter 收尾动作，不会擅自改写其他 runner 的 lease
 
 ## 核心步骤
 

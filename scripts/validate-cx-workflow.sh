@@ -287,6 +287,64 @@ jq -e '.binding_status == "bound" and .preferred_worktree_path == "/worktrees/du
   "$CORE_SCENARIO_DIR/.claude/cx/core/worktrees/dual-runner-claim-a.json" >/dev/null
 rm -rf "$CORE_SCENARIO_DIR"
 
+echo "[check] cc adapter surfaces codex-owned feature without stealing"
+CORE_SCENARIO_DIR=$(mktemp -d)
+cp -R tests/fixtures/core-dual-runner/. "$CORE_SCENARIO_DIR"
+SESSION_OUTPUT=$(PROJECT_ROOT="$CORE_SCENARIO_DIR" bash hooks/session-start.sh)
+printf '%s\n' "$SESSION_OUTPUT" | rg 'codex-claim-001'
+printf '%s\n' "$SESSION_OUTPUT" | rg 'handoff'
+if CX_CORE_NOW=2026-03-20T10:10:30Z PROJECT_ROOT="$CORE_SCENARIO_DIR" bash scripts/cx-core-worktree.sh \
+  --runner cc \
+  --session-id cc-steal-001 \
+  --branch cc/dual-runner-claim-a \
+  --worktree-path /worktrees/dual-runner-claim-a \
+  --current-branch cc/dual-runner-claim-a \
+  --current-worktree-path /worktrees/dual-runner-claim-a \
+  --feature dual-runner-claim-a; then
+  echo "cc adapter should not silently steal a codex-owned feature" >&2
+  rm -rf "$CORE_SCENARIO_DIR"
+  exit 1
+fi
+rm -rf "$CORE_SCENARIO_DIR"
+
+echo "[check] cc adapter can accept handoff and continue"
+CORE_SCENARIO_DIR=$(mktemp -d)
+cp -R tests/fixtures/core-dual-runner/. "$CORE_SCENARIO_DIR"
+jq '.runner = "cc"
+  | .session_id = "cc-accept-001"
+  | .branch = "cc/dual-runner-claim-a"
+  | .worktree_path = "/worktrees/dual-runner-claim-a"
+  | .claimed_feature = null
+  | .claimed_tasks = []' \
+  "$CORE_SCENARIO_DIR/.claude/cx/core/sessions/cc-source-001.json" > "$CORE_SCENARIO_DIR/cc-accept-001.json"
+mv "$CORE_SCENARIO_DIR/cc-accept-001.json" "$CORE_SCENARIO_DIR/.claude/cx/core/sessions/cc-accept-001.json"
+jq --slurpfile session "$CORE_SCENARIO_DIR/.claude/cx/core/sessions/cc-accept-001.json" \
+  '.active_sessions["cc-accept-001"] = $session[0]' \
+  "$CORE_SCENARIO_DIR/.claude/cx/core/projects/core-dual-runner.json" > "$CORE_SCENARIO_DIR/project.json"
+mv "$CORE_SCENARIO_DIR/project.json" "$CORE_SCENARIO_DIR/.claude/cx/core/projects/core-dual-runner.json"
+CX_CORE_NOW=2026-03-20T10:10:40Z PROJECT_ROOT="$CORE_SCENARIO_DIR" bash scripts/cx-core-handoff.sh \
+  --source-runner codex \
+  --source-session-id codex-claim-001 \
+  --target-runner cc \
+  --target-session-id cc-accept-001 \
+  --feature dual-runner-claim-a \
+  --reason "cc adapter accepts the feature and continues"
+CX_CORE_NOW=2026-03-20T10:10:50Z PROJECT_ROOT="$CORE_SCENARIO_DIR" bash scripts/cx-core-worktree.sh \
+  --runner cc \
+  --session-id cc-accept-001 \
+  --branch cc/dual-runner-claim-a \
+  --worktree-path /worktrees/dual-runner-claim-a \
+  --current-branch cc/dual-runner-claim-a \
+  --current-worktree-path /worktrees/dual-runner-claim-a \
+  --feature dual-runner-claim-a
+jq -e '.features["dual-runner-claim-a"].lease_session_id == "cc-accept-001"' \
+  "$CORE_SCENARIO_DIR/.claude/cx/core/projects/core-dual-runner.json" >/dev/null
+jq -e '.execution_owner.runner == "cc" and .execution_owner.session_id == "cc-accept-001"' \
+  "$CORE_SCENARIO_DIR/.claude/cx/core/features/dual-runner-claim-a.json" >/dev/null
+PROMPT_OUTPUT=$(PROJECT_ROOT="$CORE_SCENARIO_DIR" bash hooks/prompt-submit.sh)
+test -z "$PROMPT_OUTPUT"
+rm -rf "$CORE_SCENARIO_DIR"
+
 echo "[check] core project cross references stay non-dangling"
 CORE_TMP_DIR=$(mktemp -d)
 jq -n '{
@@ -396,7 +454,7 @@ if [[ -d tests/fixtures/minimal-project ]]; then
   bash -n hooks/cx-runtime.sh hooks/session-start.sh hooks/pre-compact.sh hooks/prompt-submit.sh hooks/post-edit.sh hooks/stop-check.sh hooks/stop-failure.sh hooks/config-change.sh
 
   echo "[check] hooks use 3.1 Chinese runtime paths"
-  rg '配置.json|状态.json|功能/' hooks/cx-runtime.sh hooks/session-start.sh hooks/pre-compact.sh hooks/prompt-submit.sh hooks/post-edit.sh hooks/stop-check.sh
+  rg '配置.json|状态.json|功能/|runtime/cc' hooks/cx-runtime.sh hooks/session-start.sh hooks/pre-compact.sh hooks/prompt-submit.sh hooks/post-edit.sh hooks/stop-check.sh hooks/stop-failure.sh hooks/config-change.sh
 
   echo "[check] hooks no longer depend on old config or fixed refresh"
   ! rg 'config\\.json|features/' hooks/cx-runtime.sh hooks/session-start.sh hooks/pre-compact.sh hooks/prompt-submit.sh hooks/post-edit.sh hooks/stop-check.sh
@@ -415,9 +473,11 @@ if [[ -d tests/fixtures/minimal-project ]]; then
 
   echo "[check] pre-compact writes snapshot"
   rm -f tests/fixtures/minimal-project/.claude/cx/context-snapshot.md
+  rm -f tests/fixtures/minimal-project/.claude/cx/runtime/cc/context-snapshot.md
   PROJECT_ROOT=tests/fixtures/minimal-project bash hooks/pre-compact.sh
-  test -f tests/fixtures/minimal-project/.claude/cx/context-snapshot.md
-  rg 'sample-feature' tests/fixtures/minimal-project/.claude/cx/context-snapshot.md
+  test -f tests/fixtures/minimal-project/.claude/cx/runtime/cc/context-snapshot.md
+  ! test -f tests/fixtures/minimal-project/.claude/cx/context-snapshot.md
+  rg 'sample-feature' tests/fixtures/minimal-project/.claude/cx/runtime/cc/context-snapshot.md
 
   echo "[check] prompt-submit stays quiet during normal execution"
   PROMPT_OUTPUT=$(PROJECT_ROOT=tests/fixtures/minimal-project bash hooks/prompt-submit.sh)
@@ -428,16 +488,18 @@ if [[ -d tests/fixtures/minimal-project ]]; then
   printf '%s\n' "$STOP_OUTPUT" | rg '/cx:exec'
 
   echo "[check] stop-failure writes failure snapshot"
-  rm -f tests/fixtures/minimal-project/.claude/cx/最近失败.json
+  rm -f tests/fixtures/minimal-project/.claude/cx/runtime/cc/最近失败.json
   printf '%s' '{"error":"rate_limit","message":"Too many requests"}' | PROJECT_ROOT=tests/fixtures/minimal-project bash hooks/stop-failure.sh
-  test -f tests/fixtures/minimal-project/.claude/cx/最近失败.json
-  rg '"error": "rate_limit"' tests/fixtures/minimal-project/.claude/cx/最近失败.json
+  test -f tests/fixtures/minimal-project/.claude/cx/runtime/cc/最近失败.json
+  rg '"error": "rate_limit"' tests/fixtures/minimal-project/.claude/cx/runtime/cc/最近失败.json
+  rg '"runner": "cc"' tests/fixtures/minimal-project/.claude/cx/runtime/cc/最近失败.json
 
   echo "[check] config-change writes config snapshot"
-  rm -f tests/fixtures/minimal-project/.claude/cx/最近配置变更.json
+  rm -f tests/fixtures/minimal-project/.claude/cx/runtime/cc/最近配置变更.json
   printf '%s' '{"source":"project_settings","file_path":".claude/settings.json"}' | PROJECT_ROOT=tests/fixtures/minimal-project bash hooks/config-change.sh
-  test -f tests/fixtures/minimal-project/.claude/cx/最近配置变更.json
-  rg '"source": "project_settings"' tests/fixtures/minimal-project/.claude/cx/最近配置变更.json
+  test -f tests/fixtures/minimal-project/.claude/cx/runtime/cc/最近配置变更.json
+  rg '"source": "project_settings"' tests/fixtures/minimal-project/.claude/cx/runtime/cc/最近配置变更.json
+  rg '"runner": "cc"' tests/fixtures/minimal-project/.claude/cx/runtime/cc/最近配置变更.json
 
   echo "[check] prompt-submit surfaces blocked reason only when needed"
   TMP_DIR=$(mktemp -d)
@@ -469,6 +531,7 @@ rg 'worktree 校验|当前 checkout 与 feature 绑定一致' skills/exec/SKILL.
 rg 'preferred_worktree_path|binding_status' skills/plan/SKILL.md
 rg 'reason_type' skills/status/SKILL.md skills/exec/SKILL.md
 rg 'GitHub 为同步镜像' skills/summary/SKILL.md skills/help/SKILL.md
+rg 'runner `cc`|共享 core|handoff' skills/init/SKILL.md skills/prd/SKILL.md skills/design/SKILL.md skills/adr/SKILL.md skills/plan/SKILL.md skills/exec/SKILL.md skills/fix/SKILL.md skills/status/SKILL.md skills/summary/SKILL.md references/workflow-guide.md
 rg '配置.json' skills/config/SKILL.md
 ! rg 'background_agents|prompt_refresh_interval' skills/config/SKILL.md
 rg 'disable-model-invocation: true' skills/init/SKILL.md skills/prd/SKILL.md skills/plan/SKILL.md skills/design/SKILL.md skills/adr/SKILL.md skills/exec/SKILL.md skills/fix/SKILL.md skills/summary/SKILL.md skills/config/SKILL.md skills/scope/SKILL.md

@@ -26,6 +26,8 @@ disable-model-invocation: true
 5. 记录修复结论
 6. 提交代码
 
+这是 Claude Code 侧的 `cc` adapter 修复入口；如果当前问题归属的 feature 已由 `codex` 持有，先提示 handoff，再决定是否继续。
+
 ## 升级条件
 
 只有这些情况才把修复升级为复杂模式：

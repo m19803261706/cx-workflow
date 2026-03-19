@@ -31,6 +31,7 @@ disable-model-invocation: true
 - 后续命令尽量少打断用户
 - 运行时真相只保存在项目级 `.claude/cx`
 - hooks 由插件层提供，不再复制到项目目录
+- Claude Code 插件只是 runner `cc` 的 adapter，不直接拥有项目真相
 
 ## 执行流程
 

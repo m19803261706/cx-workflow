@@ -1,6 +1,7 @@
 # CX Workflow Guide
 
 纯 `cx 3.1` 的参考指南。目标很简单：插件层提供能力，项目级 `.claude/cx` 提供真相。
+在双运行器模式下，Claude Code 插件只是共享 `cx core` 上的 `cc` adapter，不再把自己视为整个系统。
 
 ## 核心原则
 

@@ -24,6 +24,7 @@ disable-model-invocation: true
 - 项目级 `.claude/cx/配置.json` 与 `.claude/cx/状态.json` 是唯一运行时真相
 - 可见目录与文档名使用中文，内部状态引用始终使用稳定 `slug`
 - `cx-prd` 负责需求收敛，不负责把流程做重
+- Claude Code 侧以 runner `cc` 身份写共享状态；如果 feature 已由 `codex` 持有，先提示 handoff
 
 ## 核心步骤
 

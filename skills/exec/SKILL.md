@@ -25,6 +25,7 @@ disable-model-invocation: true
 - `/cx:exec` 默认自动推进，直到完成、阻塞或关键决策点
 - `/cx:exec --all` 才进入高自治团队模式
 - GitHub 不参与执行态主控，闭环同步交给 `/cx:summary`
+- Claude Code 在共享 core 中始终注册为 runner `cc`；如果 feature 当前由 `codex` 持有，必须先 handoff，不能静默抢占
 
 ## 核心步骤
 
@@ -50,6 +51,7 @@ bash scripts/cx-core-worktree.sh \
 - 如果脚本返回推荐 worktree，说明还在规划阶段，先落盘推荐再继续
 - 如果脚本拒绝当前 checkout，先走 handoff 或切换到正确 worktree，不能直接 claim
 - 同一 feature 只能在一个 worktree 中持有活跃执行权，除非已经发生 handoff
+- claim helper 注册当前 session 时，runner 固定使用 `cc`
 
 ### Step 1: 选择可执行任务
 

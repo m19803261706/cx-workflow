@@ -29,6 +29,7 @@ disable-model-invocation: true
 - 回退成本高、影响面大的架构决定
 
 普通实现细节不要滥用 ADR。
+Claude Code 侧写 ADR 时仍然只是在共享 core 上补充文档，不改变其他 runner 的 lease。
 
 ## 核心步骤
 

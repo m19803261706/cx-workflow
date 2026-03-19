@@ -56,3 +56,4 @@ description: >
 - 状态优先来自 JSON，而不是模型记忆
 - GitHub 信息只作为补充，不覆盖本地状态
 - 输出要短、结构化、可行动
+- 如果共享 core 显示 feature 由 `codex` 持有，必须明确展示 owner 和 handoff 建议

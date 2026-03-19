@@ -19,7 +19,8 @@ if [[ -z "$PAYLOAD" ]]; then
   exit 0
 fi
 
-OUTPUT_FILE="$(cx_dir)/最近配置变更.json"
+cx_ensure_runtime_dir
+OUTPUT_FILE="$(cx_runtime_dir)/最近配置变更.json"
 CHANGED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 SOURCE=$(printf '%s' "$PAYLOAD" | jq -r '.source // empty' 2>/dev/null || true)
 FILE_PATH=$(printf '%s' "$PAYLOAD" | jq -r '.file_path // empty' 2>/dev/null || true)
@@ -28,8 +29,10 @@ jq -n \
   --arg changed_at "$CHANGED_AT" \
   --arg source "$SOURCE" \
   --arg file_path "$FILE_PATH" \
+  --arg runner "$(cx_runner_name)" \
   '{
     changed_at: $changed_at,
     source: $source,
-    file_path: $file_path
+    file_path: $file_path,
+    runner: $runner
   }' > "$OUTPUT_FILE"

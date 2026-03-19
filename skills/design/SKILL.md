@@ -24,6 +24,7 @@ disable-model-invocation: true
 - 只服务中大 feature，S 规模默认跳过
 - 设计文档是执行契约，不是长篇论文
 - 优先锁定 API、状态枚举、字段映射、风险点和测试重点
+- Claude Code 是共享 cx core 上的 `cc` adapter，不能绕过租约直接覆盖其他 runner 的 feature
 
 ## 核心步骤
 

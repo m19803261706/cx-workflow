@@ -24,6 +24,7 @@ disable-model-invocation: true
 - 默认轻量，普通功能直接拆任务
 - 仅当 PRD 明显引入新技术时，才进入技术识别和 skill 准备支线
 - 任务目录使用中文显示名，状态关联始终用稳定 `slug`
+- Claude Code 侧规划属于 runner `cc` 的 adapter 行为；共享 core 被 `codex` 持有时先建议 handoff
 
 ## 核心步骤
 
@@ -124,3 +125,4 @@ feature 级 `状态.json` 至少包含：
 ```
 
 如果任务图中存在清晰并行组，再在状态中标注 `parallel_group`，供 `/cx:exec --all` 使用。
+推荐 worktree 只是共享 core 的建议值，不代表 CC 可以跳过租约直接开工。
