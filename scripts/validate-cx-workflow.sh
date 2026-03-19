@@ -105,3 +105,9 @@ rg '配置.json' skills/cx-config/SKILL.md
 ! rg 'background_agents|prompt_refresh_interval' skills/cx-config/SKILL.md
 rg '修复/' references/templates/fix.md
 rg '总结.md' references/templates/summary.md
+
+echo "[check] public docs and metadata present pure cx 3.0"
+rg '"version": "3.0.0"' .claude-plugin/plugin.json
+rg '只保留 `cx`' README.md references/workflow-guide.md
+! rg -F '/tc' README.md references/workflow-guide.md
+rg '纯 cx 3.0' CHANGELOG.md

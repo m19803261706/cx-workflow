@@ -1,7 +1,7 @@
 {
   "name": "cx-workflow",
-  "version": "2.0.0",
-  "description": "CX 开发工作流技能体 — 本地优先、按需上云、从需求到交付的完整闭环。支持新功能开发（PRD→Design→Plan→Exec→Summary）和 Bug 修复（Fix）两条路径。四档 GitHub 同步模式适配单人到团队。",
+  "version": "3.0.0",
+  "description": "CX 纯插件工作流 3.0 — 只保留 cx 命令，项目级 .claude/cx 为唯一运行时真相。支持自动路由的新功能链路、低打断执行、--all 团队模式，以及 GitHub 作为同步镜像的闭环能力。",
   "author": {
     "name": "chengxuan",
     "url": "https://github.com/m19803261706"
