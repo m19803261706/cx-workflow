@@ -21,6 +21,7 @@
 - Claude Code 现在被视为共享 `cx core` 上的 `cc` adapter
 - Codex 侧现在有独立的可安装 adapter skill 包
 - `core/workflow/` 开始承载共享 workflow core，避免 CC 与 Codex 各自维护一套流程脑子
+- `cx dashboard` 的全局观察台骨架已经锁定：本地服务聚合多项目状态，Web 前端只读展示
 
 ## 核心命令
 
@@ -84,6 +85,37 @@ GitHub 是同步镜像，不是运行时真相。
 - `local`：本地为主，闭环时轻量同步
 - `collab`：同步关键文档和闭环结果
 - `full`：更完整的协作留痕
+
+## 全局 Web 管理面板
+
+`cx dashboard` 是这套工作流的全局观察台能力。
+
+- 目标：统一查看多个项目的 feature、phase、owner、worktree、handoff 与进度
+- 形态：本地服务 + Web 前端
+- 边界：第一版只读，不直接触发 `cx:plan` / `cx:exec`
+- 高峰入口：`cx:init` 与 `cx:prd` 后续会复用同一套 bridge helper 做面板检测、提醒与自动注册
+
+当前已经锁定的骨架包括：
+
+- 架构文档：`docs/dashboard-architecture.md`
+- 用户级注册表 schema：`references/dashboard-registry-schema.json`
+- 用户级 runtime schema：`references/dashboard-runtime-schema.json`
+
+建议目录结构：
+
+```text
+dashboard/
+├── service/
+├── web/
+└── contracts/
+scripts/
+└── cx-dashboard-bridge.sh
+```
+
+用户级文件约定：
+
+- `~/.cx/dashboard/registry.json`
+- `~/.cx/dashboard/runtime.json`
 
 ## 安装与初始化
 
@@ -167,3 +199,6 @@ bash scripts/cx-core-migrate.sh
 - `references/config-schema.json`
 - `references/project-status-schema.json`
 - `references/feature-status-schema.json`
+- `docs/dashboard-architecture.md`
+- `references/dashboard-registry-schema.json`
+- `references/dashboard-runtime-schema.json`

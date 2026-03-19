@@ -1,0 +1,221 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "cx dashboard registry schema",
+  "description": "Schema for the user-level dashboard registry that tracks prompt state, project registration, scan roots, and lightweight aggregated project summaries.",
+  "type": "object",
+  "required": [
+    "version",
+    "prompt_state",
+    "auto_register",
+    "projects",
+    "scan_roots",
+    "ignored_roots",
+    "updated_at"
+  ],
+  "definitions": {
+    "project_identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._:-]*$"
+    },
+    "feature_slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]+$"
+    },
+    "prompt_state": {
+      "type": "string",
+      "enum": [
+        "unknown",
+        "accepted",
+        "declined"
+      ]
+    },
+    "registration_source": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "auto_register",
+        "auto_scan"
+      ]
+    },
+    "sync_status": {
+      "type": "string",
+      "enum": [
+        "healthy",
+        "stale",
+        "missing",
+        "error"
+      ]
+    },
+    "owner_runner": {
+      "type": "string",
+      "enum": [
+        "cc",
+        "codex",
+        "none"
+      ]
+    },
+    "lifecycle_stage": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "planned",
+        "ready",
+        "executing",
+        "blocked",
+        "handoff_pending",
+        "completed",
+        "archived"
+      ]
+    }
+  },
+  "properties": {
+    "version": {
+      "type": "string",
+      "enum": [
+        "1.0"
+      ],
+      "default": "1.0"
+    },
+    "prompt_state": {
+      "$ref": "#/definitions/prompt_state"
+    },
+    "auto_register": {
+      "type": "boolean",
+      "default": false
+    },
+    "projects": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/definitions/project_identifier"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "id",
+          "root_path",
+          "display_name",
+          "registration_source",
+          "sync_status",
+          "owner_runner",
+          "handoff_pending",
+          "progress_completed",
+          "progress_total",
+          "last_seen_at"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/definitions/project_identifier"
+          },
+          "root_path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "registration_source": {
+            "$ref": "#/definitions/registration_source"
+          },
+          "sync_status": {
+            "$ref": "#/definitions/sync_status"
+          },
+          "current_feature_slug": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/feature_slug"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "current_feature_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lifecycle_stage": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/lifecycle_stage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "owner_runner": {
+            "$ref": "#/definitions/owner_runner"
+          },
+          "worktree_path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "handoff_pending": {
+            "type": "boolean",
+            "default": false
+          },
+          "progress_completed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "progress_total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "feature_status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "feature_record_path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "last_seen_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last_synced_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "scan_roots": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "ignored_roots": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

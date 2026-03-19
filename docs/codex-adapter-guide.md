@@ -45,6 +45,7 @@ Codex adapter 必须做到：
 - 在写 feature / task 状态前先拿到 lease
 - 当 feature 已由 `cc` 持有时，优先提示 handoff，而不是静默覆盖
 - 把运行时临时产物写到 `.claude/cx/runtime/codex/`
+- 在 `cx-init` / `cx-prd` 这类高频入口复用共享 dashboard bridge，而不是单独实现一套面板检测逻辑
 
 Codex adapter 安装后的 skill 包还必须做到：
 
@@ -59,6 +60,7 @@ Codex adapter 不应该：
 - 偷抢 `cc` 已持有的 feature
 - 把自己的临时快照写进 `runtime/cc/`
 - 在同一 feature 上绕过 worktree 规则并发执行
+- 绕过共享 dashboard bridge 直接自行维护用户级项目注册表
 
 ## 共享入口
 
@@ -191,6 +193,22 @@ Codex 私有产物统一落到：
 - codex-specific recovery memo
 
 这些文件不能反向污染 `runtime/cc/`。
+
+## Dashboard Bridge Contract
+
+Codex 侧高频入口最终要与 Claude Code 使用同一套 dashboard bridge 语义：
+
+- 检测全局面板服务是否已运行
+- 读取用户级 prompt state
+- 只在首次使用或未决状态下提醒用户存在全局面板能力
+- 用户已接受后自动注册当前项目
+- 用户未接受时不阻塞 `cx-init` / `cx-prd`
+
+这部分共享契约见：
+
+- `docs/dashboard-architecture.md`
+- `references/dashboard-registry-schema.json`
+- `references/dashboard-runtime-schema.json`
 
 ## 最小成功标准
 

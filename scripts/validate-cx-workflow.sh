@@ -60,11 +60,22 @@ test -f core/workflow/protocols/status.md
 test -f core/workflow/protocols/summary.md
 test -f references/workflow-state-schema.json
 
+echo "[check] dashboard architecture docs and schema exist"
+test -f docs/dashboard-architecture.md
+test -f references/dashboard-registry-schema.json
+test -f references/dashboard-runtime-schema.json
+
 echo "[check] task template exists"
 test -f references/templates/task.md
 
 echo "[check] schema json parses"
-jq empty references/config-schema.json references/project-status-schema.json references/feature-status-schema.json references/workflow-state-schema.json
+jq empty \
+  references/config-schema.json \
+  references/project-status-schema.json \
+  references/feature-status-schema.json \
+  references/workflow-state-schema.json \
+  references/dashboard-registry-schema.json \
+  references/dashboard-runtime-schema.json
 
 echo "[check] core schema json parses"
 jq empty \
@@ -72,6 +83,21 @@ jq empty \
   references/core-feature-schema.json \
   references/core-session-schema.json \
   references/core-handoff-schema.json
+
+echo "[check] dashboard registry schema carries prompt and registration metadata"
+jq -e '.required | index("prompt_state")' references/dashboard-registry-schema.json >/dev/null
+jq -e '.required | index("auto_register")' references/dashboard-registry-schema.json >/dev/null
+jq -e '.required | index("projects")' references/dashboard-registry-schema.json >/dev/null
+jq -e '.definitions.registration_source.enum == ["manual","auto_register","auto_scan"]' references/dashboard-registry-schema.json >/dev/null
+jq -e '.definitions.prompt_state.enum == ["unknown","accepted","declined"]' references/dashboard-registry-schema.json >/dev/null
+jq -e '.definitions.owner_runner.enum == ["cc","codex","none"]' references/dashboard-registry-schema.json >/dev/null
+
+echo "[check] dashboard runtime schema carries service runtime metadata"
+jq -e '.required | index("service_status")' references/dashboard-runtime-schema.json >/dev/null
+jq -e '.required | index("backend_port")' references/dashboard-runtime-schema.json >/dev/null
+jq -e '.required | index("frontend_port")' references/dashboard-runtime-schema.json >/dev/null
+jq -e '.required | index("frontend_url")' references/dashboard-runtime-schema.json >/dev/null
+jq -e '.definitions.service_status.enum == ["stopped","running","degraded"]' references/dashboard-runtime-schema.json >/dev/null
 
 echo "[check] feature status schema carries reason_type"
 jq -e '.properties.blocked.required | index("reason_type")' references/feature-status-schema.json >/dev/null

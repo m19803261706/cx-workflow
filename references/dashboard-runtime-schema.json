@@ -1,0 +1,119 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "cx dashboard runtime schema",
+  "description": "Schema for user-level dashboard runtime metadata such as chosen ports, URLs, health status, and startup diagnostics.",
+  "type": "object",
+  "required": [
+    "version",
+    "service_status",
+    "service_host",
+    "backend_port",
+    "frontend_port",
+    "api_base_url",
+    "frontend_url",
+    "registry_path",
+    "last_checked_at"
+  ],
+  "definitions": {
+    "service_status": {
+      "type": "string",
+      "enum": [
+        "stopped",
+        "running",
+        "degraded"
+      ]
+    },
+    "nullable_port": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nullable_datetime": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nullable_uri": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uri"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "properties": {
+    "version": {
+      "type": "string",
+      "enum": [
+        "1.0"
+      ],
+      "default": "1.0"
+    },
+    "service_status": {
+      "$ref": "#/definitions/service_status"
+    },
+    "service_host": {
+      "type": "string",
+      "minLength": 1,
+      "default": "127.0.0.1"
+    },
+    "backend_port": {
+      "$ref": "#/definitions/nullable_port"
+    },
+    "frontend_port": {
+      "$ref": "#/definitions/nullable_port"
+    },
+    "api_base_url": {
+      "$ref": "#/definitions/nullable_uri"
+    },
+    "frontend_url": {
+      "$ref": "#/definitions/nullable_uri"
+    },
+    "registry_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "pid": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "last_started_at": {
+      "$ref": "#/definitions/nullable_datetime"
+    },
+    "last_checked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_error": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

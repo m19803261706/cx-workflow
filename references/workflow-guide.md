@@ -11,6 +11,7 @@
 - 项目级 `.claude/cx` 是运行时真相
 - 共享 `cx core` 允许 `cc` / `codex` 两个 runner 协作
 - `shared workflow core` 统一 PRD / Design / Plan / Exec / Fix / Status / Summary 的规则
+- `cx dashboard` 作为全局观察台聚合多个项目状态，但不替代项目级真相源
 - GitHub 是同步镜像，不是主控面
 - 中文目录与文档名面向使用者，英文 JSON 协议面向脚本
 - 默认自动路由，普通执行尽量不打断用户
@@ -32,6 +33,7 @@
 - 创建 `功能/` 与 `修复/`
 - 在每个项目单独确认 `developer_id`
 - 检查 Git / GitHub 接入状态
+- 后续通过 `cx-dashboard-bridge` 接入全局面板检测与自动注册
 
 如果项目已经带有旧版 `.claude/cx`，先运行：
 
@@ -49,6 +51,7 @@ bash scripts/cx-core-migrate.sh
 - 自动评估规模
 - 自动判断是否需要 Design
 - 通过共享 runner `scripts/cx-workflow-prd.sh` 做确定性落盘
+- 后续会复用 `scripts/cx-dashboard-bridge.sh` 做全局面板检测、首次提醒与项目自动注册
 - 产物：`.claude/cx/功能/{功能标题}/需求.md`
 
 ### 2. `/cx:design`
@@ -163,6 +166,28 @@ bash scripts/cx-core-migrate.sh
 
 这些协议定义的不是某个 adapter 的私有行为，而是两边共用的流程规则。
 adapter 只负责入口与交互载体，不能再各自重新解释 PRD、Plan 或 Exec 语义。
+
+## CX Dashboard
+
+`cx dashboard` 是共享 `cx core` 的全局观察台。
+
+稳定边界：
+
+- 项目 `.claude/cx` 继续是真相源
+- 本地服务负责聚合多个项目
+- Web 前端只读展示聚合结果
+- `cx:init` / `cx:prd` 通过同一 bridge helper 感知“面板是否已运行、是否需要提醒、是否自动注册当前项目”
+
+第一版约束：
+
+- 允许：查看项目列表、项目详情、feature/handoff 进度摘要、打开项目目录、复制建议命令、触发重扫
+- 不允许：直接从面板发起 `cx:plan`、`cx:exec` 或写项目级真相
+
+关键契约文件：
+
+- `docs/dashboard-architecture.md`
+- `references/dashboard-registry-schema.json`
+- `references/dashboard-runtime-schema.json`
 
 ## Codex Adapter 安装
 
