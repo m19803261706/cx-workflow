@@ -1,0 +1,276 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "cx core Project Registry Schema",
+  "description": "Schema for the shared cx core project registry. This is the top-level control plane index for features, active sessions, and runtime roots.",
+  "type": "object",
+  "required": [
+    "version",
+    "features",
+    "active_sessions",
+    "runtime_roots"
+  ],
+  "definitions": {
+    "feature_slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]+$"
+    },
+    "session_identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._:-]*$"
+    },
+    "task_identifier": {
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "type": "string",
+          "pattern": "^(task-[1-9][0-9]*|[a-z][a-z0-9._-]*)$"
+        }
+      ]
+    }
+  },
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Control plane schema version for the shared cx core registry.",
+      "enum": ["1.0"],
+      "default": "1.0"
+    },
+    "current_feature": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/feature_slug"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Optional convenience pointer to the currently foregrounded feature slug. Runtime validation must ensure a non-null value resolves to an existing key in the features registry.",
+      "default": null
+    },
+    "features": {
+      "type": "object",
+      "description": "Feature registry keyed by stable feature slug. The map key is the canonical feature identity and runtime validation must ensure each key exactly matches the nested slug.",
+      "propertyNames": {
+        "$ref": "#/definitions/feature_slug",
+        "description": "Each map key must use the same stable slug that the nested record stores in its slug field."
+      },
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "slug",
+          "title",
+          "path",
+          "lifecycle",
+          "worktree_path",
+          "last_updated"
+        ],
+        "properties": {
+          "slug": {
+            "$ref": "#/definitions/feature_slug"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "description": "Path to the canonical feature registry record."
+          },
+          "lifecycle": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "planned",
+              "ready",
+              "executing",
+              "blocked",
+              "handoff_pending",
+              "completed",
+              "archived"
+            ]
+          },
+          "worktree_path": {
+            "type": ["string", "null"]
+          },
+          "lease_session_id": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/session_identifier"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional pointer to the active session that currently holds this feature lease. Runtime validation must ensure a non-null value resolves to an existing key in active_sessions."
+          },
+          "last_updated": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "active_sessions": {
+      "type": "object",
+      "description": "Session registry keyed by stable session_id for live runner contexts. The map key is the canonical session identity and runtime validation must ensure each key exactly matches the nested session_id.",
+      "propertyNames": {
+        "$ref": "#/definitions/session_identifier",
+        "description": "Each map key must mirror the canonical session_id stored inside the nested session record."
+      },
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "runner",
+          "session_id",
+          "branch",
+          "worktree_path",
+          "started_at",
+          "last_heartbeat",
+          "claimed_feature",
+          "claimed_tasks"
+        ],
+        "properties": {
+          "runner": {
+            "type": "string",
+            "enum": ["cx", "cc", "codex"]
+          },
+          "session_id": {
+            "$ref": "#/definitions/session_identifier"
+          },
+          "branch": {
+            "type": "string",
+            "minLength": 1
+          },
+          "worktree_path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last_heartbeat": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "claimed_feature": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/feature_slug"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "claimed_tasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/task_identifier"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "runtime_roots": {
+      "type": "object",
+      "description": "Filesystem roots for shared registry files and runner-specific runtime artifacts.",
+      "required": [
+        "projects",
+        "features",
+        "sessions",
+        "handoffs",
+        "worktrees",
+        "artifacts"
+      ],
+      "properties": {
+        "projects": {
+          "type": "string"
+        },
+        "features": {
+          "type": "string"
+        },
+        "sessions": {
+          "type": "string"
+        },
+        "handoffs": {
+          "type": "string"
+        },
+        "worktrees": {
+          "type": "string"
+        },
+        "artifacts": {
+          "type": "object",
+          "required": [
+            "cx",
+            "cc",
+            "codex"
+          ],
+          "properties": {
+            "cx": {
+              "type": "string"
+            },
+            "cc": {
+              "type": "string"
+            },
+            "codex": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "description": "Minimal project registry with one feature and one live Codex session",
+      "value": {
+        "version": "1.0",
+        "current_feature": "cx-core-dual-runner",
+        "features": {
+          "cx-core-dual-runner": {
+            "slug": "cx-core-dual-runner",
+            "title": "Shared cx core control plane",
+            "path": ".claude/cx/core/features/cx-core-dual-runner.json",
+            "lifecycle": "executing",
+            "worktree_path": "/worktrees/codex-cx-core-dual-runner",
+            "lease_session_id": "codex-20260320-001",
+            "last_updated": "2026-03-20T09:00:00Z"
+          }
+        },
+        "active_sessions": {
+          "codex-20260320-001": {
+            "runner": "codex",
+            "session_id": "codex-20260320-001",
+            "branch": "codex/cx-core-dual-runner",
+            "worktree_path": "/worktrees/codex-cx-core-dual-runner",
+            "started_at": "2026-03-20T08:50:00Z",
+            "last_heartbeat": "2026-03-20T09:00:00Z",
+            "claimed_feature": "cx-core-dual-runner",
+            "claimed_tasks": [1]
+          }
+        },
+        "runtime_roots": {
+          "projects": ".claude/cx/core/projects",
+          "features": ".claude/cx/core/features",
+          "sessions": ".claude/cx/core/sessions",
+          "handoffs": ".claude/cx/core/handoffs",
+          "worktrees": ".claude/cx/core/worktrees",
+          "artifacts": {
+            "cx": ".claude/cx/runtime/cx",
+            "cc": ".claude/cx/runtime/cc",
+            "codex": ".claude/cx/runtime/codex"
+          }
+        }
+      }
+    }
+  ]
+}

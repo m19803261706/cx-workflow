@@ -6,8 +6,34 @@ REPO_ROOT=$(cd "$SCRIPT_DIR/.." && pwd)
 
 cd "$REPO_ROOT"
 
+validate_core_project_cross_references() {
+  local registry_path="$1"
+
+  jq -e '
+    all(.features | to_entries[];
+      .key == .value.slug)
+  ' "$registry_path" >/dev/null || return 1
+
+  jq -e '
+    all(.active_sessions | to_entries[];
+      .key == .value.session_id)
+  ' "$registry_path" >/dev/null || return 1
+
+  jq -e '
+    .current_feature as $current_feature
+    | ($current_feature == null) or (.features | has($current_feature))
+  ' "$registry_path" >/dev/null || return 1
+
+  jq -e '
+    .active_sessions as $sessions
+    | all(.features[]?;
+        (.lease_session_id as $lease_session_id
+          | ($lease_session_id == null) or ($sessions | has($lease_session_id))))
+  ' "$registry_path" >/dev/null || return 1
+}
+
 echo "[check] config schema version"
-rg '"enum": \["3.0"\]' references/config-schema.json
+jq -e '.properties.version.enum == ["3.0"]' references/config-schema.json >/dev/null
 
 echo "[check] project status schema exists"
 test -f references/project-status-schema.json
@@ -15,14 +41,171 @@ test -f references/project-status-schema.json
 echo "[check] feature status schema exists"
 test -f references/feature-status-schema.json
 
+echo "[check] core control plane docs and schemas exist"
+test -f references/core-schema-overview.md
+test -f references/core-project-schema.json
+test -f references/core-feature-schema.json
+test -f references/core-session-schema.json
+test -f references/core-handoff-schema.json
+
 echo "[check] task template exists"
 test -f references/templates/task.md
 
 echo "[check] schema json parses"
 jq empty references/config-schema.json references/project-status-schema.json references/feature-status-schema.json
 
+echo "[check] core schema json parses"
+jq empty \
+  references/core-project-schema.json \
+  references/core-feature-schema.json \
+  references/core-session-schema.json \
+  references/core-handoff-schema.json
+
 echo "[check] feature status schema carries reason_type"
-rg '"reason_type"' references/feature-status-schema.json
+jq -e '.properties.blocked.required | index("reason_type")' references/feature-status-schema.json >/dev/null
+
+echo "[check] core project schema carries control plane pointers"
+jq -e '.required | index("version")' references/core-project-schema.json >/dev/null
+jq -e '.required | index("features")' references/core-project-schema.json >/dev/null
+jq -e '.required | index("active_sessions")' references/core-project-schema.json >/dev/null
+jq -e '.required | index("runtime_roots")' references/core-project-schema.json >/dev/null
+jq -e '.properties.current_feature' references/core-project-schema.json >/dev/null
+jq -e '.definitions.feature_slug.pattern == "^[a-z0-9_-]+$"' references/core-project-schema.json >/dev/null
+jq -e '.definitions.session_identifier.pattern == "^[a-z0-9][a-z0-9._:-]*$"' references/core-project-schema.json >/dev/null
+jq -e '.properties.features.propertyNames."$ref" == "#/definitions/feature_slug"' references/core-project-schema.json >/dev/null
+jq -e '.properties.active_sessions.propertyNames."$ref" == "#/definitions/session_identifier"' references/core-project-schema.json >/dev/null
+jq -e '.properties.current_feature.anyOf[0]."$ref" == "#/definitions/feature_slug" and .properties.current_feature.anyOf[1].type == "null"' references/core-project-schema.json >/dev/null
+jq -e '.properties.features.additionalProperties.properties.lease_session_id.anyOf[0]."$ref" == "#/definitions/session_identifier" and .properties.features.additionalProperties.properties.lease_session_id.anyOf[1].type == "null"' references/core-project-schema.json >/dev/null
+jq -e '.properties.active_sessions.additionalProperties.properties.claimed_tasks.items."$ref" == "#/definitions/task_identifier"' references/core-project-schema.json >/dev/null
+
+echo "[check] core claimed_tasks identifiers are traceable"
+jq -e '.definitions.task_identifier.oneOf[0].type == "integer" and .definitions.task_identifier.oneOf[0].minimum == 1 and .definitions.task_identifier.oneOf[1].type == "string" and .definitions.task_identifier.oneOf[1].pattern == "^(task-[1-9][0-9]*|[a-z][a-z0-9._-]*)$"' references/core-project-schema.json >/dev/null
+jq -e '.definitions.task_identifier.oneOf[0].type == "integer" and .definitions.task_identifier.oneOf[0].minimum == 1 and .definitions.task_identifier.oneOf[1].type == "string" and .definitions.task_identifier.oneOf[1].pattern == "^(task-[1-9][0-9]*|[a-z][a-z0-9._-]*)$"' references/core-feature-schema.json >/dev/null
+jq -e '.definitions.task_identifier.oneOf[0].type == "integer" and .definitions.task_identifier.oneOf[0].minimum == 1 and .definitions.task_identifier.oneOf[1].type == "string" and .definitions.task_identifier.oneOf[1].pattern == "^(task-[1-9][0-9]*|[a-z][a-z0-9._-]*)$"' references/core-session-schema.json >/dev/null
+jq -e '.definitions.task_identifier.oneOf[0].type == "integer" and .definitions.task_identifier.oneOf[0].minimum == 1 and .definitions.task_identifier.oneOf[1].type == "string" and .definitions.task_identifier.oneOf[1].pattern == "^(task-[1-9][0-9]*|[a-z][a-z0-9._-]*)$"' references/core-handoff-schema.json >/dev/null
+
+echo "[check] core feature schema carries lease and handoff metadata"
+jq -e '.required | index("slug")' references/core-feature-schema.json >/dev/null
+jq -e '.required | index("title")' references/core-feature-schema.json >/dev/null
+jq -e '.required | index("lifecycle")' references/core-feature-schema.json >/dev/null
+jq -e '.required | index("planning_owner")' references/core-feature-schema.json >/dev/null
+jq -e '.required | index("execution_owner")' references/core-feature-schema.json >/dev/null
+jq -e '.required | index("worktree")' references/core-feature-schema.json >/dev/null
+jq -e '.required | index("lease")' references/core-feature-schema.json >/dev/null
+jq -e '.required | index("docs")' references/core-feature-schema.json >/dev/null
+jq -e '.required | index("tasks")' references/core-feature-schema.json >/dev/null
+jq -e '.required | index("handoffs")' references/core-feature-schema.json >/dev/null
+jq -e '.properties.lease.required | index("runner")' references/core-feature-schema.json >/dev/null
+jq -e '.properties.lease.required | index("session_id")' references/core-feature-schema.json >/dev/null
+jq -e '.properties.lease.required | index("branch")' references/core-feature-schema.json >/dev/null
+jq -e '.properties.lease.required | index("worktree_path")' references/core-feature-schema.json >/dev/null
+jq -e '.properties.lease.required | index("claimed_feature")' references/core-feature-schema.json >/dev/null
+jq -e '.properties.lease.required | index("claimed_tasks")' references/core-feature-schema.json >/dev/null
+jq -e '.properties.lease.required | index("claimed_at")' references/core-feature-schema.json >/dev/null
+jq -e '.properties.lease.required | index("expires_at")' references/core-feature-schema.json >/dev/null
+jq -e '.properties.lease.properties.claimed_tasks.items."$ref" == "#/definitions/task_identifier"' references/core-feature-schema.json >/dev/null
+
+echo "[check] core session schema carries runner lease ownership"
+jq -e '.required | index("runner")' references/core-session-schema.json >/dev/null
+jq -e '.required | index("session_id")' references/core-session-schema.json >/dev/null
+jq -e '.required | index("branch")' references/core-session-schema.json >/dev/null
+jq -e '.required | index("worktree_path")' references/core-session-schema.json >/dev/null
+jq -e '.required | index("started_at")' references/core-session-schema.json >/dev/null
+jq -e '.required | index("last_heartbeat")' references/core-session-schema.json >/dev/null
+jq -e '.required | index("claimed_feature")' references/core-session-schema.json >/dev/null
+jq -e '.required | index("claimed_tasks")' references/core-session-schema.json >/dev/null
+jq -e '.properties.claimed_tasks.items."$ref" == "#/definitions/task_identifier"' references/core-session-schema.json >/dev/null
+
+echo "[check] core handoff schema carries transfer lifecycle"
+jq -e '.required | index("runner")' references/core-handoff-schema.json >/dev/null
+jq -e '.required | index("session_id")' references/core-handoff-schema.json >/dev/null
+jq -e '.required | index("branch")' references/core-handoff-schema.json >/dev/null
+jq -e '.required | index("worktree_path")' references/core-handoff-schema.json >/dev/null
+jq -e '.required | index("claimed_feature")' references/core-handoff-schema.json >/dev/null
+jq -e '.required | index("claimed_tasks")' references/core-handoff-schema.json >/dev/null
+jq -e '.required | index("handoff_reason")' references/core-handoff-schema.json >/dev/null
+jq -e '.required | index("accepted_at")' references/core-handoff-schema.json >/dev/null
+jq -e '.properties.claimed_tasks.items."$ref" == "#/definitions/task_identifier"' references/core-handoff-schema.json >/dev/null
+
+echo "[check] core project cross references stay non-dangling"
+CORE_TMP_DIR=$(mktemp -d)
+jq -n '{
+  "version": "1.0",
+  "current_feature": "cx-core-dual-runner",
+  "features": {
+    "cx-core-dual-runner": {
+      "slug": "cx-core-dual-runner",
+      "title": "Shared cx core control plane",
+      "path": ".claude/cx/core/features/cx-core-dual-runner.json",
+      "lifecycle": "executing",
+      "worktree_path": "/worktrees/codex-cx-core-dual-runner",
+      "lease_session_id": "codex-20260320-001",
+      "last_updated": "2026-03-20T09:00:00Z"
+    }
+  },
+  "active_sessions": {
+    "codex-20260320-001": {
+      "runner": "codex",
+      "session_id": "codex-20260320-001",
+      "branch": "codex/cx-core-dual-runner",
+      "worktree_path": "/worktrees/codex-cx-core-dual-runner",
+      "started_at": "2026-03-20T08:50:00Z",
+      "last_heartbeat": "2026-03-20T09:00:00Z",
+      "claimed_feature": "cx-core-dual-runner",
+      "claimed_tasks": [1]
+    }
+  },
+  "runtime_roots": {
+    "projects": ".claude/cx/core/projects",
+    "features": ".claude/cx/core/features",
+    "sessions": ".claude/cx/core/sessions",
+    "handoffs": ".claude/cx/core/handoffs",
+    "worktrees": ".claude/cx/core/worktrees",
+    "artifacts": {
+      "cx": ".claude/cx/runtime/cx",
+      "cc": ".claude/cx/runtime/cc",
+      "codex": ".claude/cx/runtime/codex"
+    }
+  }
+}' > "$CORE_TMP_DIR/core-project.json"
+validate_core_project_cross_references "$CORE_TMP_DIR/core-project.json"
+
+jq '.current_feature = "missing-feature"' \
+  "$CORE_TMP_DIR/core-project.json" > "$CORE_TMP_DIR/core-project-missing-feature.json"
+if validate_core_project_cross_references "$CORE_TMP_DIR/core-project-missing-feature.json"; then
+  echo "current_feature cross-reference check should reject missing feature keys" >&2
+  rm -rf "$CORE_TMP_DIR"
+  exit 1
+fi
+
+jq '.features["cx-core-dual-runner"].lease_session_id = "missing-session"' \
+  "$CORE_TMP_DIR/core-project.json" > "$CORE_TMP_DIR/core-project-missing-lease-session.json"
+if validate_core_project_cross_references "$CORE_TMP_DIR/core-project-missing-lease-session.json"; then
+  echo "lease_session_id cross-reference check should reject missing active sessions" >&2
+  rm -rf "$CORE_TMP_DIR"
+  exit 1
+fi
+
+jq '(.features["wrong-feature-key"] = .features["cx-core-dual-runner"])
+  | del(.features["cx-core-dual-runner"])
+  | .features["wrong-feature-key"].slug = "cx-core-dual-runner"' \
+  "$CORE_TMP_DIR/core-project.json" > "$CORE_TMP_DIR/core-project-feature-key-drift.json"
+if validate_core_project_cross_references "$CORE_TMP_DIR/core-project-feature-key-drift.json"; then
+  echo "feature registry key/value identity drift should be rejected" >&2
+  rm -rf "$CORE_TMP_DIR"
+  exit 1
+fi
+
+jq '(.active_sessions["wrong-session-key"] = .active_sessions["codex-20260320-001"])
+  | del(.active_sessions["codex-20260320-001"])
+  | .active_sessions["wrong-session-key"].session_id = "codex-20260320-001"' \
+  "$CORE_TMP_DIR/core-project.json" > "$CORE_TMP_DIR/core-project-session-key-drift.json"
+if validate_core_project_cross_references "$CORE_TMP_DIR/core-project-session-key-drift.json"; then
+  echo "session registry key/value identity drift should be rejected" >&2
+  rm -rf "$CORE_TMP_DIR"
+  exit 1
+fi
+rm -rf "$CORE_TMP_DIR"
 
 echo "[check] fixture json parses"
 jq empty \

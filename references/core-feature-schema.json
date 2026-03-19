@@ -1,0 +1,296 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "cx core Feature Registry Schema",
+  "description": "Schema for a shared cx core feature record. A feature record owns lifecycle, worktree binding, execution lease, docs, tasks, and handoff history.",
+  "type": "object",
+  "required": [
+    "slug",
+    "title",
+    "lifecycle",
+    "planning_owner",
+    "execution_owner",
+    "worktree",
+    "lease",
+    "docs",
+    "tasks",
+    "handoffs"
+  ],
+  "definitions": {
+    "feature_slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]+$"
+    },
+    "session_identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._:-]*$"
+    },
+    "task_identifier": {
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "type": "string",
+          "pattern": "^(task-[1-9][0-9]*|[a-z][a-z0-9._-]*)$"
+        }
+      ]
+    }
+  },
+  "properties": {
+    "slug": {
+      "$ref": "#/definitions/feature_slug"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "lifecycle": {
+      "type": "object",
+      "required": [
+        "stage",
+        "updated_at"
+      ],
+      "properties": {
+        "stage": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "planned",
+            "ready",
+            "executing",
+            "blocked",
+            "handoff_pending",
+            "completed",
+            "archived"
+          ]
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "blocked_reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "planning_owner": {
+      "type": ["object", "null"],
+      "required": [
+        "runner",
+        "session_id"
+      ],
+      "properties": {
+        "runner": {
+          "type": "string",
+          "enum": ["cx", "cc", "codex"]
+        },
+        "session_id": {
+          "$ref": "#/definitions/session_identifier"
+        }
+      },
+      "additionalProperties": false
+    },
+    "execution_owner": {
+      "type": ["object", "null"],
+      "required": [
+        "runner",
+        "session_id"
+      ],
+      "properties": {
+        "runner": {
+          "type": "string",
+          "enum": ["cx", "cc", "codex"]
+        },
+        "session_id": {
+          "$ref": "#/definitions/session_identifier"
+        }
+      },
+      "additionalProperties": false
+    },
+    "worktree": {
+      "type": "object",
+      "required": [
+        "branch",
+        "worktree_path",
+        "binding_status"
+      ],
+      "properties": {
+        "branch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "worktree_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "binding_status": {
+          "type": "string",
+          "enum": [
+            "unbound",
+            "bound",
+            "stale",
+            "released"
+          ]
+        },
+        "bound_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "lease": {
+      "type": "object",
+      "required": [
+        "runner",
+        "session_id",
+        "branch",
+        "worktree_path",
+        "claimed_feature",
+        "claimed_tasks",
+        "claimed_at",
+        "last_heartbeat",
+        "expires_at"
+      ],
+      "properties": {
+        "runner": {
+          "type": "string",
+          "enum": ["cx", "cc", "codex"]
+        },
+        "session_id": {
+          "$ref": "#/definitions/session_identifier"
+        },
+        "branch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "worktree_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "claimed_feature": {
+          "$ref": "#/definitions/feature_slug"
+        },
+        "claimed_tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/task_identifier"
+          }
+        },
+        "claimed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "last_heartbeat": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "docs": {
+      "type": "object",
+      "properties": {
+        "prd": {
+          "type": "string"
+        },
+        "design": {
+          "type": "string"
+        },
+        "adr": {
+          "type": "string"
+        },
+        "plan": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": ["integer", "string"]
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "ready",
+              "claimed",
+              "in_progress",
+              "blocked",
+              "completed",
+              "archived"
+            ]
+          },
+          "owner_session_id": {
+            "type": ["string", "null"]
+          },
+          "path": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "handoffs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "runner",
+          "session_id",
+          "handoff_reason",
+          "created_at",
+          "accepted_at"
+        ],
+        "properties": {
+          "runner": {
+            "type": "string",
+            "enum": ["cx", "cc", "codex"]
+          },
+          "session_id": {
+            "$ref": "#/definitions/session_identifier"
+          },
+          "handoff_reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "accepted_at": {
+            "type": ["string", "null"],
+            "format": "date-time"
+          },
+          "record_path": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

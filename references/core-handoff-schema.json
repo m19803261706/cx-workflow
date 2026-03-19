@@ -1,0 +1,112 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "cx core Handoff Schema",
+  "description": "Schema for a durable cx core handoff record. Handoffs transfer a feature claim between runner sessions without losing branch, worktree, and task ownership context.",
+  "type": "object",
+  "required": [
+    "runner",
+    "session_id",
+    "branch",
+    "worktree_path",
+    "claimed_feature",
+    "claimed_tasks",
+    "handoff_reason",
+    "created_at",
+    "accepted_at"
+  ],
+  "definitions": {
+    "feature_slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]+$"
+    },
+    "session_identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._:-]*$"
+    },
+    "task_identifier": {
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "type": "string",
+          "pattern": "^(task-[1-9][0-9]*|[a-z][a-z0-9._-]*)$"
+        }
+      ]
+    }
+  },
+  "properties": {
+    "runner": {
+      "type": "string",
+      "description": "Source runner that created the handoff record.",
+      "enum": ["cx", "cc", "codex"]
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Source session that held the feature lease.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/session_identifier"
+        }
+      ]
+    },
+    "branch": {
+      "type": "string",
+      "minLength": 1
+    },
+    "worktree_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "claimed_feature": {
+      "$ref": "#/definitions/feature_slug"
+    },
+    "claimed_tasks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/task_identifier"
+      }
+    },
+    "handoff_reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "accepted_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "target_runner": {
+      "type": "string",
+      "enum": ["cx", "cc", "codex"]
+    },
+    "target_session_id": {
+      "$ref": "#/definitions/session_identifier"
+    },
+    "acceptance_note": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "description": "Pending handoff from Codex to CC",
+      "value": {
+        "runner": "codex",
+        "session_id": "codex-20260320-001",
+        "branch": "codex/cx-core-dual-runner",
+        "worktree_path": "/worktrees/codex-cx-core-dual-runner",
+        "claimed_feature": "cx-core-dual-runner",
+        "claimed_tasks": [1],
+        "handoff_reason": "Need CC-side adapter contract review before continuing execution.",
+        "created_at": "2026-03-20T09:10:00Z",
+        "accepted_at": null,
+        "target_runner": "cc"
+      }
+    }
+  ]
+}

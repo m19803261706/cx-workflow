@@ -1,0 +1,134 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "cx core Session Schema",
+  "description": "Schema for a live runner session tracked by cx core. Sessions represent active adapters bound to a branch and worktree while they hold or attempt to hold feature leases.",
+  "type": "object",
+  "required": [
+    "runner",
+    "session_id",
+    "branch",
+    "worktree_path",
+    "started_at",
+    "last_heartbeat",
+    "claimed_feature",
+    "claimed_tasks"
+  ],
+  "definitions": {
+    "feature_slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]+$"
+    },
+    "session_identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._:-]*$"
+    },
+    "task_identifier": {
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "type": "string",
+          "pattern": "^(task-[1-9][0-9]*|[a-z][a-z0-9._-]*)$"
+        }
+      ]
+    }
+  },
+  "properties": {
+    "runner": {
+      "type": "string",
+      "enum": ["cx", "cc", "codex"]
+    },
+    "session_id": {
+      "$ref": "#/definitions/session_identifier"
+    },
+    "branch": {
+      "type": "string",
+      "minLength": 1
+    },
+    "worktree_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_heartbeat": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "claimed_feature": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/feature_slug"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "claimed_tasks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/task_identifier"
+      }
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "active",
+        "idle",
+        "handoff_pending",
+        "closed"
+      ],
+      "default": "active"
+    },
+    "runtime_artifacts": {
+      "type": "object",
+      "description": "Runner-specific files or directories associated with this live session.",
+      "required": [
+        "root"
+      ],
+      "properties": {
+        "root": {
+          "type": "string"
+        },
+        "state_file": {
+          "type": "string"
+        },
+        "transcript": {
+          "type": "string"
+        },
+        "heartbeat_file": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "description": "Active Codex execution session",
+      "value": {
+        "runner": "codex",
+        "session_id": "codex-20260320-001",
+        "branch": "codex/cx-core-dual-runner",
+        "worktree_path": "/worktrees/codex-cx-core-dual-runner",
+        "started_at": "2026-03-20T08:50:00Z",
+        "last_heartbeat": "2026-03-20T09:00:00Z",
+        "claimed_feature": "cx-core-dual-runner",
+        "claimed_tasks": [1],
+        "state": "active",
+        "runtime_artifacts": {
+          "root": ".claude/cx/runtime/codex/codex-20260320-001",
+          "state_file": ".claude/cx/runtime/codex/codex-20260320-001/session.json",
+          "transcript": ".claude/cx/runtime/codex/codex-20260320-001/transcript.md",
+          "heartbeat_file": ".claude/cx/runtime/codex/codex-20260320-001/heartbeat.json"
+        }
+      }
+    }
+  ]
+}
