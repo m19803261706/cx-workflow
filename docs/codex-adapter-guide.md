@@ -8,6 +8,32 @@ Codex 不是 `cx core` 的旁路工具，而是共享控制平面上的第二个
 - 与 Claude Code 的 `cc` adapter 共用一套 feature / lease / handoff / worktree 规则
 - 支持并行 feature、跨运行器 handoff，以及中途接手继续执行
 
+## 安装方式
+
+Codex adapter 现在以独立 skill 包形式放在仓库里：
+
+- 源码目录：`adapters/codex/skills/`
+- 安装说明：`adapters/codex/README.md`
+- 安装脚本：`scripts/install-codex.sh`
+
+推荐安装到最新文档约定的用户级 `.agents/skills`：
+
+```bash
+bash scripts/install-codex.sh
+```
+
+开发期如果希望直接跟随当前仓库更新：
+
+```bash
+bash scripts/install-codex.sh --mode symlink
+```
+
+如果需要兼容旧的本地约定，可以额外安装到 `.codex/skills`：
+
+```bash
+bash scripts/install-codex.sh --also-legacy
+```
+
 ## Codex 的职责
 
 Codex adapter 必须做到：
@@ -18,6 +44,12 @@ Codex adapter 必须做到：
 - 在写 feature / task 状态前先拿到 lease
 - 当 feature 已由 `cc` 持有时，优先提示 handoff，而不是静默覆盖
 - 把运行时临时产物写到 `.claude/cx/runtime/codex/`
+
+Codex adapter 安装后的 skill 包还必须做到：
+
+- 所有 `cx-*` skills 都可以从同一个仓库产出
+- 共享引用通过 `cx-shared/` 复用协议、模板和脚本
+- 不复制第二套 `cx core`
 
 Codex adapter 不应该：
 

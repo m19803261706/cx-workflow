@@ -151,6 +151,29 @@ bash scripts/cx-core-migrate.sh
 - Codex 规划，CC 执行
 - 任一方向都可以中途 handoff
 
+## Codex Adapter 安装
+
+同一个 `cx` 仓库同时产出：
+
+- Claude Code 插件 adapter
+- Codex skill adapter
+
+Codex 侧安装入口：
+
+```bash
+bash scripts/install-codex.sh
+```
+
+推荐目标：
+
+- 用户级：`~/.agents/skills`
+- 项目级：`<project>/.agents/skills`
+
+如需兼容旧本地路径，可额外镜像到：
+
+- `~/.codex/skills`
+- `<project>/.codex/skills`
+
 ## Hook 设计
 
 - `SessionStart`：输出极短恢复摘要

@@ -1,0 +1,4 @@
+interface:
+  display_name: "CX Status"
+  short_description: "查看共享 CX 状态"
+  default_prompt: "Show the current shared cx status, including owner, lease, worktree, tasks, and handoff hints."

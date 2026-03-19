@@ -1,0 +1,4 @@
+interface:
+  display_name: "CX Fix"
+  short_description: "修复问题并遵守 handoff 规则"
+  default_prompt: "Debug and fix the reported cx issue from Codex, respecting shared lease and handoff rules before writing state."

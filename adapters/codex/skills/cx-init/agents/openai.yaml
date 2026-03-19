@@ -1,0 +1,4 @@
+interface:
+  display_name: "CX Init"
+  short_description: "初始化共享 cx core 项目"
+  default_prompt: "Initialize this project for the shared cx workflow from Codex, and make sure the shared cx core is ready for both CC and Codex."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "CX Design"
+  short_description: "编写技术设计与契约"
+  default_prompt: "Read the current PRD for this cx feature, write the design doc, and keep the shared feature metadata aligned."

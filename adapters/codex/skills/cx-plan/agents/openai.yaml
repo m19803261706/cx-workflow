@@ -1,0 +1,4 @@
+interface:
+  display_name: "CX Plan"
+  short_description: "拆任务并规划执行"
+  default_prompt: "Plan the active cx feature, create task docs, and update the shared core task registry without claiming execution."

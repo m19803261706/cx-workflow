@@ -1,0 +1,4 @@
+interface:
+  display_name: "CX ADR"
+  short_description: "记录架构决策"
+  default_prompt: "Write an architecture decision record for the active cx feature without changing lease ownership."

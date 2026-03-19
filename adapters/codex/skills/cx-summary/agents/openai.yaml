@@ -1,0 +1,4 @@
+interface:
+  display_name: "CX Summary"
+  short_description: "生成 feature 汇总并闭环"
+  default_prompt: "Summarize the active cx feature from Codex, update the shared completion state, and keep docs metadata aligned."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "CX PRD"
+  short_description: "创建需求文档并注册 feature"
+  default_prompt: "Collect requirements for a new cx feature, write the PRD, and register the feature in the shared cx core."

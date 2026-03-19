@@ -30,6 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - 共享 `cx core` 控制平面：project / feature / session / handoff / worktree schema
 - `cx-core-claim.sh`、`cx-core-handoff.sh`、`cx-core-worktree.sh`、`cx-core-migrate.sh`
 - Codex adapter 指南与技能契约文档
+- Codex adapter 可安装 skill 包与 `install-codex.sh`
 
 ### Changed
 - 插件名称收敛为 `cx`，命令面统一改为 `/cx:*`
@@ -38,11 +39,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - README、workflow-guide、模板和技能文档对齐 2026 官方插件规范
 - Claude Code 插件被收敛为共享 `cx core` 上的 `cc` adapter
 - hooks 运行时快照改为写入 `.claude/cx/runtime/cc/`
+- 同一个仓库现在同时承载 CC 插件 adapter 与 Codex skill adapter
 
 ### Rollout
 - Claude Code 最低版本要求为 `2.1.79`
 - Codex 侧需要先同步新的 `cx core` 技能契约，再参与同项目协作
 - 已有项目必须先运行 `bash scripts/cx-core-migrate.sh`，再启用双运行器
+- Codex 侧默认安装目标切到 `.agents/skills`
 
 ## [2.0.0] - 2026-02-06
 

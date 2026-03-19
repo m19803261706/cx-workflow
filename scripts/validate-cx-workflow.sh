@@ -547,6 +547,35 @@ test -f references/codex-skill-contract.md
 rg 'runner `codex`|lease|handoff|worktree' docs/codex-adapter-guide.md references/codex-skill-contract.md
 rg 'CC 创建 feature A.*Codex 创建 feature B|CC 规划.*Codex 执行|Codex 规划.*CC 执行|中途 handoff' docs/codex-adapter-guide.md references/workflow-guide.md
 
+echo "[check] codex adapter package exists"
+test -f adapters/codex/README.md
+test -f scripts/install-codex.sh
+bash -n scripts/install-codex.sh
+for skill in help init prd design adr plan exec fix status summary config scope; do
+  test -f "adapters/codex/skills/cx-$skill/SKILL.md"
+  test -f "adapters/codex/skills/cx-$skill/agents/openai.yaml"
+done
+rg 'cx-shared|runtime/codex|handoff|lease|worktree' adapters/codex/skills/cx-*/SKILL.md
+rg 'display_name|short_description|default_prompt' adapters/codex/skills/cx-*/agents/openai.yaml
+
+echo "[check] install-codex.sh installs user-scope bundle"
+CODEX_INSTALL_TMP=$(mktemp -d)
+bash scripts/install-codex.sh --target-root "$CODEX_INSTALL_TMP/.agents/skills"
+test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-help/SKILL.md"
+test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-exec/agents/openai.yaml"
+test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/references/codex-skill-contract.md"
+test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-core-claim.sh"
+rg 'runtime/codex' "$CODEX_INSTALL_TMP/.agents/skills/cx-exec/SKILL.md"
+rm -rf "$CODEX_INSTALL_TMP"
+
+echo "[check] install-codex.sh can mirror to legacy codex skills path"
+CODEX_INSTALL_TMP=$(mktemp -d)
+bash scripts/install-codex.sh --target-root "$CODEX_INSTALL_TMP/.agents/skills" --legacy-target-root "$CODEX_INSTALL_TMP/.codex/skills"
+test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-status/SKILL.md"
+test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-status/SKILL.md"
+test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/scripts/cx-core-migrate.sh"
+rm -rf "$CODEX_INSTALL_TMP"
+
 echo "[check] migration helper upgrades legacy projects into shared core"
 test -f scripts/cx-core-migrate.sh
 bash -n scripts/cx-core-migrate.sh
@@ -578,5 +607,5 @@ rg '"version": "3.1.0"' .claude-plugin/plugin.json .claude-plugin/marketplace.js
 rg '只保留 `cx`' README.md references/workflow-guide.md
 ! rg -F '/tc' README.md references/workflow-guide.md
 rg '/cx:init' README.md references/workflow-guide.md skills/help/SKILL.md
-rg '纯 cx 3.1|/cx:\*' README.md references/workflow-guide.md CHANGELOG.md
-rg '2.1.79|Codex 侧必须同步|先迁移' README.md CHANGELOG.md
+rg '纯 cx 3.1|/cx:\*|Codex skill adapter' README.md references/workflow-guide.md CHANGELOG.md
+rg '2.1.79|Codex 侧必须同步|先迁移|\.agents/skills|install-codex.sh' README.md CHANGELOG.md docs/codex-adapter-guide.md references/workflow-guide.md

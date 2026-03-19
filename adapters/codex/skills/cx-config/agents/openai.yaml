@@ -1,0 +1,4 @@
+interface:
+  display_name: "CX Config"
+  short_description: "管理项目级 CX 配置"
+  default_prompt: "Inspect or update the project-level cx configuration for this repository without touching runtime lease state."

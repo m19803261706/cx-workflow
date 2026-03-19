@@ -1,0 +1,4 @@
+interface:
+  display_name: "CX Scope"
+  short_description: "讨论项目范围与蓝图"
+  default_prompt: "Explore the scope of a new cx initiative, capture the blueprint, and keep it ready to flow into a PRD later."

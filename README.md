@@ -1,8 +1,11 @@
 # cx-workflow
 
-纯 `cx` 工作流插件，面向 Claude Code 的项目级开发内核，并逐步演进为共享 `cx core` 的多运行器工作流。
+纯 `cx` 工作流仓库，面向共享 `cx core` 的多运行器工作流。
 
-作为插件技能，命令遵循 Claude Code 2026 官方命名空间规范：`/cx:*`。
+其中：
+
+- Claude Code 侧通过插件命令遵循 2026 官方命名空间规范：`/cx:*`
+- Codex 侧通过可安装 skills 使用 `cx-*` 语义
 
 ## 这次 3.1 的重点
 
@@ -16,6 +19,7 @@
 - GitHub 只作为同步镜像，不承担主控
 - 插件 hooks 通过官方 `hooks/hooks.json` 自动生效，不再由 init 写入项目 settings
 - Claude Code 现在被视为共享 `cx core` 上的 `cc` adapter
+- Codex 侧现在有独立的可安装 adapter skill 包
 
 ## 核心命令
 
@@ -82,6 +86,8 @@ GitHub 是同步镜像，不是运行时真相。
 
 ## 安装与初始化
 
+### Claude Code
+
 在项目里运行一次：
 
 ```text
@@ -96,6 +102,33 @@ GitHub 是同步镜像，不是运行时真相。
 - 是否启用 code review
 - 是否启用 worktree isolation
 - 是否启用 auto memory
+
+### Codex
+
+Codex 侧安装使用仓库自带脚本：
+
+```text
+bash scripts/install-codex.sh
+```
+
+默认安装到用户级 `~/.agents/skills`。
+
+如果你希望本地开发时跟随当前仓库实时更新，可以改用：
+
+```text
+bash scripts/install-codex.sh --mode symlink
+```
+
+如果你希望安装到某个项目自己的 skill 目录：
+
+```text
+bash scripts/install-codex.sh --scope project --project-root /path/to/project
+```
+
+Codex 适配器源码位于：
+
+- `adapters/codex/skills/`
+- `adapters/codex/README.md`
 
 ## 旧项目迁移
 
@@ -117,6 +150,7 @@ bash scripts/cx-core-migrate.sh
 - Claude Code 最低版本：`2.1.79`
 - Codex 侧必须同步到新的 `cx core` 契约与技能语义后，才能和 CC 共用同一个项目
 - 已有项目先迁移，再开启双运行器；不要在旧 `.claude/cx` 上直接并行使用 CC 和 Codex
+- Codex 侧推荐安装到 `.agents/skills`；如需兼容旧本地约定，可额外镜像到 `.codex/skills`
 
 ## 更多说明
 
@@ -125,6 +159,7 @@ bash scripts/cx-core-migrate.sh
 - `references/workflow-guide.md`
 - `docs/codex-adapter-guide.md`
 - `references/codex-skill-contract.md`
+- `adapters/codex/README.md`
 - `references/config-schema.json`
 - `references/project-status-schema.json`
 - `references/feature-status-schema.json`
