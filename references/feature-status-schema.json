@@ -1,0 +1,232 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "cx-workflow 3.0 Feature Status Schema",
+  "description": "Schema for .claude/cx/功能/<feature>/状态.json — execution state for a single feature",
+  "type": "object",
+  "required": [
+    "feature",
+    "slug",
+    "created_at",
+    "last_updated",
+    "status",
+    "total",
+    "completed",
+    "in_progress",
+    "phases",
+    "tasks",
+    "execution_order",
+    "docs"
+  ],
+  "properties": {
+    "feature": {
+      "type": "string",
+      "description": "Chinese display title"
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]+$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "drafting",
+        "planned",
+        "executing",
+        "blocked",
+        "completed",
+        "summarized"
+      ]
+    },
+    "total": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "completed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "in_progress": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "blocked": {
+      "type": "object",
+      "required": ["reason_type", "message"],
+      "properties": {
+        "reason_type": {
+          "type": "string",
+          "enum": [
+            "needs_decision",
+            "missing_external_info",
+            "dependency_unmet",
+            "verification_failed",
+            "environment_issue",
+            "integration_conflict"
+          ]
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "phases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["number", "name", "status", "tasks"],
+        "properties": {
+          "number": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "name": {
+            "type": "string"
+          },
+          "parallel_group": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "in_progress", "blocked", "completed"]
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "depends_on": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "number",
+          "title",
+          "phase",
+          "parallel",
+          "depends_on",
+          "status"
+        ],
+        "properties": {
+          "number": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "title": {
+            "type": "string"
+          },
+          "phase": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "parallel": {
+            "type": "boolean"
+          },
+          "depends_on": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "parallel_group": {
+            "type": "string"
+          },
+          "related_apis": {
+            "type": "array",
+            "items": {
+              "type": ["integer", "string"]
+            }
+          },
+          "related_enums": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "related_fields": {
+            "type": "array",
+            "items": {
+              "type": ["integer", "string"]
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "in_progress", "blocked", "completed"]
+          },
+          "reason_type": {
+            "type": "string",
+            "enum": [
+              "needs_decision",
+              "missing_external_info",
+              "dependency_unmet",
+              "verification_failed",
+              "environment_issue",
+              "integration_conflict"
+            ]
+          },
+          "commit": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "execution_order": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "integer",
+            "minimum": 1
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ]
+      }
+    },
+    "docs": {
+      "type": "object",
+      "required": ["prd"],
+      "properties": {
+        "prd": {
+          "type": "string"
+        },
+        "design": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

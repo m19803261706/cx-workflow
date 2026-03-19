@@ -1,0 +1,20 @@
+{
+  "version": "3.0",
+  "developer_id": "承玄",
+  "github_sync": "local",
+  "current_feature": "sample-feature",
+  "agent_teams": true,
+  "code_review": true,
+  "auto_memory": true,
+  "worktree_isolation": true,
+  "auto_format": {
+    "enabled": true,
+    "formatter": "auto"
+  },
+  "hooks": {
+    "session_start": true,
+    "pre_compact": true,
+    "post_edit_format": true,
+    "notification": true
+  }
+}

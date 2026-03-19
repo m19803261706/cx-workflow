@@ -1,0 +1,50 @@
+{
+  "feature": "示例功能",
+  "slug": "sample-feature",
+  "created_at": "2026-03-19T23:30:00+08:00",
+  "last_updated": "2026-03-19T23:30:00+08:00",
+  "status": "executing",
+  "total": 2,
+  "completed": 1,
+  "in_progress": 1,
+  "phases": [
+    {
+      "number": 1,
+      "name": "协议基座",
+      "status": "completed",
+      "tasks": [1]
+    },
+    {
+      "number": 2,
+      "name": "执行主链",
+      "status": "in_progress",
+      "tasks": [2],
+      "depends_on": [1]
+    }
+  ],
+  "tasks": [
+    {
+      "number": 1,
+      "title": "建立 schema",
+      "phase": 1,
+      "parallel": false,
+      "depends_on": [],
+      "status": "completed",
+      "commit": "abc1234"
+    },
+    {
+      "number": 2,
+      "title": "更新执行链",
+      "phase": 2,
+      "parallel": false,
+      "depends_on": [1],
+      "status": "in_progress"
+    }
+  ],
+  "execution_order": [1, 2],
+  "docs": {
+    "prd": "需求.md",
+    "design": "设计.md",
+    "summary": "总结.md"
+  }
+}

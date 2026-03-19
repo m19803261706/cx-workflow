@@ -1,0 +1,14 @@
+{
+  "initialized_at": "2026-03-19T23:30:00+08:00",
+  "last_updated": "2026-03-19T23:30:00+08:00",
+  "current_feature": "sample-feature",
+  "features": {
+    "sample-feature": {
+      "title": "示例功能",
+      "path": "功能/示例功能",
+      "status": "executing",
+      "last_updated": "2026-03-19T23:30:00+08:00"
+    }
+  },
+  "fixes": {}
+}

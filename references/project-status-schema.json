@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "cx-workflow 3.0 Project Status Schema",
+  "description": "Schema for .claude/cx/状态.json — project-level feature and fix index",
+  "type": "object",
+  "required": [
+    "initialized_at",
+    "last_updated",
+    "current_feature",
+    "features",
+    "fixes"
+  ],
+  "properties": {
+    "initialized_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "current_feature": {
+      "type": ["string", "null"],
+      "pattern": "^[a-z0-9_-]*$"
+    },
+    "features": {
+      "type": "object",
+      "description": "Feature index keyed by stable feature slug",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["title", "path", "status", "last_updated"],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "drafting",
+              "planned",
+              "executing",
+              "blocked",
+              "completed",
+              "summarized"
+            ]
+          },
+          "last_updated": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "fixes": {
+      "type": "object",
+      "description": "Fix index keyed by stable fix slug",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["title", "path", "last_updated"],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "last_updated": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
