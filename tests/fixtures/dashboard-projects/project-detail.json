@@ -14,48 +14,51 @@
     "progressCompleted": 4,
     "progressTotal": 7,
     "featureStatus": "executing",
-    "workflowPhase": "exec"
-  },
-  "feature": {
-    "slug": "cx-global-web-dashboard",
-    "title": "CX 全局 Web 管理面板",
     "workflowPhase": "exec",
-    "nextRoute": "cx-exec",
-    "ownerRunner": "codex",
-    "ownerSessionId": "codex-exec-1",
-    "worktreePath": "/worktrees/cx-global-web-dashboard",
-    "bindingStatus": "bound",
-    "handoffPending": true,
-    "progress": {
-      "completed": 4,
-      "total": 7
-    },
-    "docs": {
-      "prd": ".claude/cx/功能/CX 全局 Web 管理面板/需求.md"
-    },
-    "tasks": [
-      {
-        "id": 1,
-        "title": "任务 1",
-        "status": "completed",
-        "phase": 1,
-        "parallel": false,
-        "dependsOn": [],
-        "parallelGroup": null
-      },
-      {
-        "id": 2,
-        "title": "任务 2",
-        "status": "in_progress",
-        "phase": 2,
-        "parallel": true,
-        "dependsOn": [
-          1
-        ],
-        "parallelGroup": "backend-core"
-      }
-    ]
+    "activeFeatureCount": 1
   },
+  "features": [
+    {
+      "slug": "cx-global-web-dashboard",
+      "title": "CX 全局 Web 管理面板",
+      "workflowPhase": "exec",
+      "nextRoute": "cx-exec",
+      "ownerRunner": "codex",
+      "ownerSessionId": "codex-exec-1",
+      "worktreePath": "/worktrees/cx-global-web-dashboard",
+      "bindingStatus": "bound",
+      "handoffPending": true,
+      "progress": {
+        "completed": 4,
+        "total": 7
+      },
+      "docs": {
+        "prd": ".claude/cx/功能/CX 全局 Web 管理面板/需求.md"
+      },
+      "tasks": [
+        {
+          "id": 1,
+          "title": "任务 1",
+          "status": "completed",
+          "phase": 1,
+          "parallel": false,
+          "dependsOn": [],
+          "parallelGroup": null
+        },
+        {
+          "id": 2,
+          "title": "任务 2",
+          "status": "in_progress",
+          "phase": 2,
+          "parallel": true,
+          "dependsOn": [
+            1
+          ],
+          "parallelGroup": "backend-core"
+        }
+      ]
+    }
+  ],
   "activeSessions": [
     {
       "sessionId": "codex-exec-1",
