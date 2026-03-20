@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --import tsx --test src/routes/projects.test.ts",
+    "test": "node --import tsx --test src/routes/projects.test.ts src/runtime.test.ts",
     "typecheck": "tsc --noEmit",
     "start": "node --import tsx src/server.ts"
   },

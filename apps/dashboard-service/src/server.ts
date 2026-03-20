@@ -1,9 +1,11 @@
 import Fastify from "fastify";
 
 import { registerProjectRoutes } from "./routes/projects.ts";
+import { buildDashboardHealth, inferRuntimePathFromRegistryPath, loadDashboardRuntime } from "./runtime.ts";
 
 export type DashboardServerOptions = {
   registryPath: string;
+  runtimePath?: string;
 };
 
 export function buildServer(options: DashboardServerOptions) {
@@ -11,9 +13,13 @@ export function buildServer(options: DashboardServerOptions) {
     logger: false
   });
 
-  server.get("/api/dashboard/health", async () => ({
-    status: "ok"
-  }));
+  server.get("/api/dashboard/health", async () => {
+    const runtime = await loadDashboardRuntime(
+      options.runtimePath ?? inferRuntimePathFromRegistryPath(options.registryPath),
+      options.registryPath
+    );
+    return buildDashboardHealth(runtime);
+  });
 
   void registerProjectRoutes(server, options.registryPath);
   return server;

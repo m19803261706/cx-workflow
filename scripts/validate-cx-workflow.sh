@@ -68,8 +68,12 @@ test -f apps/dashboard-service/package.json
 test -f apps/dashboard-service/src/server.ts
 test -f apps/dashboard-service/src/registry.ts
 test -f apps/dashboard-service/src/projects.ts
+test -f apps/dashboard-service/src/runtime.ts
 test -f apps/dashboard-service/src/routes/projects.ts
 test -f apps/dashboard-service/src/routes/projects.test.ts
+test -f apps/dashboard-service/src/runtime.test.ts
+test -f scripts/cx-dashboard-ensure.sh
+test -f scripts/cx-dashboard-open.sh
 
 echo "[check] task template exists"
 test -f references/templates/task.md
@@ -216,7 +220,9 @@ bash -n \
   scripts/cx-workflow-design.sh \
   scripts/cx-workflow-status.sh \
   scripts/cx-workflow-summary.sh \
-  scripts/cx-workflow-fix.sh
+  scripts/cx-workflow-fix.sh \
+  scripts/cx-dashboard-ensure.sh \
+  scripts/cx-dashboard-open.sh
 
 echo "[check] dashboard service tests"
 (cd apps/dashboard-service && npm test)

@@ -112,6 +112,16 @@ scripts/
 └── cx-dashboard-bridge.sh
 ```
 
+第一版本地启动辅助脚本：
+
+- `scripts/cx-dashboard-ensure.sh`
+- `scripts/cx-dashboard-open.sh`
+
+其中：
+
+- `cx-dashboard-ensure.sh` 负责顺位选择可用端口并写入 `~/.cx/dashboard/runtime.json`
+- `cx-dashboard-open.sh` 负责读取 runtime 清单并打开当前面板地址
+
 用户级文件约定：
 
 - `~/.cx/dashboard/registry.json`
