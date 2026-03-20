@@ -1,0 +1,148 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", "Fira Code", "Menlo", monospace;
+}
+
+:root {
+  color-scheme: dark;
+  --dashboard-bg: #020816;
+  --dashboard-surface: rgba(9, 17, 33, 0.82);
+  --dashboard-border: rgba(110, 231, 255, 0.16);
+  --dashboard-text: #eef6ff;
+  --dashboard-muted: #8fa7c7;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(34, 211, 238, 0.16), transparent 28%),
+    radial-gradient(circle at 85% 18%, rgba(59, 130, 246, 0.18), transparent 24%),
+    linear-gradient(180deg, #020816 0%, #050b19 38%, #08111f 100%);
+  color: var(--dashboard-text);
+  font-family: var(--font-sans);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.035) 1px, transparent 1px);
+  background-size: 38px 38px;
+  opacity: 0.45;
+  mask-image: radial-gradient(circle at center, black 32%, transparent 95%);
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.3);
+}
+
+@keyframes dashboard-grid-shift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(0, 38px, 0);
+  }
+}
+
+@keyframes dashboard-orb-float {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(20px, -18px, 0) scale(1.08);
+  }
+
+  100% {
+    transform: translate3d(-12px, 22px, 0) scale(0.94);
+  }
+}
+
+@keyframes dashboard-scanline {
+  0% {
+    transform: translateY(-120%);
+  }
+
+  100% {
+    transform: translateY(220%);
+  }
+}
+
+.dashboard-grid {
+  background-image:
+    linear-gradient(rgba(125, 211, 252, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(125, 211, 252, 0.05) 1px, transparent 1px);
+  background-size: 52px 52px;
+  animation: dashboard-grid-shift 14s linear infinite;
+  opacity: 0.32;
+}
+
+.dashboard-orb {
+  animation: dashboard-orb-float 18s ease-in-out infinite;
+  filter: blur(76px);
+  opacity: 0.8;
+}
+
+.dashboard-shell-noise::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 0.6px, transparent 0.6px);
+  background-size: 14px 14px;
+  opacity: 0.08;
+}
+
+.scanline::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: -30%;
+  height: 28%;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(34, 211, 238, 0.08) 46%,
+    rgba(56, 189, 248, 0.18) 50%,
+    transparent
+  );
+  animation: dashboard-scanline 9s linear infinite;
+}
+
+.panel-border {
+  border: 1px solid rgba(125, 211, 252, 0.14);
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.panel-surface {
+  background:
+    linear-gradient(180deg, rgba(11, 19, 36, 0.96) 0%, rgba(7, 13, 25, 0.88) 100%);
+  backdrop-filter: blur(24px);
+}
+
+.text-glow {
+  text-shadow:
+    0 0 12px rgba(34, 211, 238, 0.16),
+    0 0 24px rgba(59, 130, 246, 0.08);
+}
+
+.terminal-code {
+  font-family: var(--font-mono);
+  letter-spacing: 0.01em;
+}

@@ -60,11 +60,46 @@ test -f core/workflow/protocols/status.md
 test -f core/workflow/protocols/summary.md
 test -f references/workflow-state-schema.json
 
+echo "[check] dashboard architecture docs and schema exist"
+test -f docs/dashboard-architecture.md
+test -f references/dashboard-registry-schema.json
+test -f references/dashboard-runtime-schema.json
+test -f apps/dashboard-service/package.json
+test -f apps/dashboard-service/src/server.ts
+test -f apps/dashboard-service/src/registry.ts
+test -f apps/dashboard-service/src/projects.ts
+test -f apps/dashboard-service/src/runtime.ts
+test -f apps/dashboard-service/src/routes/projects.ts
+test -f apps/dashboard-service/src/routes/projects.test.ts
+test -f apps/dashboard-service/src/runtime.test.ts
+test -f apps/dashboard-web/package.json
+test -f apps/dashboard-web/src/main.tsx
+test -f apps/dashboard-web/src/App.tsx
+test -f apps/dashboard-web/src/pages/projects.tsx
+test -f apps/dashboard-web/src/pages/project-detail.tsx
+test -f apps/dashboard-web/src/components/project-card.tsx
+test -f apps/dashboard-web/src/components/project-card.test.tsx
+test -f apps/dashboard-web/src/components/feature-summary.tsx
+test -f apps/dashboard-web/src/components/handoff-banner.tsx
+test -f apps/dashboard-web/src/pages/project-detail.test.tsx
+test -f docs/dashboard-smoke-test.md
+test -f tests/fixtures/dashboard-projects/summary-expectations.json
+test -f tests/fixtures/dashboard-projects/project-detail.json
+test -f scripts/cx-dashboard-bridge.sh
+test -f scripts/cx-dashboard-ensure.sh
+test -f scripts/cx-dashboard-open.sh
+
 echo "[check] task template exists"
 test -f references/templates/task.md
 
 echo "[check] schema json parses"
-jq empty references/config-schema.json references/project-status-schema.json references/feature-status-schema.json references/workflow-state-schema.json
+jq empty \
+  references/config-schema.json \
+  references/project-status-schema.json \
+  references/feature-status-schema.json \
+  references/workflow-state-schema.json \
+  references/dashboard-registry-schema.json \
+  references/dashboard-runtime-schema.json
 
 echo "[check] core schema json parses"
 jq empty \
@@ -72,6 +107,21 @@ jq empty \
   references/core-feature-schema.json \
   references/core-session-schema.json \
   references/core-handoff-schema.json
+
+echo "[check] dashboard registry schema carries prompt and registration metadata"
+jq -e '.required | index("prompt_state")' references/dashboard-registry-schema.json >/dev/null
+jq -e '.required | index("auto_register")' references/dashboard-registry-schema.json >/dev/null
+jq -e '.required | index("projects")' references/dashboard-registry-schema.json >/dev/null
+jq -e '.definitions.registration_source.enum == ["manual","auto_register","auto_scan"]' references/dashboard-registry-schema.json >/dev/null
+jq -e '.definitions.prompt_state.enum == ["unknown","accepted","declined"]' references/dashboard-registry-schema.json >/dev/null
+jq -e '.definitions.owner_runner.enum == ["cc","codex","none"]' references/dashboard-registry-schema.json >/dev/null
+
+echo "[check] dashboard runtime schema carries service runtime metadata"
+jq -e '.required | index("service_status")' references/dashboard-runtime-schema.json >/dev/null
+jq -e '.required | index("backend_port")' references/dashboard-runtime-schema.json >/dev/null
+jq -e '.required | index("frontend_port")' references/dashboard-runtime-schema.json >/dev/null
+jq -e '.required | index("frontend_url")' references/dashboard-runtime-schema.json >/dev/null
+jq -e '.definitions.service_status.enum == ["stopped","running","degraded"]' references/dashboard-runtime-schema.json >/dev/null
 
 echo "[check] feature status schema carries reason_type"
 jq -e '.properties.blocked.required | index("reason_type")' references/feature-status-schema.json >/dev/null
@@ -168,6 +218,7 @@ test -f scripts/cx-core-worktree.sh
 test -f scripts/cx-workflow-prd.sh
 test -f scripts/cx-workflow-plan.sh
 test -f scripts/cx-workflow-exec.sh
+test -f scripts/cx-workflow-exec-dispatch.sh
 test -f scripts/cx-workflow-design.sh
 test -f scripts/cx-workflow-status.sh
 test -f scripts/cx-workflow-summary.sh
@@ -179,10 +230,68 @@ bash -n \
   scripts/cx-workflow-prd.sh \
   scripts/cx-workflow-plan.sh \
   scripts/cx-workflow-exec.sh \
+  scripts/cx-workflow-exec-dispatch.sh \
   scripts/cx-workflow-design.sh \
   scripts/cx-workflow-status.sh \
   scripts/cx-workflow-summary.sh \
-  scripts/cx-workflow-fix.sh
+  scripts/cx-workflow-fix.sh \
+  scripts/cx-dashboard-bridge.sh \
+  scripts/cx-dashboard-ensure.sh \
+  scripts/cx-dashboard-open.sh
+
+echo "[check] dashboard service tests"
+(cd apps/dashboard-service && npm test)
+
+echo "[check] dashboard service typecheck"
+(cd apps/dashboard-service && npm run typecheck)
+
+echo "[check] dashboard web tests"
+(cd apps/dashboard-web && npm test)
+
+echo "[check] dashboard web typecheck"
+(cd apps/dashboard-web && npm run typecheck)
+
+echo "[check] dashboard web build"
+(cd apps/dashboard-web && npm run build)
+
+echo "[check] dashboard bridge honors first-use prompt and later auto-register"
+BRIDGE_HOME=$(mktemp -d)
+BRIDGE_PROJECT=$(mktemp -d)
+
+bridge_initial=$(
+  CX_DASHBOARD_HOME="$BRIDGE_HOME/.cx/dashboard" \
+    bash scripts/cx-dashboard-bridge.sh \
+      --project-root "$BRIDGE_PROJECT" \
+      --display-name "Bridge Smoke"
+)
+grep '^prompt_state=unknown$' <<< "$bridge_initial" >/dev/null
+grep '^should_prompt=true$' <<< "$bridge_initial" >/dev/null
+grep '^project_registered=false$' <<< "$bridge_initial" >/dev/null
+
+bridge_accept=$(
+  CX_DASHBOARD_HOME="$BRIDGE_HOME/.cx/dashboard" \
+    bash scripts/cx-dashboard-bridge.sh \
+      --project-root "$BRIDGE_PROJECT" \
+      --display-name "Bridge Smoke" \
+      --decision accept
+)
+grep '^prompt_state=accepted$' <<< "$bridge_accept" >/dev/null
+grep '^auto_register=true$' <<< "$bridge_accept" >/dev/null
+grep '^project_registered=true$' <<< "$bridge_accept" >/dev/null
+
+bridge_follow_up=$(
+  CX_DASHBOARD_HOME="$BRIDGE_HOME/.cx/dashboard" \
+    bash scripts/cx-dashboard-bridge.sh \
+      --project-root "$BRIDGE_PROJECT" \
+      --display-name "Bridge Smoke"
+)
+grep '^should_prompt=false$' <<< "$bridge_follow_up" >/dev/null
+grep '^project_registered=true$' <<< "$bridge_follow_up" >/dev/null
+jq -e --arg root "$BRIDGE_PROJECT" '
+  .prompt_state == "accepted"
+  and .auto_register == true
+  and any(.projects[]; .root_path == $root)
+' "$BRIDGE_HOME/.cx/dashboard/registry.json" >/dev/null
 
 echo "[check] core claim keeps different features isolated"
 CORE_SCENARIO_DIR=$(mktemp -d)
@@ -378,15 +487,32 @@ cat > "$WORKFLOW_SCENARIO_DIR/plan.json" <<'EOF'
     },
     {
       "number": 2,
-      "title": "推进执行态",
+      "title": "推进执行态 A",
       "phase": 2,
-      "parallel": false,
+      "parallel": true,
       "depends_on": [1],
-      "goal": "更新执行状态。",
+      "parallel_group": "exec-fanout",
+      "goal": "更新执行状态 A。",
       "modified_files": ["scripts/cx-workflow-exec.sh"],
       "created_files": [],
       "test_files": ["scripts/validate-cx-workflow.sh"],
-      "acceptance": ["执行能开始", "执行能完成"],
+      "acceptance": ["执行 A 能开始", "执行 A 能完成"],
+      "api_contracts": ["无"],
+      "enum_contracts": ["无"],
+      "field_mappings": ["无"]
+    },
+    {
+      "number": 3,
+      "title": "推进执行态 B",
+      "phase": 2,
+      "parallel": true,
+      "depends_on": [1],
+      "parallel_group": "exec-fanout",
+      "goal": "更新执行状态 B。",
+      "modified_files": ["scripts/cx-workflow-exec-dispatch.sh"],
+      "created_files": [],
+      "test_files": ["scripts/validate-cx-workflow.sh"],
+      "acceptance": ["执行 B 能开始", "执行 B 能完成"],
       "api_contracts": ["无"],
       "enum_contracts": ["无"],
       "field_mappings": ["无"]
@@ -404,14 +530,25 @@ CX_CORE_NOW=2026-03-20T10:11:00Z CX_WORKFLOW_NOW=2026-03-20T10:11:00Z bash scrip
   --plan-json-file "$WORKFLOW_SCENARIO_DIR/plan.json" >/dev/null
 test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/任务/任务-1.md"
 test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/任务/任务-2.md"
+test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/任务/任务-3.md"
 jq -e '.status == "planned" and .workflow.current_phase == "plan" and .workflow.next_route == "cx-exec"' \
   "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/状态.json" >/dev/null
-jq -e '.tasks[0].status == "ready" and .tasks[1].status == "pending"' \
+jq -e '.tasks[0].status == "ready" and .tasks[1].status == "pending" and .tasks[2].status == "pending"' \
   "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/状态.json" >/dev/null
 jq -e '.lifecycle.stage == "ready" and .workflow.current_phase == "plan" and .workflow.next_route == "cx-exec"' \
   "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json" >/dev/null
-jq -e '.tasks[0].status == "ready" and .tasks[1].status == "pending"' \
+jq -e '.tasks[0].status == "ready" and .tasks[1].status == "pending" and .tasks[2].status == "pending"' \
   "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json" >/dev/null
+
+echo "[check] workflow exec dispatch chooses next work instead of stopping at task boundary"
+DISPATCH_OUTPUT=$(bash scripts/cx-workflow-exec-dispatch.sh \
+  --project-root "$WORKFLOW_SCENARIO_DIR" \
+  --feature workflow-smoke \
+  --runner codex \
+  --session-id codex-exec-001 \
+  --mode auto)
+printf '%s\n' "$DISPATCH_OUTPUT" | rg '^decision=continue$'
+printf '%s\n' "$DISPATCH_OUTPUT" | rg '^selected_tasks=1$'
 
 echo "[check] workflow exec runner advances tasks and unlocks dependencies"
 CX_CORE_NOW=2026-03-20T10:12:00Z CX_WORKFLOW_NOW=2026-03-20T10:12:00Z bash scripts/cx-workflow-exec.sh \
@@ -440,8 +577,29 @@ CX_CORE_NOW=2026-03-20T10:13:00Z CX_WORKFLOW_NOW=2026-03-20T10:13:00Z bash scrip
   --commit abc123 >/dev/null
 jq -e '.completed == 1 and .in_progress == 0 and .tasks[0].status == "completed" and .tasks[0].commit == "abc123" and .tasks[1].status == "ready"' \
   "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/状态.json" >/dev/null
-jq -e '.lifecycle.stage == "executing" and .lease.claimed_tasks == [] and .tasks[0].status == "completed" and .tasks[1].status == "ready"' \
+jq -e '.lifecycle.stage == "executing" and .lease.claimed_tasks == [] and .tasks[0].status == "completed" and .tasks[1].status == "ready" and .tasks[2].status == "ready"' \
   "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json" >/dev/null
+
+echo "[check] workflow exec dispatch surfaces parallel-ready choice after task completion"
+DISPATCH_OUTPUT=$(bash scripts/cx-workflow-exec-dispatch.sh \
+  --project-root "$WORKFLOW_SCENARIO_DIR" \
+  --feature workflow-smoke \
+  --runner codex \
+  --session-id codex-exec-001 \
+  --mode auto)
+printf '%s\n' "$DISPATCH_OUTPUT" | rg '^decision=ask_parallel$'
+printf '%s\n' "$DISPATCH_OUTPUT" | rg '^selected_tasks=2$'
+printf '%s\n' "$DISPATCH_OUTPUT" | rg '^parallel_tasks=2,3$'
+printf '%s\n' "$DISPATCH_OUTPUT" | rg '^recommended_mode=sequential$'
+
+DISPATCH_OUTPUT=$(bash scripts/cx-workflow-exec-dispatch.sh \
+  --project-root "$WORKFLOW_SCENARIO_DIR" \
+  --feature workflow-smoke \
+  --runner codex \
+  --session-id codex-exec-001 \
+  --mode all)
+printf '%s\n' "$DISPATCH_OUTPUT" | rg '^decision=parallel$'
+printf '%s\n' "$DISPATCH_OUTPUT" | rg '^selected_tasks=2,3$'
 
 CX_CORE_NOW=2026-03-20T10:14:00Z CX_WORKFLOW_NOW=2026-03-20T10:14:00Z bash scripts/cx-workflow-exec.sh \
   --project-root "$WORKFLOW_SCENARIO_DIR" \
@@ -452,7 +610,7 @@ CX_CORE_NOW=2026-03-20T10:14:00Z CX_WORKFLOW_NOW=2026-03-20T10:14:00Z bash scrip
   --worktree-path /worktrees/workflow-smoke \
   --action start \
   --task 2 >/dev/null
-CX_CORE_NOW=2026-03-20T10:15:00Z CX_WORKFLOW_NOW=2026-03-20T10:15:00Z bash scripts/cx-workflow-exec.sh \
+CX_CORE_NOW=2026-03-20T10:14:30Z CX_WORKFLOW_NOW=2026-03-20T10:14:30Z bash scripts/cx-workflow-exec.sh \
   --project-root "$WORKFLOW_SCENARIO_DIR" \
   --feature workflow-smoke \
   --runner codex \
@@ -462,7 +620,34 @@ CX_CORE_NOW=2026-03-20T10:15:00Z CX_WORKFLOW_NOW=2026-03-20T10:15:00Z bash scrip
   --action complete \
   --task 2 \
   --commit def456 >/dev/null
-jq -e '.status == "completed" and .completed == 2 and .workflow.next_route == "cx-summary" and .tasks[1].commit == "def456"' \
+DISPATCH_OUTPUT=$(bash scripts/cx-workflow-exec-dispatch.sh \
+  --project-root "$WORKFLOW_SCENARIO_DIR" \
+  --feature workflow-smoke \
+  --runner codex \
+  --session-id codex-exec-001 \
+  --mode auto)
+printf '%s\n' "$DISPATCH_OUTPUT" | rg '^decision=continue$'
+printf '%s\n' "$DISPATCH_OUTPUT" | rg '^selected_tasks=3$'
+CX_CORE_NOW=2026-03-20T10:15:00Z CX_WORKFLOW_NOW=2026-03-20T10:15:00Z bash scripts/cx-workflow-exec.sh \
+  --project-root "$WORKFLOW_SCENARIO_DIR" \
+  --feature workflow-smoke \
+  --runner codex \
+  --session-id codex-exec-001 \
+  --branch codex/workflow-smoke \
+  --worktree-path /worktrees/workflow-smoke \
+  --action start \
+  --task 3 >/dev/null
+CX_CORE_NOW=2026-03-20T10:15:30Z CX_WORKFLOW_NOW=2026-03-20T10:15:30Z bash scripts/cx-workflow-exec.sh \
+  --project-root "$WORKFLOW_SCENARIO_DIR" \
+  --feature workflow-smoke \
+  --runner codex \
+  --session-id codex-exec-001 \
+  --branch codex/workflow-smoke \
+  --worktree-path /worktrees/workflow-smoke \
+  --action complete \
+  --task 3 \
+  --commit ghi789 >/dev/null
+jq -e '.status == "completed" and .completed == 3 and .workflow.next_route == "cx-summary" and .tasks[1].commit == "def456" and .tasks[2].commit == "ghi789"' \
   "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/状态.json" >/dev/null
 jq -e '.lifecycle.stage == "completed" and .workflow.next_route == "cx-summary" and .lease.claimed_tasks == []' \
   "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json" >/dev/null
@@ -846,6 +1031,7 @@ test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-core-claim.sh"
 test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-workflow-prd.sh"
 test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-workflow-plan.sh"
 test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-workflow-exec.sh"
+test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-workflow-exec-dispatch.sh"
 test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-workflow-design.sh"
 test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-workflow-status.sh"
 test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-shared/scripts/cx-workflow-summary.sh"
@@ -860,6 +1046,7 @@ test -f "$CODEX_INSTALL_TMP/.agents/skills/cx-status/SKILL.md"
 test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-status/SKILL.md"
 test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/core/workflow/protocols/summary.md"
 test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/scripts/cx-core-migrate.sh"
+test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/scripts/cx-workflow-exec-dispatch.sh"
 test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/scripts/cx-workflow-plan.sh"
 test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/scripts/cx-workflow-exec.sh"
 test -f "$CODEX_INSTALL_TMP/.codex/skills/cx-shared/scripts/cx-workflow-design.sh"

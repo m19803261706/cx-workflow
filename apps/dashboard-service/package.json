@@ -1,0 +1,19 @@
+{
+  "name": "@cx/dashboard-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --import tsx --test src/routes/projects.test.ts src/routes/prompt-state.test.ts src/bridge.test.ts src/runtime.test.ts",
+    "typecheck": "tsc --noEmit",
+    "start": "node --import tsx src/server.ts"
+  },
+  "dependencies": {
+    "fastify": "^5.6.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}

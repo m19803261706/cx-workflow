@@ -1,0 +1,15 @@
+{
+  "manual": {
+    "id": "manual-project",
+    "registrationSource": "manual",
+    "currentFeatureSlug": "manual-feature",
+    "progressCompleted": 2,
+    "progressTotal": 5
+  },
+  "scanned": {
+    "currentFeatureSlug": "scanned-feature",
+    "registrationSource": "auto_scan",
+    "ownerRunner": "cc",
+    "handoffPending": true
+  }
+}

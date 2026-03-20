@@ -42,6 +42,26 @@ bash ../cx-shared/scripts/cx-workflow-prd.sh \
   --question-mode conversation
 ```
 
+在 shared runner 完成最小 scaffold 后，统一调用：
+
+```bash
+bash ../cx-shared/scripts/cx-dashboard-bridge.sh \
+  --project-root "$(git rev-parse --show-toplevel)" \
+  --display-name "$(basename "$(git rev-parse --show-toplevel)")"
+```
+
+然后按这些规则继续：
+
+- 如果 `should_prompt=true`
+  - 先用对话方式提醒用户存在全局 Web 管理面板
+  - 用户接受时执行 bridge + `--decision accept`
+  - 用户暂不启用时执行 bridge + `--decision decline`
+  - 两种情况都不要阻塞当前 PRD
+
+- 如果 `prompt_state=accepted` 且 `auto_register=true`
+  - 当前项目应已自动注册
+  - 不要重复提醒
+
 ## 输出
 
 - `需求.md`

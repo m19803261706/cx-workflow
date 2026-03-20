@@ -24,6 +24,16 @@ description: "Codex 侧 CX 项目初始化。收集项目级配置，建立 .cla
    - 先收集 `developer_id`、`github_sync`、`agent_teams`、`code_review`、`worktree_isolation`、`auto_memory`
    - 运行 `bash ../cx-shared/scripts/cx-init-setup.sh --developer-id ...`
    - 紧接着运行 `bash ../cx-shared/scripts/cx-core-migrate.sh`
+6. 初始化完成后，统一调用：
+   - `bash ../cx-shared/scripts/cx-dashboard-bridge.sh --project-root "$(git rev-parse --show-toplevel)" --display-name "$(basename "$(git rev-parse --show-toplevel)")"`
+7. 如果 bridge 返回 `should_prompt=true`
+   - 提醒用户存在全局 Web 管理面板
+   - 这是强推荐，不是强制前置
+   - 用户接受时执行同一个 bridge helper 并追加 `--decision accept`
+   - 用户暂不启用时执行同一个 bridge helper 并追加 `--decision decline`
+8. 如果 bridge 返回 `prompt_state=accepted` 且 `auto_register=true`
+   - 当前项目应该已经自动注册到全局面板
+   - 不要重复询问
 
 ## 结果要求
 

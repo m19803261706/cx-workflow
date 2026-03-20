@@ -58,15 +58,32 @@ bash scripts/cx-core-worktree.sh \
 - 同一 feature 只能在一个 worktree 中持有活跃执行权，除非已经发生 handoff
 - claim helper 注册当前 session 时，runner 固定使用 `cc`
 
-### Step 1: 选择可执行任务
+### Step 1: 通过 shared dispatch helper 选择可执行任务
 
-默认选择所有“依赖已满足”的任务，而不是只跑一个就停。
+先调用共享调度 helper，而不是自己凭感觉决定“做到哪停”：
+
+```bash
+bash scripts/cx-workflow-exec-dispatch.sh \
+  --feature {feature-slug} \
+  --runner cc \
+  --session-id {session-id} \
+  --mode {auto|all}
+```
+
+dispatch helper 会返回统一决策：
+
+- `continue`：继续当前 `in_progress` 或下一个 `ready` task
+- `ask_parallel`：检测到同一 `parallel_group` 下有 2+ ready task，允许问用户一次是否切到团队模式
+- `parallel`：`--all` 下直接推进多任务
+- `blocked`：进入阻塞说明或关键决策
+- `completed`：全部完成，进入 `/cx:summary`
 
 如果没有显式参数：
 
-- 找出第一个可执行任务或当前 wave
-- 自动把能连续完成的任务一路推进
-- 只有遇到关键决策点才暂停问用户
+- 优先继续当前 `in_progress` 任务
+- 没有 `in_progress` 时，由 dispatch helper 选择下一个 `ready` 任务
+- 完成一个 task 后，重新运行 dispatch helper，直到 `blocked` / `completed` / 关键决策点
+- 不允许在普通 task 边界自然停下
 
 ### Step 2: 实现、验证、更新状态
 
@@ -80,6 +97,16 @@ bash scripts/cx-core-worktree.sh \
 6. 提交代码
 
 如果执行失败，优先自救；确实无法继续时，把任务或 feature 标成 `blocked`。
+
+### Step 2.5: 完成后立即重新调度
+
+一个 task 完成并更新共享状态后：
+
+1. 重新运行 `scripts/cx-workflow-exec-dispatch.sh`
+2. 如果返回 `continue`，直接接着做下一个 task
+3. 如果返回 `ask_parallel`，可以问用户一次是否切到 `--all`
+4. 如果返回 `parallel`，进入团队模式
+5. 如果返回 `blocked` 或 `completed`，再停
 
 ### Step 3: 结构化阻塞
 
@@ -103,12 +130,13 @@ bash scripts/cx-core-worktree.sh \
 
 - 自动连续推进可执行任务
 - 自己处理普通测试失败和局部冲突
-- 不在 wave 边界做建议性停顿
+- 不在普通 task 边界或 wave 边界做建议性停顿
 - 仅在下面 4 类关键决策点暂停：
   - 多条行为路径且结果差异明显
   - 会改架构、API 契约、数据库结构、状态模型
   - 高风险或不可逆操作
   - 需要用户提供外部信息
+- 如果检测到明确的并行机会，可以问用户一次是否升级到 `--all`；若用户没有明确切换，默认继续串行推进
 
 ### Step 5: `/cx:cx-exec --all`
 

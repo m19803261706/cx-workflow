@@ -11,6 +11,7 @@
 - 项目级 `.claude/cx` 是运行时真相
 - 共享 `cx core` 允许 `cc` / `codex` 两个 runner 协作
 - `shared workflow core` 统一 PRD / Design / Plan / Exec / Fix / Status / Summary 的规则
+- `cx dashboard` 作为全局观察台聚合多个项目状态，但不替代项目级真相源
 - GitHub 是同步镜像，不是主控面
 - 中文目录与文档名面向使用者，英文 JSON 协议面向脚本
 - 默认自动路由，普通执行尽量不打断用户
@@ -32,6 +33,7 @@
 - 创建 `功能/` 与 `修复/`
 - 在每个项目单独确认 `developer_id`
 - 检查 Git / GitHub 接入状态
+- 后续通过 `cx-dashboard-bridge` 接入全局面板检测与自动注册
 
 如果项目已经带有旧版 `.claude/cx`，先运行：
 
@@ -49,6 +51,7 @@ bash scripts/cx-core-migrate.sh
 - 自动评估规模
 - 自动判断是否需要 Design
 - 通过共享 runner `scripts/cx-workflow-prd.sh` 做确定性落盘
+- 后续会复用 `scripts/cx-dashboard-bridge.sh` 做全局面板检测、首次提醒与项目自动注册
 - 产物：`.claude/cx/功能/{功能标题}/需求.md`
 
 ### 2. `/cx:cx-design`
@@ -72,7 +75,9 @@ bash scripts/cx-core-migrate.sh
 ### 5. `/cx:cx-exec`
 
 - 默认自动推进可执行任务
+- 完成一个 task 后必须重新调度，不能在 task 边界自然停下
 - 只在关键决策点暂停
+- 当同一 `parallel_group` 出现 `2+ ready` 任务时，可以问用户一次是否切到团队模式；若用户未明确切换，默认继续串行
 - 在 claim 前先调用 worktree 绑定检查，确认 runner 当前 checkout 与 feature 绑定一致
 - 同一 feature 如果已经绑定到另一个 worktree，必须先走 handoff，不能直接并行 claim
 - 每个 task 独立 commit，并追加 `[cx:<feature-slug>] [task:<n>]`
@@ -163,6 +168,37 @@ bash scripts/cx-core-migrate.sh
 
 这些协议定义的不是某个 adapter 的私有行为，而是两边共用的流程规则。
 adapter 只负责入口与交互载体，不能再各自重新解释 PRD、Plan 或 Exec 语义。
+
+## CX Dashboard
+
+`cx dashboard` 是共享 `cx core` 的全局观察台。
+
+稳定边界：
+
+- 项目 `.claude/cx` 继续是真相源
+- 本地服务负责聚合多个项目
+- Web 前端只读展示聚合结果
+- `cx:init` / `cx:prd` 通过同一 bridge helper 感知“面板是否已运行、是否需要提醒、是否自动注册当前项目”
+
+第一版约束：
+
+- 允许：查看项目列表、项目详情、feature/handoff 进度摘要、打开项目目录、复制建议命令、触发重扫
+- 不允许：直接从面板发起 `cx:plan`、`cx:exec` 或写项目级真相
+
+关键契约文件：
+
+- `docs/dashboard-architecture.md`
+- `docs/dashboard-smoke-test.md`
+- `references/dashboard-registry-schema.json`
+- `references/dashboard-runtime-schema.json`
+
+启动与感知规则：
+
+- 先运行 `bash scripts/cx-dashboard-ensure.sh`，让后端从 `43120+`、前端从 `43130+` 顺位选择可用端口
+- `cx:init / cx:prd` 统一调用 `bash scripts/cx-dashboard-bridge.sh`
+- 如果 `prompt_state=unknown`，只提醒一次全局面板能力
+- 如果用户接受，bridge 会把当前项目写入用户级注册表，并在后续项目中默认自动注册
+- 如果用户暂不启用，不阻塞当前流程
 
 ## Codex Adapter 安装
 

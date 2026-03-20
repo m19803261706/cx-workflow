@@ -21,6 +21,7 @@
 - Claude Code 现在被视为共享 `cx core` 上的 `cc` adapter
 - Codex 侧现在有独立的可安装 adapter skill 包
 - `core/workflow/` 开始承载共享 workflow core，避免 CC 与 Codex 各自维护一套流程脑子
+- `cx dashboard` 的全局观察台骨架已经锁定：本地服务聚合多项目状态，Web 前端只读展示
 
 ## 核心命令
 
@@ -84,6 +85,67 @@ GitHub 是同步镜像，不是运行时真相。
 - `local`：本地为主，闭环时轻量同步
 - `collab`：同步关键文档和闭环结果
 - `full`：更完整的协作留痕
+
+## 全局 Web 管理面板
+
+`cx dashboard` 是这套工作流的全局观察台能力。
+
+- 目标：统一查看多个项目的 feature、phase、owner、worktree、handoff 与进度
+- 形态：本地服务 + Web 前端
+- 边界：第一版只读，不直接触发 `cx:plan` / `cx:exec`
+- 高峰入口：`cx:init` 与 `cx:prd` 后续会复用同一套 bridge helper 做面板检测、提醒与自动注册
+
+当前已经锁定的骨架包括：
+
+- 架构文档：`docs/dashboard-architecture.md`
+- 用户级注册表 schema：`references/dashboard-registry-schema.json`
+- 用户级 runtime schema：`references/dashboard-runtime-schema.json`
+- smoke 文档：`docs/dashboard-smoke-test.md`
+
+建议目录结构：
+
+```text
+dashboard/
+├── service/
+├── web/
+└── contracts/
+scripts/
+└── cx-dashboard-bridge.sh
+```
+
+第一版本地启动辅助脚本：
+
+- `scripts/cx-dashboard-ensure.sh`
+- `scripts/cx-dashboard-open.sh`
+
+其中：
+
+- `cx-dashboard-ensure.sh` 负责顺位选择可用端口并写入 `~/.cx/dashboard/runtime.json`
+- `cx-dashboard-open.sh` 负责读取 runtime 清单并打开当前面板地址
+- `cx-dashboard-bridge.sh` 负责给 `cx:init / cx:prd` 复用首次提醒与自动注册逻辑
+
+推荐启动顺序：
+
+```text
+1. bash scripts/cx-dashboard-ensure.sh
+2. BACKEND_PORT=$(jq -r '.backend_port' ~/.cx/dashboard/runtime.json)
+3. FRONTEND_PORT=$(jq -r '.frontend_port' ~/.cx/dashboard/runtime.json)
+4. REGISTRY_PATH=$(jq -r '.registry_path' ~/.cx/dashboard/runtime.json)
+5. (cd apps/dashboard-service && CX_DASHBOARD_REGISTRY_PATH="$REGISTRY_PATH" CX_DASHBOARD_PORT="$BACKEND_PORT" npm start)
+6. (cd apps/dashboard-web && npm run dev -- --host 127.0.0.1 --port "$FRONTEND_PORT")
+```
+
+自动注册规则：
+
+- 第一次在 `cx:init / cx:prd` 进入项目时，bridge 会提醒用户存在全局面板
+- 用户接受后，bridge 会把 `prompt_state` 写成 `accepted`，同时启用 `auto_register=true`
+- 后续项目再次进入高频入口时，会默认自动注册，不再重复提醒
+- 用户如果暂不启用，也不会阻塞当前工作流
+
+用户级文件约定：
+
+- `~/.cx/dashboard/registry.json`
+- `~/.cx/dashboard/runtime.json`
 
 ## 安装与初始化
 
@@ -167,3 +229,7 @@ bash scripts/cx-core-migrate.sh
 - `references/config-schema.json`
 - `references/project-status-schema.json`
 - `references/feature-status-schema.json`
+- `docs/dashboard-architecture.md`
+- `docs/dashboard-smoke-test.md`
+- `references/dashboard-registry-schema.json`
+- `references/dashboard-runtime-schema.json`
