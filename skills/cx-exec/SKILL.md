@@ -34,6 +34,17 @@ check_output=$(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-worktree.sh check \
 正确的行为：
 - ✅ 读取状态 → AskUserQuestion 询问工作区 → 用户回答 → 记录选择 → 然后才开始执行/拉代理
 
+### 反合理化
+
+| 借口 | 现实 |
+|------|------|
+| "这个改动很小不需要 worktree" | 小改动也会污染 main 上下文 |
+| "我先在 main 上试试" | 试完切 worktree 时上下文丢失更痛苦 |
+| "只有一个人用不需要隔离" | 你可能同时开多个窗口 |
+| "创建 worktree 太慢了" | git worktree add 是毫秒级操作 |
+| "我等下再切 worktree" | 等下就忘了，直到冲突发生 |
+| "这个 feature 很快就做完" | 做完了 merge 回来也很快 |
+
 先阅读：
 
 - `${CLAUDE_PLUGIN_ROOT}/core/workflow/README.md`
