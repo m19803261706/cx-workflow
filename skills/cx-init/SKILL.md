@@ -88,6 +88,15 @@ GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 └── 修复/
 ```
 
+同时确保 `.worktrees/` 目录存在且被 `.gitignore` 忽略：
+
+```bash
+mkdir -p "$PROJECT_ROOT/.worktrees"
+if ! grep -qxF '.worktrees' "$PROJECT_ROOT/.gitignore" 2>/dev/null; then
+  echo '.worktrees' >> "$PROJECT_ROOT/.gitignore"
+fi
+```
+
 约束:
 
 - 目录与文档命名允许中文
