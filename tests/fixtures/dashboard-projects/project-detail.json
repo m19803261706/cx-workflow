@@ -13,7 +13,8 @@
     "handoffPending": true,
     "progressCompleted": 4,
     "progressTotal": 7,
-    "featureStatus": "executing"
+    "featureStatus": "executing",
+    "workflowPhase": "exec"
   },
   "feature": {
     "slug": "cx-global-web-dashboard",

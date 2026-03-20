@@ -26,6 +26,7 @@ export type ProjectSummary = {
   progressCompleted: number;
   progressTotal: number;
   featureStatus?: string | null;
+  workflowPhase: string | null;
 };
 
 export type ProjectDetail = {
