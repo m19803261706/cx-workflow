@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "$SCRIPT_DIR/cx-lib.sh"
+
 PROJECT_ROOT="${PROJECT_ROOT:-}"
 FEATURE_SLUG=""
 RUNNER="cx"
@@ -98,10 +101,7 @@ resolve_feature_slug() {
     return
   fi
 
-  FEATURE_SLUG=$(jq -r '.current_feature // empty' "$PROJECT_ROOT/.claude/cx/状态.json")
-  if [[ -z "$FEATURE_SLUG" ]]; then
-    FEATURE_SLUG=$(jq -r '.current_feature // empty' "$PROJECT_ROOT/.claude/cx/core/projects/project.json")
-  fi
+  FEATURE_SLUG=$(resolve_current_feature "$PROJECT_ROOT")
 }
 
 feature_title() {
