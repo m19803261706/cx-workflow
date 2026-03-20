@@ -1,7 +1,6 @@
 import React from "react";
 import {
   Activity,
-  Bot,
   Cpu,
   FolderGit2,
   GitBranch,
@@ -12,6 +11,7 @@ import { motion } from "motion/react";
 
 import { formatLifecycleStage, formatOwnerRunner, formatSyncStatus } from "../labels.ts";
 import { StatusPill } from "./ui/status-pill.tsx";
+import { WorkflowStepper } from "./ui/workflow-stepper.tsx";
 import type { ProjectSummary } from "../types.ts";
 
 type ProjectCardProps = {
@@ -29,6 +29,7 @@ type ProjectCardProps = {
     | "syncStatus"
     | "handoffPending"
     | "rootPath"
+    | "workflowPhase"
   >;
 };
 
@@ -62,9 +63,12 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </div>
         </div>
 
-        <div className="terminal-code flex items-center gap-3 overflow-hidden rounded-2xl border border-cyan-300/12 bg-slate-950/70 px-4 py-3 text-xs text-cyan-100">
-          <Bot className="h-4 w-4 shrink-0" />
-          <span className="truncate">$ cx-status --project {project.id}</span>
+        <div className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3">
+          <WorkflowStepper
+            workflowPhase={project.workflowPhase ?? null}
+            lifecycleStage={project.lifecycleStage ?? null}
+            variant="mini"
+          />
         </div>
 
         <div className="grid gap-3 xl:grid-cols-2">

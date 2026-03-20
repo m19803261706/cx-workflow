@@ -14,6 +14,7 @@ test("ProjectCard renders display name, current feature, owner, lifecycle, workt
         currentFeatureSlug: "cx-global-web-dashboard",
         currentFeatureTitle: "CX 全局 Web 管理面板",
         lifecycleStage: "executing",
+        workflowPhase: "exec",
         ownerRunner: "codex",
         worktreePath: "/worktrees/cx-global-web-dashboard",
         progressCompleted: 2,
@@ -34,4 +35,5 @@ test("ProjectCard renders display name, current feature, owner, lifecycle, workt
   assert.match(html, /工作区沙箱/);
   assert.match(html, /\/worktrees\/cx-global-web-dashboard/);
   assert.match(html, /接管信号/);
+  assert.match(html, /工作流阶段/);
 });
