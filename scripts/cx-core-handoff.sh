@@ -216,6 +216,8 @@ main() {
       }
     ' /dev/null > "$TMP_DIR/handoff.json"
 
+  # DEPRECATED: current_feature is a hint for non-worktree fallback.
+  # Primary feature context comes from worktree branch name.
   jq \
     --arg feature "$FEATURE_SLUG" \
     --arg now "$now" \

@@ -262,6 +262,8 @@ main() {
   feature_source="$feature_file"
   [[ -f "$session_source" ]] || session_source=/dev/null
 
+  # DEPRECATED: current_feature is a hint for non-worktree fallback.
+  # Primary feature context comes from worktree branch name.
   jq \
     --arg feature "$FEATURE_SLUG" \
     --arg runner "$RUNNER" \

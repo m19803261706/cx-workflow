@@ -541,6 +541,8 @@ update_project_status() {
   local status_file="$1"
   local now="$2"
 
+  # DEPRECATED: current_feature is a hint for non-worktree fallback.
+  # Primary feature context comes from worktree branch name.
   jq \
     --arg slug "$FEATURE_SLUG" \
     --arg title "$FEATURE_TITLE" \
@@ -569,6 +571,8 @@ update_core_project_registry() {
     next_route="cx-plan"
   fi
 
+  # DEPRECATED: current_feature is a hint for non-worktree fallback.
+  # Primary feature context comes from worktree branch name.
   jq \
     --arg slug "$FEATURE_SLUG" \
     --arg title "$FEATURE_TITLE" \

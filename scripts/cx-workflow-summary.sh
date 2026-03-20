@@ -330,6 +330,8 @@ update_summary_state() {
       | .lease.claimed_tasks = []
     ' <<< "$core_feature")
 
+  # DEPRECATED: current_feature is a hint for non-worktree fallback.
+  # Primary feature context comes from worktree branch name.
   project_status=$(jq \
     --arg slug "$FEATURE_SLUG" \
     --arg now "$now" \
@@ -340,6 +342,8 @@ update_summary_state() {
       | .features[$slug].last_updated = $now
     ' <<< "$project_status")
 
+  # DEPRECATED: current_feature is a hint for non-worktree fallback.
+  # Primary feature context comes from worktree branch name.
   core_project=$(jq \
     --arg slug "$FEATURE_SLUG" \
     --arg now "$now" \

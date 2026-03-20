@@ -353,6 +353,8 @@ update_status_files() {
       | .workflow.last_transition_at = $now
     ' <<< "$core_feature")
 
+  # DEPRECATED: current_feature is a hint for non-worktree fallback.
+  # Primary feature context comes from worktree branch name.
   project_status=$(jq \
     --arg slug "$FEATURE_SLUG" \
     --arg title "$FEATURE_TITLE" \
@@ -368,6 +370,8 @@ update_status_files() {
         })
     ' <<< "$project_status")
 
+  # DEPRECATED: current_feature is a hint for non-worktree fallback.
+  # Primary feature context comes from worktree branch name.
   core_project=$(jq \
     --arg slug "$FEATURE_SLUG" \
     --arg title "$FEATURE_TITLE" \

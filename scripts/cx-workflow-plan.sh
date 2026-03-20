@@ -562,6 +562,8 @@ write_core_feature() {
 update_project_status() {
   local now="$1"
 
+  # DEPRECATED: current_feature is a hint for non-worktree fallback.
+  # Primary feature context comes from worktree branch name.
   jq \
     --arg slug "$FEATURE_SLUG" \
     --arg title "$FEATURE_TITLE" \
@@ -585,6 +587,8 @@ update_project_status() {
 update_core_project_registry() {
   local now="$1"
 
+  # DEPRECATED: current_feature is a hint for non-worktree fallback.
+  # Primary feature context comes from worktree branch name.
   jq \
     --arg slug "$FEATURE_SLUG" \
     --arg title "$FEATURE_TITLE" \
