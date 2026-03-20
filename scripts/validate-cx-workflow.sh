@@ -72,6 +72,12 @@ test -f apps/dashboard-service/src/runtime.ts
 test -f apps/dashboard-service/src/routes/projects.ts
 test -f apps/dashboard-service/src/routes/projects.test.ts
 test -f apps/dashboard-service/src/runtime.test.ts
+test -f apps/dashboard-web/package.json
+test -f apps/dashboard-web/src/main.tsx
+test -f apps/dashboard-web/src/App.tsx
+test -f apps/dashboard-web/src/pages/projects.tsx
+test -f apps/dashboard-web/src/components/project-card.tsx
+test -f apps/dashboard-web/src/components/project-card.test.tsx
 test -f scripts/cx-dashboard-ensure.sh
 test -f scripts/cx-dashboard-open.sh
 
@@ -229,6 +235,15 @@ echo "[check] dashboard service tests"
 
 echo "[check] dashboard service typecheck"
 (cd apps/dashboard-service && npm run typecheck)
+
+echo "[check] dashboard web tests"
+(cd apps/dashboard-web && npm test)
+
+echo "[check] dashboard web typecheck"
+(cd apps/dashboard-web && npm run typecheck)
+
+echo "[check] dashboard web build"
+(cd apps/dashboard-web && npm run build)
 
 echo "[check] core claim keeps different features isolated"
 CORE_SCENARIO_DIR=$(mktemp -d)
