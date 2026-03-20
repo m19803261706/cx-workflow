@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   Activity,
   Boxes,
@@ -15,55 +15,42 @@ import { MetricCard } from "../components/ui/metric-card.tsx";
 import { SectionHeading } from "../components/ui/section-heading.tsx";
 import { formatServiceStatus } from "../labels.ts";
 import type { DashboardHealth, ProjectSummary } from "../types.ts";
+import { usePolling } from "../hooks/use-polling.ts";
+import { PollingSelect } from "../components/ui/polling-select.tsx";
+import { SyncIndicator } from "../components/ui/sync-indicator.tsx";
 
 function resolveApiBaseUrl() {
   return import.meta.env.VITE_CX_DASHBOARD_API_BASE_URL ?? "http://127.0.0.1:43120/api/dashboard";
 }
 
 export function ProjectsPage() {
-  const [health, setHealth] = useState<DashboardHealth | null>(null);
-  const [projects, setProjects] = useState<ProjectSummary[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const apiBaseUrl = resolveApiBaseUrl();
 
-  useEffect(() => {
-    let active = true;
-    const apiBaseUrl = resolveApiBaseUrl();
+  const fetchDashboard = React.useCallback(async (signal: AbortSignal) => {
+    const [healthResponse, projectsResponse] = await Promise.all([
+      fetch(`${apiBaseUrl}/health`, { signal }),
+      fetch(`${apiBaseUrl}/projects`, { signal })
+    ]);
 
-    async function load() {
-      try {
-        const [healthResponse, projectsResponse] = await Promise.all([
-          fetch(`${apiBaseUrl}/health`),
-          fetch(`${apiBaseUrl}/projects`)
-        ]);
-
-        if (!healthResponse.ok || !projectsResponse.ok) {
-          throw new Error("本地 dashboard service 暂时不可用");
-        }
-
-        const nextHealth = (await healthResponse.json()) as DashboardHealth;
-        const nextProjects = (await projectsResponse.json()) as { projects: ProjectSummary[] };
-
-        if (!active) {
-          return;
-        }
-
-        setHealth(nextHealth);
-        setProjects(nextProjects.projects);
-        setError(null);
-      } catch (loadError) {
-        if (!active) {
-          return;
-        }
-
-        setError(loadError instanceof Error ? loadError.message : "未知错误");
-      }
+    if (!healthResponse.ok || !projectsResponse.ok) {
+      throw new Error("本地 dashboard service 暂时不可用");
     }
 
-    void load();
-    return () => {
-      active = false;
-    };
-  }, []);
+    const nextHealth = (await healthResponse.json()) as DashboardHealth;
+    const nextProjects = (await projectsResponse.json()) as { projects: ProjectSummary[] };
+    return { health: nextHealth, projects: nextProjects.projects };
+  }, [apiBaseUrl]);
+
+  const {
+    data,
+    error,
+    lastSyncedAt,
+    interval,
+    setInterval
+  } = usePolling(fetchDashboard);
+
+  const health = data?.health ?? null;
+  const projects = data?.projects ?? [];
 
   const activeProjects = projects.filter((project) => project.currentFeatureSlug).length;
   const handoffProjects = projects.filter((project) => project.handoffPending).length;
@@ -81,6 +68,8 @@ export function ProjectsPage() {
           <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300">
             API · {health?.apiBaseUrl ?? "等待连接"}
           </div>
+          <PollingSelect value={interval} onChange={setInterval} />
+          <SyncIndicator lastSyncedAt={lastSyncedAt} error={error} />
         </>
       }
     >
