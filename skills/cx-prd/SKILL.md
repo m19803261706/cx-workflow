@@ -1,5 +1,5 @@
 ---
-name: prd
+name: cx-prd
 description: >
   CX 工作流 — 需求收集与规模评估。当用户提到"新功能"、"需求"、"PRD"、
   "我想做一个"、"帮我规划"、"收集需求"、"功能规划"时触发。
@@ -21,8 +21,8 @@ disable-model-invocation: true
 ## 使用方法
 
 ```text
-/cx:prd {功能名}
-/cx:prd
+/cx:cx-prd {功能名}
+/cx:cx-prd
 ```
 
 ## 运行边界
@@ -102,9 +102,9 @@ bash scripts/cx-workflow-prd.sh \
 
 `cx-prd` 必须自动判断是否需要 Design，然后用勾选式问答让用户确认，而不是静默决定。
 
-- `S`：通常直接进入 `/cx:plan`
-- `M`：进入 `/cx:design`
-- `L`：进入 `/cx:design`，并在重大架构决策时补 `/cx:adr`
+- `S`：通常直接进入 `/cx:cx-plan`
+- `M`：进入 `/cx:cx-design`
+- `L`：进入 `/cx:cx-design`，并在重大架构决策时补 `/cx:cx-adr`
 
 如果用户选择“仍要完整流程”，可以让小功能也走设计，但默认不强迫。
 
@@ -120,4 +120,4 @@ bash scripts/cx-workflow-prd.sh \
 - 文档：`.claude/cx/功能/{功能标题}/需求.md`
 - 状态：项目级 `状态.json` 更新 `current_feature`、`features[slug]`
 - shared core：`.claude/cx/core/features/{slug}.json` 与 `project.json`
-- 后续路由：自动建议 `/cx:plan` 或 `/cx:design`
+- 后续路由：自动建议 `/cx:cx-plan` 或 `/cx:cx-design`

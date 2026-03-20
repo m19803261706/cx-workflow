@@ -46,7 +46,7 @@ case "$FEATURE_STATUS" in
     echo "cx(cc): 当前功能「${FEATURE_TITLE}」(${CURRENT_FEATURE}) 已阻塞，原因：${BLOCK_REASON:-unknown}。${BLOCK_MESSAGE}"
     ;;
   completed)
-    echo "cx(cc): 当前功能「${FEATURE_TITLE}」(${CURRENT_FEATURE}) 已完成，建议运行 /cx:summary 收尾。"
+    echo "cx(cc): 当前功能「${FEATURE_TITLE}」(${CURRENT_FEATURE}) 已完成，建议运行 /cx:cx-summary 收尾。"
     ;;
   summarized)
     echo "cx(cc): 当前功能「${FEATURE_TITLE}」(${CURRENT_FEATURE}) 已汇总完成。"

@@ -1,5 +1,5 @@
 ---
-name: scope
+name: cx-scope
 description: >
   CX 工作流 — 项目蓝图探讨。当用户提到"蓝图"、"整体规划"、"项目范围"、
   "scope"、"项目探讨"、"功能方案"时触发。多轮对话探讨项目或功能方案，
@@ -15,8 +15,8 @@ disable-model-invocation: true
 ## 使用方法
 
 ```
-/cx:scope                  # 项目级蓝图探讨
-/cx:scope {功能名}          # 功能级方案探讨
+/cx:cx-scope                  # 项目级蓝图探讨
+/cx:cx-scope {功能名}          # 功能级方案探讨
 ```
 
 ## 核心步骤
@@ -150,7 +150,7 @@ Phase 2: ...
       "header": "下一步",
       "multiSelect": false,
       "options": [
-        {"label": "开始 PRD", "description": "运行 /cx:prd {功能名}"},
+        {"label": "开始 PRD", "description": "运行 /cx:cx-prd {功能名}"},
         {"label": "继续探讨", "description": "再开一轮"},
         {"label": "保存稍后", "description": "先 review 范围.md"}
       ]
@@ -159,7 +159,7 @@ Phase 2: ...
 }
 ```
 
-如果选择开始 PRD，自动执行 `/cx:prd {功能名}`（会自动读取本地 `范围.md` 作为上下文）。
+如果选择开始 PRD，自动执行 `/cx:cx-prd {功能名}`（会自动读取本地 `范围.md` 作为上下文）。
 
 ## 本地文件结构
 

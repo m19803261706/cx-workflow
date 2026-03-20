@@ -115,6 +115,36 @@ doc_if_exists() {
   done
 }
 
+copy_doc_if_present() {
+  local source_dir="$1"
+  local source_doc="$2"
+  local target_file="$3"
+
+  if [[ -n "$source_doc" && -f "$source_dir/$source_doc" ]]; then
+    mkdir -p "$(dirname "$target_file")"
+    if [[ "$source_dir/$source_doc" != "$target_file" ]]; then
+      cp "$source_dir/$source_doc" "$target_file"
+    fi
+  fi
+}
+
+copy_task_docs() {
+  local source_dir="$1"
+  local target_dir="$2"
+  local task_file="" task_name="" task_number=""
+
+  mkdir -p "$target_dir"
+  shopt -s nullglob
+  for task_file in "$source_dir"/tasks/task-*.md "$source_dir"/任务/任务-*.md; do
+    task_name=$(basename "$task_file")
+    if [[ "$task_name" =~ ([0-9]+)\.md$ ]]; then
+      task_number="${BASH_REMATCH[1]}"
+      cp "$task_file" "$target_dir/任务-$task_number.md"
+    fi
+  done
+  shopt -u nullglob
+}
+
 build_tasks_json() {
   local status_file="$1"
   local feature_title="$2"
@@ -155,6 +185,8 @@ main() {
   local core_dir core_project_dir core_feature_dir core_worktree_dir core_session_dir core_handoff_dir
   local migrated_at developer_id current_feature_raw current_feature_slug
   local runtime_dir cc_runtime_dir settings_file
+  local public_config_file public_status_file public_feature_root public_fix_root public_initialized_at
+  local source_project_status_file
 
   cx_dir="$PROJECT_ROOT/.claude/cx"
   core_dir="$cx_dir/core"
@@ -167,6 +199,10 @@ main() {
   cc_runtime_dir="$runtime_dir/cc"
   settings_file="$PROJECT_ROOT/.claude/settings.json"
   migrated_at=$(now_iso)
+  public_config_file="$cx_dir/配置.json"
+  public_status_file="$cx_dir/状态.json"
+  public_feature_root="$cx_dir/功能"
+  public_fix_root="$cx_dir/修复"
 
   if [[ -f "$cx_dir/配置.json" && -f "$cx_dir/状态.json" ]]; then
     legacy_mode="zh"
@@ -192,7 +228,7 @@ main() {
     rm -rf "$core_dir"
   fi
 
-  mkdir -p "$core_project_dir" "$core_feature_dir" "$core_worktree_dir" "$core_session_dir" "$core_handoff_dir" "$cc_runtime_dir"
+  mkdir -p "$core_project_dir" "$core_feature_dir" "$core_worktree_dir" "$core_session_dir" "$core_handoff_dir" "$cc_runtime_dir" "$public_feature_root" "$public_fix_root"
 
   developer_id=$(jq -r '.developer_id // empty' "$config_file" 2>/dev/null)
   current_feature_raw=$(jq -r '.current_feature // empty' "$config_file" 2>/dev/null)
@@ -200,6 +236,54 @@ main() {
   if [[ -n "$current_feature_raw" ]]; then
     current_feature_slug=$(normalize_slug "$current_feature_raw" "$developer_id")
   fi
+  source_project_status_file="$project_status_file"
+  if [[ "$project_status_file" == "$public_status_file" ]]; then
+    source_project_status_file=$(mktemp)
+    cp "$project_status_file" "$source_project_status_file"
+  fi
+
+  public_initialized_at=$(jq -r '.initialized_at // .last_updated // empty' "$source_project_status_file" 2>/dev/null)
+  if [[ -z "$public_initialized_at" || "$public_initialized_at" == "null" ]]; then
+    public_initialized_at="$migrated_at"
+  fi
+
+  jq -n \
+    --slurpfile cfg "$config_file" \
+    --arg current_feature "$current_feature_slug" '
+      ($cfg[0] // {}) as $cfg
+      | {
+          version: "3.0",
+          developer_id: ($cfg.developer_id // ""),
+          github_sync: ($cfg.github_sync // "local"),
+          current_feature: (if $current_feature == "" then "" else $current_feature end),
+          agent_teams: ($cfg.agent_teams // true),
+          code_review: ($cfg.code_review // true),
+          auto_memory: ($cfg.auto_memory // true),
+          worktree_isolation: ($cfg.worktree_isolation // true),
+          auto_format: ($cfg.auto_format // {enabled: true, formatter: "auto"}),
+          hooks: {
+            session_start: ($cfg.hooks.session_start // true),
+            pre_compact: ($cfg.hooks.pre_compact // true),
+            post_edit_format: ($cfg.hooks.post_edit_format // true),
+            notification: ($cfg.hooks.notification // true)
+          }
+        }
+    ' > "$public_config_file"
+
+  jq -n \
+    --slurpfile status "$source_project_status_file" \
+    --arg initialized_at "$public_initialized_at" \
+    --arg migrated_at "$migrated_at" \
+    --arg current_feature "$current_feature_slug" '
+      ($status[0] // {}) as $status
+      | {
+          initialized_at: $initialized_at,
+          last_updated: $migrated_at,
+          current_feature: (if $current_feature == "" then null else $current_feature end),
+          features: {},
+          fixes: (($status.fixes // {}) | if type == "object" then . else {} end)
+        }
+    ' > "$public_status_file"
 
   jq -n \
     --arg migrated_at "$migrated_at" \
@@ -226,6 +310,7 @@ main() {
   while IFS=$'\t' read -r raw_slug feature_title feature_path feature_status; do
     local target_slug source_dir status_file feature_stage prd_doc design_doc adr_doc summary_doc tasks_json docs_json feature_file worktree_file
     local worktree_path worktree_branch
+    local public_feature_dir public_task_dir public_feature_status_file
 
     [[ -n "$raw_slug" ]] || continue
     target_slug=$(normalize_slug "$raw_slug" "$developer_id")
@@ -238,6 +323,9 @@ main() {
     fi
 
     source_dir="$cx_dir/$feature_path"
+    public_feature_dir="$public_feature_root/$feature_title"
+    public_task_dir="$public_feature_dir/任务"
+    public_feature_status_file="$public_feature_dir/状态.json"
     status_file="$source_dir/状态.json"
     if [[ ! -f "$status_file" ]]; then
       status_file="$source_dir/status.json"
@@ -262,10 +350,10 @@ main() {
     worktree_file="$core_worktree_dir/$target_slug.json"
 
     docs_json=$(jq -n \
-      --arg prd "$prd_doc" \
-      --arg design "$design_doc" \
-      --arg adr "$adr_doc" \
-      --arg summary "$summary_doc" '
+      --arg prd "$(if [[ -n "$prd_doc" ]]; then printf '需求.md'; fi)" \
+      --arg design "$(if [[ -n "$design_doc" ]]; then printf '设计.md'; fi)" \
+      --arg adr "$(if [[ -n "$adr_doc" ]]; then printf '架构决策.md'; fi)" \
+      --arg summary "$(if [[ -n "$summary_doc" ]]; then printf '总结.md'; fi)" '
         {
           prd: (if $prd == "" then null else $prd end),
           design: (if $design == "" then null else $design end),
@@ -274,6 +362,34 @@ main() {
         }
         | with_entries(select(.value != null))
       ')
+
+    mkdir -p "$public_task_dir"
+    copy_doc_if_present "$source_dir" "$prd_doc" "$public_feature_dir/需求.md"
+    copy_doc_if_present "$source_dir" "$design_doc" "$public_feature_dir/设计.md"
+    copy_doc_if_present "$source_dir" "$adr_doc" "$public_feature_dir/架构决策.md"
+    copy_doc_if_present "$source_dir" "$summary_doc" "$public_feature_dir/总结.md"
+    copy_task_docs "$source_dir" "$public_task_dir"
+
+    jq \
+      --arg title "$feature_title" \
+      --arg slug "$target_slug" \
+      --arg status "$feature_status" \
+      --arg updated_at "$migrated_at" \
+      --arg prd "$(if [[ -n "$prd_doc" ]]; then printf '需求.md'; fi)" \
+      --arg design "$(if [[ -n "$design_doc" ]]; then printf '设计.md'; fi)" \
+      --arg summary "$(if [[ -n "$summary_doc" ]]; then printf '总结.md'; fi)" '
+        .feature = $title
+        | .slug = $slug
+        | .status = $status
+        | .created_at = (.created_at // $updated_at)
+        | .last_updated = $updated_at
+        | .docs = (
+            (.docs // {})
+            + (if $prd == "" then {} else {prd: $prd} end)
+            + (if $design == "" then {} else {design: $design} end)
+            + (if $summary == "" then {} else {summary: $summary} end)
+          )
+      ' "$status_file" > "$public_feature_status_file"
 
     jq -n \
       --arg slug "$target_slug" \
@@ -315,6 +431,21 @@ main() {
           handoffs: []
         }
       ' > "$feature_file"
+
+    jq \
+      --arg slug "$target_slug" \
+      --arg title "$feature_title" \
+      --arg path "功能/$feature_title" \
+      --arg status "$feature_status" \
+      --arg updated_at "$migrated_at" '
+        .features[$slug] = {
+          title: $title,
+          path: $path,
+          status: $status,
+          last_updated: $updated_at
+        }
+      ' "$public_status_file" > "$public_status_file.tmp"
+    mv "$public_status_file.tmp" "$public_status_file"
 
     jq -n \
       --arg feature_slug "$target_slug" \
@@ -373,7 +504,7 @@ main() {
           (.value.status // "")
         ]
       | @tsv
-    ' "$project_status_file"
+    ' "$source_project_status_file"
   )
 
   if [[ -f "$cx_dir/最近失败.json" ]]; then
@@ -392,6 +523,10 @@ main() {
 
   echo "[migrate] migrated legacy cx runtime at $cx_dir into shared core"
   echo "[migrate] core project: $core_project_dir/project.json"
+
+  if [[ "$source_project_status_file" != "$project_status_file" ]]; then
+    rm -f "$source_project_status_file"
+  fi
 }
 
 main "$@"

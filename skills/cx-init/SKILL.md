@@ -1,9 +1,9 @@
 ---
-name: init
+name: cx-init
 description: >
   CX 工作流 — 项目初始化。每个项目都单独确认 developer_id、GitHub 同步策略、
   agent teams、code review、worktree isolation、auto memory，并建立项目级
-  .claude/cx 运行时真相目录。仅在用户明确调用 `/cx:init` 时执行。
+  .claude/cx 运行时真相目录。仅在用户明确调用 `/cx:cx-init` 时执行。
 disable-model-invocation: true
 ---
 
@@ -23,7 +23,7 @@ disable-model-invocation: true
 - 如果没有 remote，默认建议创建 GitHub 仓库并绑定
 - 补齐最小项目规则段
 
-初始化完成后，项目应直接可以进入 `/cx:prd` 或 `/cx:fix`。
+初始化完成后，项目应直接可以进入 `/cx:cx-prd` 或 `/cx:cx-fix`。
 
 ## 执行原则
 
@@ -50,7 +50,7 @@ GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 
 - 不要直接进入双运行器模式
 - 先建议运行 `bash scripts/cx-core-migrate.sh`
-- 迁移完成后，再继续 `/cx:init` 或后续命令
+- 迁移完成后，再继续 `/cx:cx-init` 或后续命令
 
 ### Step 2: 一次性收集关键项目配置
 
@@ -180,5 +180,5 @@ GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 
 初始化完成后，默认提示:
 
-- 如果是新功能 → `/cx:prd`
-- 如果是缺陷修复 → `/cx:fix`
+- 如果是新功能 → `/cx:cx-prd`
+- 如果是缺陷修复 → `/cx:cx-fix`

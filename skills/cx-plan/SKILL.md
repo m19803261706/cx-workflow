@@ -1,5 +1,5 @@
 ---
-name: plan
+name: cx-plan
 description: >
   CX 工作流 — 任务规划与契约下沉。当用户提到"规划任务"、"制定计划"、
   "plan"、"拆分任务"时触发。读取设计文档（小功能则读取 PRD），
@@ -20,8 +20,8 @@ disable-model-invocation: true
 ## 使用方法
 
 ```text
-/cx:plan {功能名}
-/cx:plan
+/cx:cx-plan {功能名}
+/cx:cx-plan
 ```
 
 ## 规划原则
@@ -126,8 +126,8 @@ feature 级 `状态.json` 至少包含：
 规划完成后默认建议：
 
 ```text
-下一步：/cx:exec（先完成 worktree 绑定检查）
+下一步：/cx:cx-exec（先完成 worktree 绑定检查）
 ```
 
-如果任务图中存在清晰并行组，再在状态中标注 `parallel_group`，供 `/cx:exec --all` 使用。
+如果任务图中存在清晰并行组，再在状态中标注 `parallel_group`，供 `/cx:cx-exec --all` 使用。
 推荐 worktree 只是共享 core 的建议值，不代表 CC 可以跳过租约直接开工。

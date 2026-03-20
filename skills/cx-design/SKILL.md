@@ -1,5 +1,5 @@
 ---
-name: design
+name: cx-design
 description: >
   CX 工作流 — 技术设计与执行契约。当用户提到"技术设计"、"Design Doc"、
   "API 设计"、"接口设计"、"架构设计"、"系统设计"时触发。
@@ -20,8 +20,8 @@ disable-model-invocation: true
 ## 使用方法
 
 ```text
-/cx:design {功能名}
-/cx:design
+/cx:cx-design {功能名}
+/cx:cx-design
 ```
 
 ## 设计原则
@@ -105,7 +105,7 @@ bash scripts/cx-workflow-design.sh \
 
 ## 什么时候需要 ADR
 
-只有在这些情况出现时，才建议进入 `/cx:adr`：
+只有在这些情况出现时，才建议进入 `/cx:cx-adr`：
 
 - 明显引入新技术
 - 存储或通信方案存在实质性取舍

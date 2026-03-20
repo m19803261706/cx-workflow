@@ -748,7 +748,7 @@ if [[ -d tests/fixtures/minimal-project ]]; then
 
   echo "[check] stop hook reminds unfinished feature"
   STOP_OUTPUT=$(PROJECT_ROOT=tests/fixtures/minimal-project bash hooks/stop-check.sh)
-  printf '%s\n' "$STOP_OUTPUT" | rg '/cx:exec'
+  printf '%s\n' "$STOP_OUTPUT" | rg '/cx:cx-exec'
 
   echo "[check] stop-failure writes failure snapshot"
   rm -f tests/fixtures/minimal-project/.claude/cx/runtime/cc/最近失败.json
@@ -790,7 +790,7 @@ rg 'core/workflow/protocols/design.md' skills/design/SKILL.md
 rg 'core/workflow/protocols/plan.md' skills/plan/SKILL.md
 
 echo "[check] execution chain follows pure cx 3.1 semantics"
-rg '/cx:exec --all' skills/exec/SKILL.md
+rg '/cx:cx-exec --all' skills/exec/SKILL.md
 rg -F '3+ 专业代理' skills/exec/SKILL.md
 rg -F '[cx:<feature-slug>] [task:<n>]' skills/exec/SKILL.md
 rg 'worktree 校验|当前 checkout 与 feature 绑定一致' skills/exec/SKILL.md
@@ -891,6 +891,103 @@ test -f "$MIGRATION_TMP_DIR/.claude/cx/runtime/cc/context-snapshot.md"
 ! test -f "$MIGRATION_TMP_DIR/.claude/cx/最近配置变更.json"
 ! test -f "$MIGRATION_TMP_DIR/.claude/cx/context-snapshot.md"
 rm -rf "$MIGRATION_TMP_DIR"
+
+echo "[check] migration helper normalizes english legacy layout into chinese public runtime"
+LEGACY_EN_TMP_DIR=$(mktemp -d)
+mkdir -p "$LEGACY_EN_TMP_DIR/.claude/cx/features/vector-memory/tasks"
+cat > "$LEGACY_EN_TMP_DIR/.claude/cx/config.json" <<'EOF'
+{
+  "version": "3.0",
+  "developer_id": "chengxuan",
+  "github_sync": "local",
+  "current_feature": "chengxuan-vector-memory",
+  "agent_teams": true,
+  "code_review": true,
+  "auto_memory": true,
+  "worktree_isolation": true,
+  "auto_format": {
+    "enabled": true,
+    "formatter": "auto"
+  },
+  "hooks": {
+    "session_start": true,
+    "pre_compact": true,
+    "post_edit_format": true,
+    "notification": true
+  }
+}
+EOF
+cat > "$LEGACY_EN_TMP_DIR/.claude/cx/status.json" <<'EOF'
+{
+  "initialized_at": "2026-03-10T10:00:00Z",
+  "last_updated": "2026-03-10T10:00:00Z",
+  "current_feature": "chengxuan-vector-memory",
+  "features": {
+    "chengxuan-vector-memory": {
+      "title": "向量记忆",
+      "path": "features/vector-memory",
+      "status": "executing"
+    }
+  },
+  "fixes": []
+}
+EOF
+cat > "$LEGACY_EN_TMP_DIR/.claude/cx/features/vector-memory/prd.md" <<'EOF'
+# PRD
+EOF
+cat > "$LEGACY_EN_TMP_DIR/.claude/cx/features/vector-memory/design.md" <<'EOF'
+# Design
+EOF
+cat > "$LEGACY_EN_TMP_DIR/.claude/cx/features/vector-memory/summary.md" <<'EOF'
+# Summary
+EOF
+cat > "$LEGACY_EN_TMP_DIR/.claude/cx/features/vector-memory/status.json" <<'EOF'
+{
+  "feature": "向量记忆",
+  "slug": "chengxuan-vector-memory",
+  "created_at": "2026-03-10T10:00:00Z",
+  "last_updated": "2026-03-10T10:00:00Z",
+  "status": "executing",
+  "total": 1,
+  "completed": 0,
+  "in_progress": 1,
+  "phases": [
+    {
+      "number": 1,
+      "name": "基础阶段",
+      "status": "in_progress",
+      "tasks": [1]
+    }
+  ],
+  "tasks": [
+    {
+      "number": 1,
+      "title": "迁移英文布局",
+      "phase": 1,
+      "parallel": false,
+      "depends_on": [],
+      "status": "in_progress"
+    }
+  ],
+  "execution_order": [1]
+}
+EOF
+cat > "$LEGACY_EN_TMP_DIR/.claude/cx/features/vector-memory/tasks/task-1.md" <<'EOF'
+# Task 1
+EOF
+CX_CORE_NOW=2026-03-20T10:20:00Z PROJECT_ROOT="$LEGACY_EN_TMP_DIR" bash scripts/cx-core-migrate.sh
+jq empty \
+  "$LEGACY_EN_TMP_DIR/.claude/cx/配置.json" \
+  "$LEGACY_EN_TMP_DIR/.claude/cx/状态.json" \
+  "$LEGACY_EN_TMP_DIR/.claude/cx/功能/向量记忆/状态.json"
+jq -e '.current_feature == "vector-memory"' "$LEGACY_EN_TMP_DIR/.claude/cx/配置.json" >/dev/null
+jq -e '.current_feature == "vector-memory"' "$LEGACY_EN_TMP_DIR/.claude/cx/状态.json" >/dev/null
+jq -e '.features["vector-memory"].path == "功能/向量记忆"' "$LEGACY_EN_TMP_DIR/.claude/cx/状态.json" >/dev/null
+test -f "$LEGACY_EN_TMP_DIR/.claude/cx/功能/向量记忆/需求.md"
+test -f "$LEGACY_EN_TMP_DIR/.claude/cx/功能/向量记忆/设计.md"
+test -f "$LEGACY_EN_TMP_DIR/.claude/cx/功能/向量记忆/总结.md"
+test -f "$LEGACY_EN_TMP_DIR/.claude/cx/功能/向量记忆/任务/任务-1.md"
+rm -rf "$LEGACY_EN_TMP_DIR"
 rg 'cx-core-migrate.sh|先迁移' README.md references/workflow-guide.md skills/init/SKILL.md
 
 echo "[check] public docs and metadata present pure cx 3.1"
@@ -898,7 +995,7 @@ rg '"name": "cx"' .claude-plugin/plugin.json .claude-plugin/marketplace.json
 rg '"version": "3.1.0"' .claude-plugin/plugin.json .claude-plugin/marketplace.json
 rg '只保留 `cx`' README.md references/workflow-guide.md
 ! rg -F '/tc' README.md references/workflow-guide.md
-rg '/cx:init' README.md references/workflow-guide.md skills/help/SKILL.md
+rg '/cx:cx-init' README.md references/workflow-guide.md skills/help/SKILL.md
 rg 'shared workflow core|core/workflow' README.md references/workflow-guide.md docs/codex-adapter-guide.md adapters/codex/README.md
 rg '纯 cx 3.1|/cx:\*|Codex skill adapter' README.md references/workflow-guide.md CHANGELOG.md
 rg '2.1.79|Codex 侧必须同步|先迁移|\.agents/skills|install-codex.sh' README.md CHANGELOG.md docs/codex-adapter-guide.md references/workflow-guide.md

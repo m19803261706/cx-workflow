@@ -24,30 +24,30 @@
 
 ## 核心命令
 
-- `/cx:init`
-- `/cx:help`
-- `/cx:status`
-- `/cx:config`
-- `/cx:prd`
-- `/cx:design`
-- `/cx:adr`
-- `/cx:plan`
-- `/cx:exec`
-- `/cx:fix`
-- `/cx:summary`
+- `/cx:cx-init`
+- `/cx:cx-help`
+- `/cx:cx-status`
+- `/cx:cx-config`
+- `/cx:cx-prd`
+- `/cx:cx-design`
+- `/cx:cx-adr`
+- `/cx:cx-plan`
+- `/cx:cx-exec`
+- `/cx:cx-fix`
+- `/cx:cx-summary`
 
 ## 工作流主线
 
 ### 新功能
 
 ```text
-/cx:prd → /cx:design（按需）→ /cx:plan → /cx:exec → /cx:summary
+/cx:cx-prd → /cx:cx-design（按需）→ /cx:cx-plan → /cx:cx-exec → /cx:cx-summary
 ```
 
 ### Bug 修复
 
 ```text
-/cx:fix
+/cx:cx-fix
 ```
 
 ## 项目级目录
@@ -71,10 +71,10 @@
 
 ## 默认行为
 
-- `/cx:plan` 默认轻量，只有明显引入新技术时才额外做技术识别
-- `/cx:exec` 默认自动推进当前功能
-- `/cx:exec --all` 进入团队模式，按任务图自适应组织 3+ 专业代理
-- `/cx:summary` 只负责闭环，不接管执行态
+- `/cx:cx-plan` 默认轻量，只有明显引入新技术时才额外做技术识别
+- `/cx:cx-exec` 默认自动推进当前功能
+- `/cx:cx-exec --all` 进入团队模式，按任务图自适应组织 3+ 专业代理
+- `/cx:cx-summary` 只负责闭环，不接管执行态
 
 ## GitHub 同步
 
@@ -92,7 +92,7 @@ GitHub 是同步镜像，不是运行时真相。
 在项目里运行一次：
 
 ```text
-/cx:init
+/cx:cx-init
 ```
 
 初始化时会一次性确认：

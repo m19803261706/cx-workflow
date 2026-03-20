@@ -1,8 +1,8 @@
 ---
-name: config
+name: cx-config
 description: >
   CX 工作流 — 配置管理。查看或修改项目级 `.claude/cx/配置.json`
-  中公开的少量字段。仅在用户明确调用 `/cx:config` 时执行。
+  中公开的少量字段。仅在用户明确调用 `/cx:cx-config` 时执行。
 disable-model-invocation: true
 ---
 

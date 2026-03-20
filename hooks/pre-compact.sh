@@ -81,18 +81,18 @@ cat >> "$SNAPSHOT_FILE" << EOF
 
 ## 恢复建议
 
-- 查看进度: \`/cx:status\`
+- 查看进度: \`/cx:cx-status\`
 EOF
 
 if cx_feature_has_foreign_owner "$CURRENT_FEATURE"; then
   cat >> "$SNAPSHOT_FILE" << EOF
-- 当前 feature 由其他 runner 持有，先走 handoff，再继续 \`/cx:exec\`
+- 当前 feature 由其他 runner 持有，先走 handoff，再继续 \`/cx:cx-exec\`
 EOF
 else
   case "$FEATURE_STATUS" in
     completed)
       cat >> "$SNAPSHOT_FILE" << EOF
-- 收尾汇总: \`/cx:summary\`
+- 收尾汇总: \`/cx:cx-summary\`
 EOF
       ;;
     summarized)
@@ -102,7 +102,7 @@ EOF
       ;;
     *)
       cat >> "$SNAPSHOT_FILE" << EOF
-- 继续执行: \`/cx:exec\`
+- 继续执行: \`/cx:cx-exec\`
 EOF
       ;;
   esac

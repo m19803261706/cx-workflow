@@ -1,5 +1,5 @@
 ---
-name: fix
+name: cx-fix
 description: >
   CX 工作流 — Bug 修复。当用户提到"修 bug"、"fix"、"报错"、"debug"、
   "修复"时触发。默认走快速修复路径，复杂问题再升级为更深入的调查。
@@ -18,8 +18,8 @@ disable-model-invocation: true
 ## 使用方法
 
 ```text
-/cx:fix {问题描述}
-/cx:fix
+/cx:cx-fix {问题描述}
+/cx:cx-fix
 ```
 
 ## 默认路径

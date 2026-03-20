@@ -1,5 +1,5 @@
 ---
-name: help
+name: cx-help
 description: >
   CX 工作流 — 帮助与使用指南。展示纯 cx 3.1 的命令面、自动路由逻辑、
   `--all` 语义和项目级真相模型。
@@ -11,17 +11,17 @@ description: >
 
 ## 命令面
 
-- `/cx:init`
-- `/cx:help`
-- `/cx:status`
-- `/cx:config`
-- `/cx:prd`
-- `/cx:design`
-- `/cx:adr`
-- `/cx:plan`
-- `/cx:exec`
-- `/cx:fix`
-- `/cx:summary`
+- `/cx:cx-init`
+- `/cx:cx-help`
+- `/cx:cx-status`
+- `/cx:cx-config`
+- `/cx:cx-prd`
+- `/cx:cx-design`
+- `/cx:cx-adr`
+- `/cx:cx-plan`
+- `/cx:cx-exec`
+- `/cx:cx-fix`
+- `/cx:cx-summary`
 
 ## 核心体验
 
@@ -36,21 +36,21 @@ description: >
 ### 新功能
 
 ```text
-/cx:prd → /cx:design（按需）→ /cx:plan → /cx:exec → /cx:summary
+/cx:cx-prd → /cx:cx-design（按需）→ /cx:cx-plan → /cx:cx-exec → /cx:cx-summary
 ```
 
 ### Bug 修复
 
 ```text
-/cx:fix
+/cx:cx-fix
 ```
 
-## `/cx:exec` 和 `--all`
+## `/cx:cx-exec` 和 `--all`
 
-- `/cx:exec`
+- `/cx:cx-exec`
   默认自动推进当前功能的可执行任务
 
-- `/cx:exec --all`
+- `/cx:cx-exec --all`
   进入高自治团队模式，按任务图自适应拆分，并尽可能组织 3+ 专业代理
 
 ## 什么时候会暂停问你

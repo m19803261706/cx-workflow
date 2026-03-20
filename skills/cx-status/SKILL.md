@@ -1,5 +1,5 @@
 ---
-name: status
+name: cx-status
 description: >
   CX 工作流 — 进度查看。读取项目级配置和状态文件，展示当前功能、
   当前任务、阻塞原因和最近修复记录。
@@ -59,9 +59,9 @@ bash scripts/cx-workflow-status.sh \
 
 ### 4. 下一步建议
 
-- 正在执行：建议 `/cx:exec`
-- 已完成待收尾：建议 `/cx:summary`
-- 无活跃功能：建议 `/cx:prd` 或 `/cx:fix`
+- 正在执行：建议 `/cx:cx-exec`
+- 已完成待收尾：建议 `/cx:cx-summary`
+- 无活跃功能：建议 `/cx:cx-prd` 或 `/cx:cx-fix`
 
 ## 说明原则
 

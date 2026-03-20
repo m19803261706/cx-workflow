@@ -11,7 +11,7 @@ Keep this segment concise. It should summarize the active CX runtime state, not 
 ## CX 工作流 (v3.1)
 
 ### 命令
-/cx:prd <功能名> | /cx:fix <描述> | /cx:exec | /cx:status | /cx:summary
+/cx:cx-prd <功能名> | /cx:cx-fix <描述> | /cx:cx-exec | /cx:cx-status | /cx:cx-summary
 
 ### 当前进度
 - 功能: [中文功能名]

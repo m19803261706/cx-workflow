@@ -1,5 +1,5 @@
 ---
-name: exec
+name: cx-exec
 description: >
   CX 工作流 — 任务执行与自动推进。当用户提到"执行任务"、"开始开发"、
   "实现功能"、"写代码"、"继续做"、"下一个任务"时触发。
@@ -19,17 +19,17 @@ disable-model-invocation: true
 ## 使用方法
 
 ```text
-/cx:exec
-/cx:exec --all
-/cx:exec 任务-3
+/cx:cx-exec
+/cx:cx-exec --all
+/cx:cx-exec 任务-3
 ```
 
 ## 运行原则
 
 - 项目级 `.claude/cx/配置.json` 和 feature 级 `状态.json` 是执行真相
-- `/cx:exec` 默认自动推进，直到完成、阻塞或关键决策点
-- `/cx:exec --all` 才进入高自治团队模式
-- GitHub 不参与执行态主控，闭环同步交给 `/cx:summary`
+- `/cx:cx-exec` 默认自动推进，直到完成、阻塞或关键决策点
+- `/cx:cx-exec --all` 才进入高自治团队模式
+- GitHub 不参与执行态主控，闭环同步交给 `/cx:cx-summary`
 - Claude Code 在共享 core 中始终注册为 runner `cc`；如果 feature 当前由 `codex` 持有，必须先 handoff，不能静默抢占
 
 ## 核心步骤
@@ -95,11 +95,11 @@ bash scripts/cx-core-worktree.sh \
 }
 ```
 
-任务级也允许记录 `reason_type`，便于 `/cx:status` 和 hook 恢复。
+任务级也允许记录 `reason_type`，便于 `/cx:cx-status` 和 hook 恢复。
 
 ### Step 4: 默认执行模式
 
-普通 `/cx:exec` 的含义是：
+普通 `/cx:cx-exec` 的含义是：
 
 - 自动连续推进可执行任务
 - 自己处理普通测试失败和局部冲突
@@ -110,9 +110,9 @@ bash scripts/cx-core-worktree.sh \
   - 高风险或不可逆操作
   - 需要用户提供外部信息
 
-### Step 5: `/cx:exec --all`
+### Step 5: `/cx:cx-exec --all`
 
-`/cx:exec --all` 的含义不是简单“全跑完”，而是：
+`/cx:cx-exec --all` 的含义不是简单“全跑完”，而是：
 
 - 进入高自治 agent teams 模式
 - 按任务图自适应拆 wave
@@ -154,4 +154,4 @@ fix(scope): description [cx-fix:<fix-slug>]
 
 - feature 状态切到 `completed`
 - 如果 `code_review=true`，先建议做闭环审查
-- 最后再进入 `/cx:summary`
+- 最后再进入 `/cx:cx-summary`

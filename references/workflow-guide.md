@@ -22,7 +22,7 @@
 第一次进入项目时运行：
 
 ```text
-/cx:init
+/cx:cx-init
 ```
 
 初始化负责：
@@ -43,7 +43,7 @@ bash scripts/cx-core-migrate.sh
 
 ## 需求到交付
 
-### 1. `/cx:prd`
+### 1. `/cx:cx-prd`
 
 - 多轮收集需求
 - 自动评估规模
@@ -51,25 +51,25 @@ bash scripts/cx-core-migrate.sh
 - 通过共享 runner `scripts/cx-workflow-prd.sh` 做确定性落盘
 - 产物：`.claude/cx/功能/{功能标题}/需求.md`
 
-### 2. `/cx:design`
+### 2. `/cx:cx-design`
 
 - 只服务中大 feature
 - 锁接口契约、状态枚举、字段映射、风险点
 - 产物：`.claude/cx/功能/{功能标题}/设计.md`
 
-### 3. `/cx:adr`
+### 3. `/cx:cx-adr`
 
 - 只在 L 规模或重大架构取舍时出现
 - 产物：`.claude/cx/功能/{功能标题}/架构决策.md`
 
-### 4. `/cx:plan`
+### 4. `/cx:cx-plan`
 
 - 默认轻量拆任务
 - 仅当 PRD 明显引入新技术时，才进入技术识别支线
 - 先记录 feature 的推荐 worktree，再拆任务和状态
 - 产物：`.claude/cx/功能/{功能标题}/任务/任务-{n}.md`
 
-### 5. `/cx:exec`
+### 5. `/cx:cx-exec`
 
 - 默认自动推进可执行任务
 - 只在关键决策点暂停
@@ -77,13 +77,13 @@ bash scripts/cx-core-migrate.sh
 - 同一 feature 如果已经绑定到另一个 worktree，必须先走 handoff，不能直接并行 claim
 - 每个 task 独立 commit，并追加 `[cx:<feature-slug>] [task:<n>]`
 
-### 6. `/cx:exec --all`
+### 6. `/cx:cx-exec --all`
 
 - 启动高自治团队模式
 - 按任务图自适应安排 wave
 - 尽可能组织 3+ 专业代理
 
-### 7. `/cx:summary`
+### 7. `/cx:cx-summary`
 
 - 只负责闭环
 - 生成 `.claude/cx/功能/{功能标题}/总结.md`
@@ -92,7 +92,7 @@ bash scripts/cx-core-migrate.sh
 
 ## Bug 修复
 
-`/cx:fix` 默认走快速修复路径：
+`/cx:cx-fix` 默认走快速修复路径：
 
 - 调查
 - 定位

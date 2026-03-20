@@ -40,6 +40,6 @@ case "$FEATURE_STATUS" in
     echo "cx(cc): 当前功能「${FEATURE_TITLE}」已阻塞（${BLOCK_REASON:-unknown}）。${BLOCK_MESSAGE}"
     ;;
   completed)
-    echo "cx(cc): 当前功能「${FEATURE_TITLE}」已完成，如本轮是收尾可直接 /cx:summary。"
+    echo "cx(cc): 当前功能「${FEATURE_TITLE}」已完成，如本轮是收尾可直接 /cx:cx-summary。"
     ;;
 esac
