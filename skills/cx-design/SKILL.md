@@ -16,6 +16,25 @@ description: >
 - `core/workflow/README.md`
 - `core/workflow/protocols/design.md`
 
+## Worktree 检测（强制）
+
+<HARD-GATE>
+禁止在主分支（main/master）上执行设计阶段。必须在 feature worktree 中。
+</HARD-GATE>
+
+执行前检测：
+
+```bash
+check_output=$(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-worktree.sh check \
+  --feature "{feature-slug}" \
+  --project-root "$(git rev-parse --show-toplevel)" 2>&1) || true
+```
+
+如果返回 `on_main=true`：
+- 提示用户先运行 `/cx:cx-prd` 创建 worktree，或手动进入已有 worktree
+- 用 `AskUserQuestion` 列出可用 worktree 供选择
+- **不要继续执行设计阶段**
+
 ## 使用方法
 
 ```text
