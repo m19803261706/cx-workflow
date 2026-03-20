@@ -12,9 +12,19 @@ description: >
 
 ## 强制规则
 
-**禁止跳过工作区选择。** 无论是 `/cx:cx-exec` 还是 `/cx:cx-exec --all`，
-如果当前 feature 还没有绑定 worktree（`状态.json` 中 `worktree.binding_status` 不是 `bound`），
-必须（MUST）先用 `AskUserQuestion` 询问用户选择工作区模式，得到回答后才能开始任何实现工作。
+**禁止跳过工作区选择。** 执行前先调用 worktree 检测：
+
+```bash
+check_output=$(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-worktree.sh check \
+  --feature "{feature-slug}" \
+  --project-root "$(git rev-parse --show-toplevel)" 2>&1) || true
+```
+
+<HARD-GATE>
+如果返回 `on_main=true`，禁止在主分支上执行。必须先进入 feature worktree。
+</HARD-GATE>
+
+如果 `in_worktree=false` 且不在 main 上（可能在非 feature 分支），用 `AskUserQuestion` 列出可用 worktree 供选择。
 
 违反这条规则的行为：
 - ❌ `--all` 模式直接在当前分支开干
