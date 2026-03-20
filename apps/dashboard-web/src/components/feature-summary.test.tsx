@@ -12,7 +12,11 @@ const fixturePath = path.resolve(process.cwd(), "../../tests/fixtures/dashboard-
 
 test("FeatureSummary renders workflow summary, task matrix and owner status in Chinese", async () => {
   const detail = JSON.parse(await readFile(fixturePath, "utf8")) as ProjectDetail;
-  const html = renderToStaticMarkup(<FeatureSummary detail={detail} />);
+  const feature = detail.features[0];
+  assert.ok(feature, "fixture should have at least one feature");
+  const html = renderToStaticMarkup(
+    <FeatureSummary feature={feature} lifecycleStage={detail.project.lifecycleStage} />
+  );
 
   assert.match(html, /工作流摘要/);
   assert.match(html, /当前执行权/);

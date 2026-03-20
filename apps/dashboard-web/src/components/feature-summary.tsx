@@ -10,27 +10,14 @@ import {
 import { GlowPanel } from "./ui/glow-panel.tsx";
 import { ProgressMeter } from "./ui/progress-meter.tsx";
 import { StatusPill } from "./ui/status-pill.tsx";
-import type { ProjectDetail } from "../types.ts";
+import type { FeatureDetail } from "../types.ts";
 
 type FeatureSummaryProps = {
-  detail: ProjectDetail;
+  feature: FeatureDetail;
+  lifecycleStage: string | null;
 };
 
-export function FeatureSummary({ detail }: FeatureSummaryProps) {
-  if (!detail.feature) {
-    return (
-      <GlowPanel tone="blue" className="space-y-4">
-        <h2 className="text-2xl font-semibold text-white">当前没有活跃功能</h2>
-        <div className="max-w-3xl text-sm leading-7 text-slate-300">
-          这个项目已经接入全局面板，但当前没有正在推进的 feature。你可以回到 CC 或 Codex 中继续发起
-          `cx-prd`、`cx-fix` 或查看历史总结。
-        </div>
-      </GlowPanel>
-    );
-  }
-
-  const { feature } = detail;
-
+export function FeatureSummary({ feature, lifecycleStage }: FeatureSummaryProps) {
   return (
     <GlowPanel tone="blue" className="space-y-6">
       <div className="space-y-3">

@@ -30,6 +30,7 @@ type ProjectCardProps = {
     | "handoffPending"
     | "rootPath"
     | "workflowPhase"
+    | "activeFeatureCount"
   >;
 };
 
@@ -56,6 +57,11 @@ export function ProjectCard({ project }: ProjectCardProps) {
             <h3 className="text-2xl font-semibold text-white">{project.displayName}</h3>
             <div className="text-sm leading-6 text-slate-300">
               {project.currentFeatureTitle ?? "当前没有活跃功能"}
+              {(project.activeFeatureCount ?? 0) > 1 && (
+                <span className="ml-2 inline-flex items-center rounded-full border border-cyan-300/15 bg-cyan-400/10 px-2 py-0.5 text-xs font-semibold text-cyan-100">
+                  {project.activeFeatureCount} 个活跃功能
+                </span>
+              )}
             </div>
           </div>
           <div className="rounded-full border border-emerald-300/15 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-100">

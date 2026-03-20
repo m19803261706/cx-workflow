@@ -27,35 +27,38 @@ export type ProjectSummary = {
   progressTotal: number;
   featureStatus?: string | null;
   workflowPhase: string | null;
+  activeFeatureCount?: number;
+};
+
+export type FeatureDetail = {
+  slug: string;
+  title: string;
+  workflowPhase: string | null;
+  nextRoute: string | null;
+  ownerRunner: "cc" | "codex" | "none";
+  ownerSessionId: string | null;
+  worktreePath: string | null;
+  bindingStatus: string | null;
+  handoffPending: boolean;
+  progress: {
+    completed: number;
+    total: number;
+  };
+  docs: Record<string, string>;
+  tasks: Array<{
+    id: number | string;
+    title: string;
+    status: string;
+    phase: number | null;
+    parallel: boolean;
+    dependsOn: Array<number | string>;
+    parallelGroup: string | null;
+  }>;
 };
 
 export type ProjectDetail = {
   project: ProjectSummary;
-  feature: {
-    slug: string;
-    title: string;
-    workflowPhase: string | null;
-    nextRoute: string | null;
-    ownerRunner: "cc" | "codex" | "none";
-    ownerSessionId: string | null;
-    worktreePath: string | null;
-    bindingStatus: string | null;
-    handoffPending: boolean;
-    progress: {
-      completed: number;
-      total: number;
-    };
-    docs: Record<string, string>;
-    tasks: Array<{
-      id: number | string;
-      title: string;
-      status: string;
-      phase: number | null;
-      parallel: boolean;
-      dependsOn: Array<number | string>;
-      parallelGroup: string | null;
-    }>;
-  } | null;
+  features: Array<FeatureDetail>;
   activeSessions: Array<{
     sessionId: string;
     runner: "cx" | "cc" | "codex";
