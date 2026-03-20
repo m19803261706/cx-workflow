@@ -230,7 +230,135 @@ Codex 的 skill 需要同步添加 worktree 约束：
 - `adapters/codex/skills/*/SKILL.md` 加入相同的 Hard Gate
 - Codex 的 worktree 创建使用 `../cx-shared/scripts/cx-worktree.sh`
 
-## 6. 迁移策略
+## 6. CC 与 CX (Codex) 双端语法差异与统一约束
+
+### 6.1 现有语法差异清单
+
+两端共享同一套工作流语义，但 skill 语法和交互方式有根本差异：
+
+| 维度 | CC (Claude Code) | CX (Codex) |
+|------|-----------------|------------|
+| **脚本路径** | `${CLAUDE_PLUGIN_ROOT}/scripts/cx-*.sh` | `../cx-shared/scripts/cx-*.sh` |
+| **文件引用** | `@${CLAUDE_PLUGIN_ROOT}/references/...` | `../cx-shared/references/...` |
+| **用户交互** | `AskUserQuestion` 工具（结构化 JSON） | 编号文字列表 + 等待用户回复 |
+| **Runner 标识** | `--runner cc` | `--runner codex` |
+| **Session ID** | CC 自动生成 | Codex 自行管理 |
+| **Runtime 目录** | `.claude/cx/runtime/cc/` | `.claude/cx/runtime/codex/` |
+| **Subagent 支持** | 有（Agent 工具 + `isolation: "worktree"`） | 无原生 subagent |
+| **Skill 触发** | `/cx:cx-prd`（slash command） | skill 名或自然语言路由 |
+| **Hooks** | 插件 `hooks/hooks.json` 自动注入 | 无 hooks，靠 skill 自约束 |
+| **Worktree 创建** | 可用 Agent isolation worktree 或手动 | 只能手动 `git worktree add` |
+
+### 6.2 Worktree 约束的双端写法
+
+**CC 侧 SKILL.md 写法（参考 Superpowers 模式）：**
+
+```markdown
+<HARD-GATE>
+禁止在主分支（main/master）上直接执行，除非用户显式传入 --inline。
+必须先创建或进入 feature worktree。
+</HARD-GATE>
+
+### Worktree 检测
+
+检查当前分支：
+!`git branch --show-current`
+
+如果是 main/master：
+- 使用 AskUserQuestion 让用户选择或创建 worktree
+- 列出已有 worktree：!`git worktree list`
+- 创建新 worktree：!`bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-worktree.sh --create --feature <slug>`
+```
+
+**CX (Codex) 侧 SKILL.md 写法：**
+
+```markdown
+## 强制规则
+
+**禁止在主分支（main/master）上直接执行，除非用户显式要求 inline 模式。**
+
+### Worktree 检测
+
+先检查当前分支：
+
+```bash
+git branch --show-current
+```
+
+如果是 main/master，**必须（MUST）** 用编号文字列表询问：
+
+```
+当前在主分支上，需要切换到 feature 工作区：
+
+1. 创建新 worktree（推荐）— git worktree add .worktrees/{slug} -b feature/{slug}
+2. 进入已有 worktree — [列出可用 worktree]
+3. 在当前分支直接开始（不推荐）
+
+请回复编号：
+```
+```
+
+### 6.3 交接场景的双端协调
+
+**CC 创建 PRD → CX 接手执行：**
+
+CC 侧（PRD 完成后 commit 到 feature 分支）：
+```bash
+# CC 在 worktree 中完成 PRD 后
+git add .claude/cx/功能/{title}/
+git commit -m "cx-prd: {title} [cc]"
+git push -u origin feature/{slug}
+```
+
+CX 侧（发现并接手）：
+```bash
+# CX 发现待执行的 feature 分支
+git branch -r --list 'origin/feature/*'
+# 创建 worktree 基于该分支
+git worktree add .worktrees/{slug} feature/{slug}
+# 在 worktree 中读取 PRD，继续 design/plan/exec
+```
+
+**CX 先做 PRD → CC 接手执行（反向交接）：**
+
+CX 侧完成 PRD 后 push 分支，CC 侧通过 `git worktree list` 或 `git branch -r` 发现分支，创建自己的 worktree 继续。
+
+**关键约束：同一个 feature 的分支只有一个，两端通过 push/pull 同步。**
+
+### 6.4 共享脚本的双端路径约定
+
+新增的 `cx-worktree.sh` 脚本两端都需要调用，路径约定：
+
+| 操作 | CC 写法 | CX 写法 |
+|------|--------|--------|
+| 创建 worktree | `bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-worktree.sh --create` | `bash ../cx-shared/scripts/cx-worktree.sh --create` |
+| 检测 worktree | `bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-worktree.sh --check` | `bash ../cx-shared/scripts/cx-worktree.sh --check` |
+| 列出 worktree | `bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-worktree.sh --list` | `bash ../cx-shared/scripts/cx-worktree.sh --list` |
+| 清理 worktree | `bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-worktree.sh --cleanup` | `bash ../cx-shared/scripts/cx-worktree.sh --cleanup` |
+
+### 6.5 统一约束清单（两端必须同时实现）
+
+以下约束 CC 和 CX 的 SKILL.md 都必须包含，只是语法不同：
+
+| 约束 | 说明 |
+|------|------|
+| **Worktree Hard Gate** | 非 main 分支才能执行 prd/design/plan/exec |
+| **分支命名规范** | `feature/{slug}`（CC）或 `codex/{slug}`（CX）或统一 `feature/{slug}` |
+| **Commit 纪律** | 每个阶段完成后必须 commit + push |
+| **禁止直接 Write 状态文件** | 所有状态写入必须通过 `cx-worktree.sh` / `cx-workflow-*.sh` 脚本 |
+| **Feature 发现** | 通过 `git branch --list 'feature/*'` + `git worktree list` 发现可接手的 feature |
+| **Lease 检测** | 执行前检查 feature 分支的 `core/features/{slug}.json` 是否有其他 runner 的活跃 lease |
+| **Summary 闭环** | 完成后提供 merge/PR/keep/discard 四选项 |
+
+### 6.6 参考：Superpowers 的跨平台兼容模式
+
+Superpowers 通过 `GEMINI.md` + `references/gemini-tools.md` 提供工具映射表，让同一套 skill 逻辑在不同 CLI 平台上运行。CX 可以参考这种模式：
+
+- 在 `references/` 中维护一份 **CC ↔ Codex 工具映射表**
+- Skill 正文用统一的伪代码描述逻辑
+- 具体的工具调用语法在映射表中查找
+
+## 7. 迁移策略
 
 ### 6.1 向后兼容
 
@@ -246,13 +374,13 @@ Codex 的 skill 需要同步添加 worktree 约束：
 4. `current_feature` 从写入逻辑中移除
 5. Dashboard 适配新数据源
 
-## 7. 成功指标
+## 8. 成功指标
 
 - CC 和 CX 可以同时各自推进不同 feature，零冲突
 - 单个 CC 窗口创建 PRD 不会覆盖其他窗口的 feature 上下文
 - Feature 交接通过 git 分支自然完成，无需手动 handoff 命令
 - `状态.json` 不再被 AI 模型直接 Write 覆盖
 
-## 8. 规模评估
+## 9. 规模评估
 
 **L（大）** — 涉及核心架构变更：7 个 skill、6+ 个 script、3 个 schema、dashboard service、codex adapter。建议分阶段实施。
