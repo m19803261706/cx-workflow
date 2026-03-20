@@ -82,6 +82,9 @@ test -f apps/dashboard-web/src/components/project-card.test.tsx
 test -f apps/dashboard-web/src/components/feature-summary.tsx
 test -f apps/dashboard-web/src/components/handoff-banner.tsx
 test -f apps/dashboard-web/src/pages/project-detail.test.tsx
+test -f docs/dashboard-smoke-test.md
+test -f tests/fixtures/dashboard-projects/summary-expectations.json
+test -f tests/fixtures/dashboard-projects/project-detail.json
 test -f scripts/cx-dashboard-bridge.sh
 test -f scripts/cx-dashboard-ensure.sh
 test -f scripts/cx-dashboard-open.sh

@@ -1,80 +1,20 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import path from "node:path";
+import { readFile } from "node:fs/promises";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { ProjectDetailPage } from "./project-detail.tsx";
+import type { ProjectDetail } from "../types.ts";
 
-test("ProjectDetailPage renders feature summary, handoff banner and read-only helper actions", () => {
+const fixturePath = path.resolve(process.cwd(), "../../tests/fixtures/dashboard-projects/project-detail.json");
+
+test("ProjectDetailPage renders feature summary, handoff banner and read-only helper actions", async () => {
+  const detail = JSON.parse(await readFile(fixturePath, "utf8")) as ProjectDetail;
   const html = renderToStaticMarkup(
     <ProjectDetailPage
-      detail={{
-        project: {
-          id: "taichu",
-          displayName: "太初八卦",
-          rootPath: "/Users/cx/Documents/code/java/taichubagua",
-          registrationSource: "manual",
-          syncStatus: "healthy",
-          currentFeatureSlug: "cx-global-web-dashboard",
-          currentFeatureTitle: "CX 全局 Web 管理面板",
-          lifecycleStage: "executing",
-          ownerRunner: "codex",
-          worktreePath: "/worktrees/cx-global-web-dashboard",
-          handoffPending: true,
-          progressCompleted: 4,
-          progressTotal: 7,
-          featureStatus: "executing"
-        },
-        feature: {
-          slug: "cx-global-web-dashboard",
-          title: "CX 全局 Web 管理面板",
-          workflowPhase: "exec",
-          nextRoute: "cx-exec",
-          ownerRunner: "codex",
-          ownerSessionId: "codex-exec-1",
-          worktreePath: "/worktrees/cx-global-web-dashboard",
-          bindingStatus: "bound",
-          handoffPending: true,
-          progress: {
-            completed: 4,
-            total: 7
-          },
-          docs: {
-            prd: ".claude/cx/功能/CX 全局 Web 管理面板/需求.md"
-          },
-          tasks: [
-            {
-              id: 1,
-              title: "任务 1",
-              status: "completed",
-              phase: 1,
-              parallel: false,
-              dependsOn: [],
-              parallelGroup: null
-            },
-            {
-              id: 2,
-              title: "任务 2",
-              status: "in_progress",
-              phase: 2,
-              parallel: true,
-              dependsOn: [1],
-              parallelGroup: "backend-core"
-            }
-          ]
-        },
-        activeSessions: [
-          {
-            sessionId: "codex-exec-1",
-            runner: "codex",
-            branch: "codex/cx-global-web-dashboard",
-            worktreePath: "/worktrees/cx-global-web-dashboard",
-            claimedFeature: "cx-global-web-dashboard",
-            claimedTasks: [2],
-            lastHeartbeat: "2026-03-20T09:00:00Z"
-          }
-        ]
-      }}
+      detail={detail}
       onBackHref="#/"
     />
   );

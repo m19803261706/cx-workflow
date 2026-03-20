@@ -100,6 +100,7 @@ GitHub 是同步镜像，不是运行时真相。
 - 架构文档：`docs/dashboard-architecture.md`
 - 用户级注册表 schema：`references/dashboard-registry-schema.json`
 - 用户级 runtime schema：`references/dashboard-runtime-schema.json`
+- smoke 文档：`docs/dashboard-smoke-test.md`
 
 建议目录结构：
 
@@ -121,6 +122,25 @@ scripts/
 
 - `cx-dashboard-ensure.sh` 负责顺位选择可用端口并写入 `~/.cx/dashboard/runtime.json`
 - `cx-dashboard-open.sh` 负责读取 runtime 清单并打开当前面板地址
+- `cx-dashboard-bridge.sh` 负责给 `cx:init / cx:prd` 复用首次提醒与自动注册逻辑
+
+推荐启动顺序：
+
+```text
+1. bash scripts/cx-dashboard-ensure.sh
+2. BACKEND_PORT=$(jq -r '.backend_port' ~/.cx/dashboard/runtime.json)
+3. FRONTEND_PORT=$(jq -r '.frontend_port' ~/.cx/dashboard/runtime.json)
+4. REGISTRY_PATH=$(jq -r '.registry_path' ~/.cx/dashboard/runtime.json)
+5. (cd apps/dashboard-service && CX_DASHBOARD_REGISTRY_PATH="$REGISTRY_PATH" CX_DASHBOARD_PORT="$BACKEND_PORT" npm start)
+6. (cd apps/dashboard-web && npm run dev -- --host 127.0.0.1 --port "$FRONTEND_PORT")
+```
+
+自动注册规则：
+
+- 第一次在 `cx:init / cx:prd` 进入项目时，bridge 会提醒用户存在全局面板
+- 用户接受后，bridge 会把 `prompt_state` 写成 `accepted`，同时启用 `auto_register=true`
+- 后续项目再次进入高频入口时，会默认自动注册，不再重复提醒
+- 用户如果暂不启用，也不会阻塞当前工作流
 
 用户级文件约定：
 
@@ -210,5 +230,6 @@ bash scripts/cx-core-migrate.sh
 - `references/project-status-schema.json`
 - `references/feature-status-schema.json`
 - `docs/dashboard-architecture.md`
+- `docs/dashboard-smoke-test.md`
 - `references/dashboard-registry-schema.json`
 - `references/dashboard-runtime-schema.json`

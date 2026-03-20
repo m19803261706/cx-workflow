@@ -6,6 +6,12 @@ import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
 
 import { buildServer } from "../server.ts";
 
+const fixtureRoot = path.resolve(process.cwd(), "../../tests/fixtures/dashboard-projects");
+
+async function readFixture<T>(name: string) {
+  return JSON.parse(await readFile(path.join(fixtureRoot, name), "utf8")) as T;
+}
+
 type SampleProjectOptions = {
   root: string;
   title: string;
@@ -263,6 +269,21 @@ async function createRegistry(registryPath: string, projectRoot: string, display
 }
 
 test("GET /api/dashboard/projects merges manual registry with auto-scanned shared core projects", async () => {
+  const expectations = await readFixture<{
+    manual: {
+      id: string;
+      registrationSource: string;
+      currentFeatureSlug: string;
+      progressCompleted: number;
+      progressTotal: number;
+    };
+    scanned: {
+      currentFeatureSlug: string;
+      registrationSource: string;
+      ownerRunner: string;
+      handoffPending: boolean;
+    };
+  }>("summary-expectations.json");
   const tempRoot = await mkdtemp(path.join(os.tmpdir(), "cx-dashboard-projects-"));
   const registryPath = path.join(tempRoot, "dashboard/registry.json");
   const manualProjectRoot = path.join(tempRoot, "workspace/manual-project");
@@ -297,18 +318,21 @@ test("GET /api/dashboard/projects merges manual registry with auto-scanned share
   const payload = response.json();
   assert.equal(payload.projects.length, 2);
 
-  const manualProject = payload.projects.find((item: { id: string }) => item.id === "manual-project");
+  const manualProject = payload.projects.find((item: { id: string }) => item.id === expectations.manual.id);
   assert.ok(manualProject);
-  assert.equal(manualProject.registrationSource, "manual");
-  assert.equal(manualProject.currentFeatureSlug, "manual-feature");
-  assert.equal(manualProject.progressCompleted, 2);
-  assert.equal(manualProject.progressTotal, 5);
+  assert.equal(manualProject.registrationSource, expectations.manual.registrationSource);
+  assert.equal(manualProject.currentFeatureSlug, expectations.manual.currentFeatureSlug);
+  assert.equal(manualProject.progressCompleted, expectations.manual.progressCompleted);
+  assert.equal(manualProject.progressTotal, expectations.manual.progressTotal);
 
-  const scannedProject = payload.projects.find((item: { currentFeatureSlug: string }) => item.currentFeatureSlug === "scanned-feature");
+  const scannedProject = payload.projects.find(
+    (item: { currentFeatureSlug: string }) =>
+      item.currentFeatureSlug === expectations.scanned.currentFeatureSlug
+  );
   assert.ok(scannedProject);
-  assert.equal(scannedProject.registrationSource, "auto_scan");
-  assert.equal(scannedProject.ownerRunner, "cc");
-  assert.equal(scannedProject.handoffPending, true);
+  assert.equal(scannedProject.registrationSource, expectations.scanned.registrationSource);
+  assert.equal(scannedProject.ownerRunner, expectations.scanned.ownerRunner);
+  assert.equal(scannedProject.handoffPending, expectations.scanned.handoffPending);
 
   await server.close();
 });

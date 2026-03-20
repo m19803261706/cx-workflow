@@ -188,8 +188,17 @@ adapter 只负责入口与交互载体，不能再各自重新解释 PRD、Plan 
 关键契约文件：
 
 - `docs/dashboard-architecture.md`
+- `docs/dashboard-smoke-test.md`
 - `references/dashboard-registry-schema.json`
 - `references/dashboard-runtime-schema.json`
+
+启动与感知规则：
+
+- 先运行 `bash scripts/cx-dashboard-ensure.sh`，让后端从 `43120+`、前端从 `43130+` 顺位选择可用端口
+- `cx:init / cx:prd` 统一调用 `bash scripts/cx-dashboard-bridge.sh`
+- 如果 `prompt_state=unknown`，只提醒一次全局面板能力
+- 如果用户接受，bridge 会把当前项目写入用户级注册表，并在后续项目中默认自动注册
+- 如果用户暂不启用，不阻塞当前流程
 
 ## Codex Adapter 安装
 
