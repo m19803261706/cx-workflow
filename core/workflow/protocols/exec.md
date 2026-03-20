@@ -21,16 +21,26 @@
   - 高风险或不可逆操作
   - 缺外部信息
 
+## 契约一致性校验
+
+- 每个 task 完成时 **MUST** 校验实现与 `契约.md` 的一致性
+- 后端：检查实际路由路径、请求/响应结构是否匹配契约
+- 前端：检查 API 调用路径、数据类型是否匹配契约
+- 不一致时：先更新契约再提交，不能静默忽略差异
+- 没有 `契约.md` 的单层任务跳过此步
+
 ## 完成判定
 
 - 当前 wave 或全部可执行任务已完成
 - 相关验证已通过
+- 契约一致性校验已通过（跨层时）
 - 共享状态已更新
 - 提交信息已带 `[cx:<slug>] [task:<n>]`
 
 ## 落盘文件
 
 - feature 级 `状态.json`
+- `契约.md`（如有更新）
 - shared core feature / project / session records
 - runner-specific runtime artifacts
 - exec dispatch 决策输出
