@@ -14,6 +14,13 @@ export function buildServer(options: DashboardServerOptions) {
     logger: false
   });
 
+  server.addHook("onSend", async (_request, reply, payload) => {
+    reply.header("Access-Control-Allow-Origin", "*");
+    reply.header("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+    reply.header("Access-Control-Allow-Headers", "Content-Type");
+    return payload;
+  });
+
   server.get("/api/dashboard/health", async () => {
     const runtime = await loadDashboardRuntime(
       options.runtimePath ?? inferRuntimePathFromRegistryPath(options.registryPath),

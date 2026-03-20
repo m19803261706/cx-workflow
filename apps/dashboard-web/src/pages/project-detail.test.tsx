@@ -20,12 +20,16 @@ test("ProjectDetailPage renders feature summary, handoff banner and read-only he
   );
 
   assert.match(html, /CX 全局 Web 管理面板/);
+  assert.match(html, /全局项目指挥台/);
   assert.match(html, /codex-exec-1/);
   assert.match(html, /\/worktrees\/cx-global-web-dashboard/);
-  assert.match(html, /handoff pending/i);
+  assert.match(html, /待处理交接/);
+  assert.match(html, /只读观察模式/);
   assert.match(html, /打开项目目录/);
   assert.match(html, /复制建议命令/);
   assert.match(html, /手动刷新/);
+  assert.match(html, /运行中的执行会话/);
+  assert.match(html, /工作流文档/);
   assert.match(html, /任务 1/);
   assert.match(html, /任务 2/);
 });

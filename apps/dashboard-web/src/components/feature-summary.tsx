@@ -1,88 +1,103 @@
 import React from "react";
+import { Blocks, Cpu, Route, Workflow, Wrench } from "lucide-react";
 
+import {
+  formatBindingStatus,
+  formatOwnerRunner,
+  formatTaskStatus,
+  formatWorkflowPhase
+} from "../labels.ts";
+import { GlowPanel } from "./ui/glow-panel.tsx";
+import { ProgressMeter } from "./ui/progress-meter.tsx";
+import { StatusPill } from "./ui/status-pill.tsx";
 import type { ProjectDetail } from "../types.ts";
 
 type FeatureSummaryProps = {
   detail: ProjectDetail;
 };
 
-const cardStyle: React.CSSProperties = {
-  borderRadius: 22,
-  backgroundColor: "rgba(255, 251, 246, 0.92)",
-  border: "1px solid rgba(146, 102, 64, 0.16)",
-  boxShadow: "0 16px 36px rgba(78, 44, 20, 0.08)",
-  padding: 22,
-  display: "grid",
-  gap: 16
-};
-
 export function FeatureSummary({ detail }: FeatureSummaryProps) {
   if (!detail.feature) {
     return (
-      <section style={cardStyle}>
-        <h2 style={{ margin: 0, fontSize: 24 }}>当前没有活跃 feature</h2>
-      </section>
+      <GlowPanel tone="blue" className="space-y-4">
+        <h2 className="text-2xl font-semibold text-white">当前没有活跃功能</h2>
+        <div className="max-w-3xl text-sm leading-7 text-slate-300">
+          这个项目已经接入全局面板，但当前没有正在推进的 feature。你可以回到 CC 或 Codex 中继续发起
+          `cx-prd`、`cx-fix` 或查看历史总结。
+        </div>
+      </GlowPanel>
     );
   }
 
   const { feature } = detail;
 
   return (
-    <section style={cardStyle}>
-      <div style={{ display: "grid", gap: 6 }}>
-        <div style={{ fontSize: 14, color: "#8c5e34", letterSpacing: "0.08em" }}>
-          feature summary
+    <GlowPanel tone="blue" className="space-y-6">
+      <div className="space-y-3">
+        <div className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200/80">
+          工作流摘要
         </div>
-        <h2 style={{ margin: 0, fontSize: 28 }}>{feature.title}</h2>
-        <div style={{ color: "#6b4d38" }}>{feature.slug}</div>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14 }}>
-        <div>
-          <div style={{ fontSize: 13, color: "#8c5e34" }}>owner</div>
-          <div>{feature.ownerRunner}</div>
-          <div style={{ fontSize: 13, color: "#6b4d38" }}>{feature.ownerSessionId ?? "—"}</div>
-        </div>
-        <div>
-          <div style={{ fontSize: 13, color: "#8c5e34" }}>phase</div>
-          <div>{feature.workflowPhase ?? "—"}</div>
-        </div>
-        <div>
-          <div style={{ fontSize: 13, color: "#8c5e34" }}>progress</div>
-          <div>
-            {feature.progress.completed} / {feature.progress.total}
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+          <div className="space-y-2">
+            <h2 className="text-3xl font-semibold text-white">{feature.title}</h2>
+            <div className="terminal-code text-sm text-slate-400">{feature.slug}</div>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-300">
+            下一步建议：{feature.nextRoute ?? "保持观察"}
           </div>
         </div>
-        <div>
-          <div style={{ fontSize: 13, color: "#8c5e34" }}>worktree</div>
-          <div style={{ wordBreak: "break-all" }}>{feature.worktreePath ?? "未绑定"}</div>
-          <div style={{ fontSize: 13, color: "#6b4d38" }}>{feature.bindingStatus ?? "—"}</div>
-        </div>
       </div>
 
-      <div style={{ display: "grid", gap: 8 }}>
-        <div style={{ fontSize: 14, color: "#8c5e34" }}>tasks</div>
+      <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-4">
+        <StatusPill
+          label="当前执行权"
+          value={formatOwnerRunner(feature.ownerRunner)}
+          hint={feature.ownerSessionId ?? "暂时没有会话持有执行权。"}
+          icon={<Cpu className="h-4 w-4 text-cyan-200" />}
+          tone="cyan"
+        />
+        <StatusPill
+          label="工作流阶段"
+          value={formatWorkflowPhase(feature.workflowPhase)}
+          hint={feature.workflowPhase ?? "尚未进入标准 workflow phase。"}
+          icon={<Route className="h-4 w-4 text-blue-200" />}
+          tone="blue"
+        />
+        <StatusPill
+          label="工作区绑定"
+          value={formatBindingStatus(feature.bindingStatus)}
+          hint={feature.worktreePath ?? "当前没有 worktree 绑定。"}
+          icon={<Wrench className="h-4 w-4 text-amber-200" />}
+          tone="amber"
+        />
+        <StatusPill
+          label="任务矩阵"
+          value={`${feature.tasks.length} 个任务`}
+          hint={`已完成 ${feature.progress.completed} / 总计 ${feature.progress.total}`}
+          icon={<Blocks className="h-4 w-4 text-emerald-200" />}
+          tone="emerald"
+        />
+      </div>
+
+      <ProgressMeter value={feature.progress.completed} total={feature.progress.total} />
+
+      <div className="space-y-4">
+        <div className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">任务矩阵</div>
         {feature.tasks.map((task) => (
           <div
             key={task.id}
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              gap: 12,
-              borderTop: "1px solid rgba(146, 102, 64, 0.12)",
-              paddingTop: 10
-            }}
+            className="grid gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-4 sm:grid-cols-[minmax(0,1fr)_auto]"
           >
-            <div>
-              <div>{task.title}</div>
-              <div style={{ fontSize: 13, color: "#6b4d38" }}>
-                phase {task.phase ?? "—"}{task.parallelGroup ? ` · ${task.parallelGroup}` : ""}
+            <div className="space-y-1">
+              <div className="font-medium text-white">{task.title}</div>
+              <div className="text-sm text-slate-400">
+                Phase {task.phase ?? "—"}{task.parallelGroup ? ` · ${task.parallelGroup}` : ""}
               </div>
             </div>
-            <div style={{ fontWeight: 600 }}>{task.status}</div>
+            <div className="text-sm font-semibold text-cyan-100">{formatTaskStatus(task.status)}</div>
           </div>
         ))}
       </div>
-    </section>
+    </GlowPanel>
   );
 }

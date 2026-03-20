@@ -1,5 +1,7 @@
 import React from "react";
+import { AnimatePresence, motion } from "motion/react";
 
+import { DashboardShell } from "./components/ui/dashboard-shell.tsx";
 import { ProjectDetailPage } from "./pages/project-detail.tsx";
 import { ProjectsPage } from "./pages/projects.tsx";
 import type { ProjectDetail } from "./types.ts";
@@ -67,22 +69,43 @@ export default function App() {
     };
   }, [selectedProjectId]);
 
+  const routeKey = selectedProjectId ? `project-${selectedProjectId}` : "projects";
+
+  let content: React.ReactNode;
+
   if (selectedProjectId) {
     if (projectDetail) {
-      return <ProjectDetailPage detail={projectDetail} onBackHref="#/" />;
+      content = <ProjectDetailPage detail={projectDetail} onBackHref="#/" />;
+    } else {
+      content = (
+        <DashboardShell
+          eyebrow="全局项目指挥台"
+          title="项目详情载入中"
+          description={projectDetailError ?? "正在向本地 dashboard service 获取项目状态，请稍候。"}
+          backHref="#/"
+          backLabel="返回项目列表"
+        >
+          <div className="panel-border panel-surface rounded-[28px] px-6 py-8 text-sm text-slate-300">
+            {projectDetailError ?? "正在同步项目详情..."}
+          </div>
+        </DashboardShell>
+      );
     }
-
-    return (
-      <div style={{ padding: 32, fontFamily: "\"PingFang SC\", sans-serif" }}>
-        <a href="#/" style={{ color: "#8c5e34", textDecoration: "none" }}>
-          ← 返回项目列表
-        </a>
-        <div style={{ marginTop: 16, color: "#7c3f1d" }}>
-          {projectDetailError ?? "正在加载项目详情..."}
-        </div>
-      </div>
-    );
+  } else {
+    content = <ProjectsPage />;
   }
 
-  return <ProjectsPage />;
+  return (
+    <AnimatePresence initial={false} mode="wait">
+      <motion.div
+        key={routeKey}
+        initial={{ opacity: 0, y: 18, filter: "blur(10px)" }}
+        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        exit={{ opacity: 0, y: -12, filter: "blur(10px)" }}
+        transition={{ duration: 0.28, ease: "easeOut" }}
+      >
+        {content}
+      </motion.div>
+    </AnimatePresence>
+  );
 }
