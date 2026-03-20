@@ -145,6 +145,89 @@ copy_task_docs() {
   shopt -u nullglob
 }
 
+resolve_feature_status_file() {
+  local source_dir="$1"
+
+  if [[ -f "$source_dir/状态.json" ]]; then
+    printf '%s\n' "$source_dir/状态.json"
+    return 0
+  fi
+
+  if [[ -f "$source_dir/status.json" ]]; then
+    printf '%s\n' "$source_dir/status.json"
+    return 0
+  fi
+
+  return 1
+}
+
+discover_feature_source() {
+  local cx_root="$1"
+  local raw_slug="$2"
+  local developer_id="$3"
+  local dir="" status_file="" prd_file="" candidate_slug="" candidate_title="" candidate_status="" candidate_path="" base_slug="" prd_slug=""
+
+  shopt -s nullglob
+
+  for dir in "$cx_root/功能"/*; do
+    [[ -d "$dir" ]] || continue
+    status_file=$(resolve_feature_status_file "$dir" || true)
+    [[ -n "$status_file" ]] || continue
+
+    candidate_slug=$(jq -r '.slug // empty' "$status_file" 2>/dev/null || true)
+    candidate_title=$(jq -r '.feature // .title // empty' "$status_file" 2>/dev/null || true)
+    candidate_status=$(jq -r '.status // empty' "$status_file" 2>/dev/null || true)
+
+    if [[ -n "$candidate_slug" && ( "$raw_slug" == "$candidate_slug" || "$raw_slug" == "$(normalize_slug "$candidate_slug" "$developer_id")" ) ]]; then
+      [[ -n "$candidate_title" ]] || candidate_title=$(basename "$dir")
+      candidate_path="功能/$(basename "$dir")"
+      printf '%s\t%s\t%s\t%s\n' "$dir" "$candidate_title" "$candidate_path" "$candidate_status"
+      shopt -u nullglob
+      return 0
+    fi
+  done
+
+  for dir in "$cx_root/features"/*; do
+    [[ -d "$dir" ]] || continue
+
+    base_slug=$(basename "$dir")
+    status_file=$(resolve_feature_status_file "$dir" || true)
+    prd_file="$dir/prd.json"
+    candidate_slug=""
+    candidate_title=""
+    candidate_status=""
+    prd_slug=""
+
+    if [[ -n "$status_file" ]]; then
+      candidate_slug=$(jq -r '.slug // empty' "$status_file" 2>/dev/null || true)
+      candidate_title=$(jq -r '.feature // .title // empty' "$status_file" 2>/dev/null || true)
+      candidate_status=$(jq -r '.status // empty' "$status_file" 2>/dev/null || true)
+    fi
+
+    if [[ -f "$prd_file" ]]; then
+      [[ -n "$candidate_title" ]] || candidate_title=$(jq -r '.feature_name // .title // empty' "$prd_file" 2>/dev/null || true)
+      prd_slug=$(jq -r '.slug // empty' "$prd_file" 2>/dev/null || true)
+      [[ -n "$candidate_slug" ]] || candidate_slug="$prd_slug"
+    fi
+
+    if [[ "$raw_slug" == "$base_slug" || \
+          "$raw_slug" == "$(normalize_slug "$base_slug" "$developer_id")" || \
+          ( -n "$candidate_slug" && "$raw_slug" == "$candidate_slug" ) || \
+          ( -n "$candidate_slug" && "$raw_slug" == "$(normalize_slug "$candidate_slug" "$developer_id")" ) || \
+          ( -n "$prd_slug" && "$raw_slug" == "$prd_slug" ) || \
+          ( -n "$prd_slug" && "$raw_slug" == "$(normalize_slug "$prd_slug" "$developer_id")" ) ]]; then
+      [[ -n "$candidate_title" ]] || candidate_title="$base_slug"
+      candidate_path="features/$base_slug"
+      printf '%s\t%s\t%s\t%s\n' "$dir" "$candidate_title" "$candidate_path" "$candidate_status"
+      shopt -u nullglob
+      return 0
+    fi
+  done
+
+  shopt -u nullglob
+  return 1
+}
+
 build_tasks_json() {
   local status_file="$1"
   local feature_title="$2"
@@ -311,31 +394,53 @@ main() {
     local target_slug source_dir status_file feature_stage prd_doc design_doc adr_doc summary_doc tasks_json docs_json feature_file worktree_file
     local worktree_path worktree_branch
     local public_feature_dir public_task_dir public_feature_status_file
+    local fallback_source_dir fallback_title fallback_path fallback_status fallback_info
 
     [[ -n "$raw_slug" ]] || continue
     target_slug=$(normalize_slug "$raw_slug" "$developer_id")
+
+    source_dir=""
+    status_file=""
+
+    if [[ -n "$feature_path" && "$feature_path" != "null" ]]; then
+      source_dir="$cx_dir/$feature_path"
+      status_file=$(resolve_feature_status_file "$source_dir" || true)
+    fi
+
+    if [[ -z "$feature_title" || "$feature_title" == "null" || -z "$feature_path" || "$feature_path" == "null" || -z "$status_file" ]]; then
+      fallback_info=$(discover_feature_source "$cx_dir" "$raw_slug" "$developer_id" || true)
+      if [[ -n "$fallback_info" ]]; then
+        IFS=$'\t' read -r fallback_source_dir fallback_title fallback_path fallback_status <<< "$fallback_info"
+        [[ -n "$feature_title" && "$feature_title" != "null" ]] || feature_title="$fallback_title"
+        if [[ -z "$feature_path" || "$feature_path" == "null" || -z "$status_file" ]]; then
+          feature_path="$fallback_path"
+          source_dir="$fallback_source_dir"
+          status_file=$(resolve_feature_status_file "$source_dir" || true)
+        fi
+        [[ -n "$feature_status" && "$feature_status" != "null" ]] || feature_status="$fallback_status"
+      fi
+    fi
+
     if [[ -z "$feature_path" || "$feature_path" == "null" ]]; then
-      if [[ "$legacy_mode" == "zh" ]]; then
+      if [[ "$legacy_mode" == "zh" && -n "$feature_title" && "$feature_title" != "null" ]]; then
         feature_path="$default_feature_path_prefix/$feature_title"
       else
         feature_path="$default_feature_path_prefix/$raw_slug"
       fi
+      source_dir="$cx_dir/$feature_path"
+      status_file=$(resolve_feature_status_file "$source_dir" || true)
     fi
 
-    source_dir="$cx_dir/$feature_path"
-    public_feature_dir="$public_feature_root/$feature_title"
-    public_task_dir="$public_feature_dir/任务"
-    public_feature_status_file="$public_feature_dir/状态.json"
-    status_file="$source_dir/状态.json"
-    if [[ ! -f "$status_file" ]]; then
-      status_file="$source_dir/status.json"
-    fi
-    [[ -f "$status_file" ]] || die "feature status file missing for $raw_slug at $source_dir"
+    [[ -n "$status_file" && -f "$status_file" ]] || die "feature status file missing for $raw_slug at $source_dir"
 
     if [[ -z "$feature_title" || "$feature_title" == "null" ]]; then
       feature_title=$(jq -r '.feature // .title // empty' "$status_file" 2>/dev/null)
     fi
     [[ -n "$feature_title" ]] || feature_title="$target_slug"
+
+    public_feature_dir="$public_feature_root/$feature_title"
+    public_task_dir="$public_feature_dir/任务"
+    public_feature_status_file="$public_feature_dir/状态.json"
 
     feature_status=$(jq -r '.status // "drafting"' "$status_file" 2>/dev/null)
     feature_stage=$(map_feature_stage "$feature_status")
@@ -494,17 +599,80 @@ main() {
       ' "$core_project_dir/project.json" > "$core_project_dir/project.tmp"
     mv "$core_project_dir/project.tmp" "$core_project_dir/project.json"
   done < <(
-    jq -r '
-      (.features // {})
-      | to_entries[]
-      | [
-          .key,
-          (.value.title // ""),
-          (.value.path // ""),
-          (.value.status // "")
-        ]
-      | @tsv
-    ' "$source_project_status_file"
+    {
+      jq -r '
+        (.features // {})
+        | if type == "object" then to_entries[] else empty end
+        | [
+            .key,
+            (.value.title // ""),
+            (.value.path // ""),
+            (.value.status // "")
+          ]
+        | @tsv
+      ' "$source_project_status_file"
+
+      if [[ -d "$cx_dir/features" ]]; then
+        shopt -s nullglob
+        for discovered_dir in "$cx_dir/features"/*; do
+          [[ -d "$discovered_dir" ]] || continue
+          discovered_base=$(basename "$discovered_dir")
+          discovered_status=$(resolve_feature_status_file "$discovered_dir" || true)
+          discovered_title=""
+          if [[ -n "$discovered_status" ]]; then
+            discovered_title=$(jq -r '.feature // .title // empty' "$discovered_status" 2>/dev/null || true)
+          fi
+          if [[ -z "$discovered_title" && -f "$discovered_dir/prd.json" ]]; then
+            discovered_title=$(jq -r '.feature_name // .title // empty' "$discovered_dir/prd.json" 2>/dev/null || true)
+          fi
+          printf '%s\t%s\t%s\t%s\n' "$discovered_base" "$discovered_title" "features/$discovered_base" "$(if [[ -n "$discovered_status" ]]; then jq -r '.status // ""' "$discovered_status" 2>/dev/null; fi)"
+        done
+        shopt -u nullglob
+      fi
+
+      if [[ -d "$public_feature_root" ]]; then
+        shopt -s nullglob
+        for discovered_dir in "$public_feature_root"/*; do
+          [[ -d "$discovered_dir" ]] || continue
+          discovered_status=$(resolve_feature_status_file "$discovered_dir" || true)
+          [[ -n "$discovered_status" ]] || continue
+          discovered_slug=$(jq -r '.slug // empty' "$discovered_status" 2>/dev/null || true)
+          [[ -n "$discovered_slug" ]] || continue
+          discovered_title=$(jq -r '.feature // .title // empty' "$discovered_status" 2>/dev/null || true)
+          [[ -n "$discovered_title" ]] || discovered_title=$(basename "$discovered_dir")
+          printf '%s\t%s\t%s\t%s\n' "$discovered_slug" "$discovered_title" "功能/$(basename "$discovered_dir")" "$(jq -r '.status // ""' "$discovered_status" 2>/dev/null)"
+        done
+        shopt -u nullglob
+      fi
+    } | awk -F '\t' '
+      {
+        key = $1
+        if (key == "") {
+          next
+        }
+
+        if (!(key in order_seen)) {
+          order[++count] = key
+          order_seen[key] = 1
+        }
+
+        if ($2 != "" && titles[key] == "") {
+          titles[key] = $2
+        }
+        if ($3 != "" && paths[key] == "") {
+          paths[key] = $3
+        }
+        if ($4 != "" && statuses[key] == "") {
+          statuses[key] = $4
+        }
+      }
+      END {
+        for (row_index = 1; row_index <= count; row_index++) {
+          key = order[row_index]
+          printf "%s\t%s\t%s\t%s\n", key, titles[key], paths[key], statuses[key]
+        }
+      }
+    '
   )
 
   if [[ -f "$cx_dir/最近失败.json" ]]; then

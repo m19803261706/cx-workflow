@@ -1192,6 +1192,104 @@ test -f "$LEGACY_EN_TMP_DIR/.claude/cx/功能/向量记忆/任务/任务-1.md"
 rm -rf "$LEGACY_EN_TMP_DIR"
 rg 'cx-core-migrate.sh|先迁移' README.md references/workflow-guide.md skills/cx-init/SKILL.md
 
+echo "[check] migration helper rebuilds feature index from legacy features when public status is sparse"
+SPARSE_MIGRATION_TMP_DIR=$(mktemp -d)
+mkdir -p "$SPARSE_MIGRATION_TMP_DIR/.claude/cx/features/chengxuan-vector-memory/tasks"
+cat > "$SPARSE_MIGRATION_TMP_DIR/.claude/cx/配置.json" <<'EOF'
+{
+  "version": "3.0",
+  "developer_id": "chengxuan",
+  "github_sync": "local",
+  "current_feature": "vector-memory",
+  "agent_teams": true,
+  "code_review": true,
+  "auto_memory": true,
+  "worktree_isolation": true,
+  "auto_format": {
+    "enabled": true,
+    "formatter": "auto"
+  },
+  "hooks": {
+    "session_start": true,
+    "pre_compact": true,
+    "post_edit_format": true,
+    "notification": true
+  }
+}
+EOF
+cat > "$SPARSE_MIGRATION_TMP_DIR/.claude/cx/状态.json" <<'EOF'
+{
+  "initialized_at": "2026-03-10T10:00:00Z",
+  "last_updated": "2026-03-10T10:00:00Z",
+  "current_feature": "vector-memory",
+  "features": {
+    "vector-memory": {
+      "status": "executing"
+    }
+  },
+  "fixes": {}
+}
+EOF
+cat > "$SPARSE_MIGRATION_TMP_DIR/.claude/cx/features/chengxuan-vector-memory/prd.json" <<'EOF'
+{
+  "feature_name": "向量记忆检索功能",
+  "slug": "vector-memory",
+  "created_at": "2026-03-10T10:00:00Z",
+  "scale": "M"
+}
+EOF
+cat > "$SPARSE_MIGRATION_TMP_DIR/.claude/cx/features/chengxuan-vector-memory/prd.md" <<'EOF'
+# PRD
+EOF
+cat > "$SPARSE_MIGRATION_TMP_DIR/.claude/cx/features/chengxuan-vector-memory/design.md" <<'EOF'
+# Design
+EOF
+cat > "$SPARSE_MIGRATION_TMP_DIR/.claude/cx/features/chengxuan-vector-memory/summary.md" <<'EOF'
+# Summary
+EOF
+cat > "$SPARSE_MIGRATION_TMP_DIR/.claude/cx/features/chengxuan-vector-memory/status.json" <<'EOF'
+{
+  "feature": "向量记忆检索功能",
+  "slug": "chengxuan-vector-memory",
+  "created_at": "2026-03-10T10:00:00Z",
+  "last_updated": "2026-03-10T10:00:00Z",
+  "status": "executing",
+  "total": 1,
+  "completed": 0,
+  "in_progress": 1,
+  "phases": [
+    {
+      "number": 1,
+      "name": "基础阶段",
+      "status": "in_progress",
+      "tasks": [1]
+    }
+  ],
+  "tasks": [
+    {
+      "number": 1,
+      "title": "兼容旧索引迁移",
+      "phase": 1,
+      "parallel": false,
+      "depends_on": [],
+      "status": "in_progress"
+    }
+  ],
+  "execution_order": [1]
+}
+EOF
+cat > "$SPARSE_MIGRATION_TMP_DIR/.claude/cx/features/chengxuan-vector-memory/tasks/task-1.md" <<'EOF'
+# Task 1
+EOF
+CX_CORE_NOW=2026-03-20T10:20:00Z PROJECT_ROOT="$SPARSE_MIGRATION_TMP_DIR" bash scripts/cx-core-migrate.sh
+jq -e '.current_feature == "vector-memory"' "$SPARSE_MIGRATION_TMP_DIR/.claude/cx/状态.json" >/dev/null
+jq -e '.features["vector-memory"].title == "向量记忆检索功能"' "$SPARSE_MIGRATION_TMP_DIR/.claude/cx/状态.json" >/dev/null
+jq -e '.features["vector-memory"].path == "功能/向量记忆检索功能"' "$SPARSE_MIGRATION_TMP_DIR/.claude/cx/状态.json" >/dev/null
+jq -e '.features["vector-memory"].slug == "vector-memory"' "$SPARSE_MIGRATION_TMP_DIR/.claude/cx/core/projects/project.json" >/dev/null
+test -f "$SPARSE_MIGRATION_TMP_DIR/.claude/cx/功能/向量记忆检索功能/状态.json"
+test -f "$SPARSE_MIGRATION_TMP_DIR/.claude/cx/功能/向量记忆检索功能/需求.md"
+rm -rf "$SPARSE_MIGRATION_TMP_DIR"
+
 echo "[check] public docs and metadata present pure cx 3.1"
 rg '"name": "cx"' .claude-plugin/plugin.json .claude-plugin/marketplace.json
 rg '"version": "3.1.0"' .claude-plugin/plugin.json .claude-plugin/marketplace.json
