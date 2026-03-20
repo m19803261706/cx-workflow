@@ -49,7 +49,7 @@ GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 如果检测到已有旧版 `.claude/cx` 但还没有共享 `core/`：
 
 - 不要直接进入双运行器模式
-- 先建议运行 `bash scripts/cx-core-migrate.sh`
+- 先建议运行 `bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-core-migrate.sh`
 - 迁移完成后，再继续 `/cx:cx-init` 或后续命令
 
 ### Step 2: 一次性收集关键项目配置
@@ -142,8 +142,8 @@ GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
-bash scripts/cx-dashboard-ensure.sh
-bridge_output=$(bash scripts/cx-dashboard-bridge.sh \
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-dashboard-ensure.sh
+bridge_output=$(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-dashboard-bridge.sh \
   --project-root "$PROJECT_ROOT" \
   --display-name "$(basename "$PROJECT_ROOT")")
 ```

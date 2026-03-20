@@ -136,7 +136,7 @@ EnterWorktree(name: "{feature-slug}")
 在 claim 之前做最终校验，确保 runner 当前 checkout 与 feature 绑定一致：
 
 ```bash
-bash scripts/cx-core-worktree.sh \
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-core-worktree.sh \
   --feature {feature-slug} \
   --runner {runner} \
   --session-id {session-id} \
@@ -153,7 +153,7 @@ bash scripts/cx-core-worktree.sh \
 先调用共享调度 helper，而不是自己凭感觉决定“做到哪停”：
 
 ```bash
-bash scripts/cx-workflow-exec-dispatch.sh \
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-workflow-exec-dispatch.sh \
   --feature {feature-slug} \
   --runner cc \
   --session-id {session-id} \
@@ -197,7 +197,7 @@ dispatch helper 会返回统一决策：
 
 一个 task 完成并更新共享状态后：
 
-1. 重新运行 `scripts/cx-workflow-exec-dispatch.sh`
+1. 重新运行 `${CLAUDE_PLUGIN_ROOT}/scripts/cx-workflow-exec-dispatch.sh`
 2. 如果返回 `continue`，直接接着做下一个 task
 3. 如果返回 `ask_parallel`，可以问用户一次是否切到 `--all`
 4. 如果返回 `parallel`，进入团队模式

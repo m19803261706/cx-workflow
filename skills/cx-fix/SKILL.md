@@ -36,7 +36,7 @@ disable-model-invocation: true
 优先调用共享 runner：
 
 ```bash
-bash scripts/cx-workflow-fix.sh \
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-workflow-fix.sh \
   --title "<问题标题>" \
   --runner cc \
   --session-id <session-id>

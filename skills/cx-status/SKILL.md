@@ -19,7 +19,7 @@ description: >
 优先调用共享 runner：
 
 ```bash
-bash scripts/cx-workflow-status.sh \
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-workflow-status.sh \
   --runner cc
 ```
 

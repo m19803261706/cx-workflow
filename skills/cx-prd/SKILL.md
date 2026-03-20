@@ -56,7 +56,7 @@ disable-model-invocation: true
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
-bash scripts/cx-workflow-prd.sh \
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-workflow-prd.sh \
   --project-root "$PROJECT_ROOT" \
   --title "{功能标题}" \
   --slug "{feature-slug}" \
@@ -80,8 +80,8 @@ bash scripts/cx-workflow-prd.sh \
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
-bash scripts/cx-dashboard-ensure.sh
-bridge_output=$(bash scripts/cx-dashboard-bridge.sh \
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-dashboard-ensure.sh
+bridge_output=$(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-dashboard-bridge.sh \
   --project-root “$PROJECT_ROOT” \
   --display-name “$(basename “$PROJECT_ROOT”)”)
 ```

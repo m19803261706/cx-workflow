@@ -74,7 +74,7 @@ description: >
 优先调用共享 runner：
 
 ```bash
-bash scripts/cx-workflow-summary.sh \
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-workflow-summary.sh \
   --feature <feature-slug> \
   --runner cc \
   --session-id <session-id>

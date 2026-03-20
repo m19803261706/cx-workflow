@@ -78,7 +78,7 @@ DESIGN_FILE="$FEATURE_DIR/设计.md"
 优先调用共享 runner：
 
 ```bash
-bash scripts/cx-workflow-design.sh \
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-workflow-design.sh \
   --feature <feature-slug> \
   --runner cc \
   --session-id <session-id>
