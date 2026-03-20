@@ -2,6 +2,7 @@ import React from "react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { DashboardShell } from "./components/ui/dashboard-shell.tsx";
+import { usePolling } from "./hooks/use-polling.ts";
 import { ProjectDetailPage } from "./pages/project-detail.tsx";
 import { ProjectsPage } from "./pages/projects.tsx";
 import type { ProjectDetail } from "./types.ts";
@@ -12,8 +13,6 @@ function getProjectIdFromHash(hash: string) {
 }
 
 export default function App() {
-  const [projectDetail, setProjectDetail] = React.useState<ProjectDetail | null>(null);
-  const [projectDetailError, setProjectDetailError] = React.useState<string | null>(null);
   const [selectedProjectId, setSelectedProjectId] = React.useState(() =>
     getProjectIdFromHash(window.location.hash)
   );
@@ -29,45 +28,20 @@ export default function App() {
     };
   }, []);
 
-  React.useEffect(() => {
-    if (!selectedProjectId) {
-      setProjectDetail(null);
-      setProjectDetailError(null);
-      return;
-    }
+  const apiBaseUrl =
+    import.meta.env.VITE_CX_DASHBOARD_API_BASE_URL ?? "http://127.0.0.1:43120/api/dashboard";
 
-    const controller = new AbortController();
-    const apiBaseUrl =
-      import.meta.env.VITE_CX_DASHBOARD_API_BASE_URL ?? "http://127.0.0.1:43120/api/dashboard";
+  const fetchDetail = React.useCallback(
+    async (signal: AbortSignal) => {
+      if (!selectedProjectId) return null;
+      const response = await fetch(`${apiBaseUrl}/projects/${selectedProjectId}`, { signal });
+      if (!response.ok) throw new Error("项目详情暂时不可用");
+      return (await response.json()) as ProjectDetail;
+    },
+    [selectedProjectId, apiBaseUrl]
+  );
 
-    async function loadDetail() {
-      try {
-        const response = await fetch(`${apiBaseUrl}/projects/${selectedProjectId}`, {
-          signal: controller.signal
-        });
-
-        if (!response.ok) {
-          throw new Error("项目详情暂时不可用");
-        }
-
-        const detail = (await response.json()) as ProjectDetail;
-        setProjectDetail(detail);
-        setProjectDetailError(null);
-      } catch (error) {
-        if (controller.signal.aborted) {
-          return;
-        }
-
-        setProjectDetail(null);
-        setProjectDetailError(error instanceof Error ? error.message : "未知错误");
-      }
-    }
-
-    void loadDetail();
-    return () => {
-      controller.abort();
-    };
-  }, [selectedProjectId]);
+  const { data: projectDetail, error: projectDetailError } = usePolling(fetchDetail);
 
   const routeKey = selectedProjectId ? `project-${selectedProjectId}` : "projects";
 
