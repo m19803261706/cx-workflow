@@ -14,23 +14,44 @@ description: "Codex 侧 CX 任务执行。先做 worktree 检查，再 claim lea
 
 然后严格遵守这个顺序：
 
-0. **工作区选择（feature 首次执行时）**
+0. **Worktree 检测（强制）**
 
-如果 feature 的 `状态.json` 中 `worktree.binding_status` 不是 `bound`，
-Codex 没有 `AskUserQuestion` 工具，**必须（MUST）用编号文字列表 + 等待用户回复**：
+执行前先调用 worktree 检测：
 
-```
-功能「{feature_title}」即将开始执行，选择工作区模式：
-
-1. 独立工作区（推荐）— 创建 feature 分支隔离开发，完成后合并
-2. 当前分支直接开始 — 在当前分支上直接开发
-
-请回复 1 或 2：
+```bash
+check_output=$(bash ../cx-shared/scripts/cx-worktree.sh check \
+  --feature "{feature-slug}" \
+  --project-root "$(git rev-parse --show-toplevel)" 2>&1) || true
 ```
 
-- 用户选 1：创建 feature 分支 `git checkout -b codex/{feature-slug}`，记录 `isolation_mode: "worktree"`
-- 用户选 2：记录 `isolation_mode: "inline"`
-- 已绑定时不再重复询问
+<HARD-GATE>
+如果返回 `on_main=true`，禁止在主分支上执行。必须先进入 feature worktree。
+</HARD-GATE>
+
+如果在主分支上，**必须（MUST）用编号文字列表 + 等待用户回复**：
+
+```
+当前在主分支上，无法直接执行任务。请选择：
+
+1. 运行 /cx:cx-prd 创建新功能的 worktree
+2. 手动进入已有 worktree
+
+请回复编号：
+```
+
+如果 `in_worktree=false` 且不在 main 上（可能在非 feature 分支），列出可用 worktree 供选择：
+
+```
+当前不在 feature worktree 中，可用的 worktree：
+
+1. {worktree-1-path} — {branch-1}
+2. {worktree-2-path} — {branch-2}
+3. 在当前分支直接开始（不推荐）
+
+请回复编号：
+```
+
+已绑定 worktree 时不再重复询问。
 
 1. 读取 `.claude/cx/core/projects/*.json` 与目标 feature 文件
 2. 确认当前 feature、owner、claimed tasks

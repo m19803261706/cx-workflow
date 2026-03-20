@@ -35,6 +35,18 @@ description: "Codex 侧 CX 项目初始化。收集项目级配置，建立 .cla
    - 当前项目应该已经自动注册到全局面板
    - 不要重复询问
 
+## .worktrees 初始化
+
+初始化时确保 `.worktrees/` 目录存在且被 `.gitignore` 忽略：
+
+```bash
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+mkdir -p "$PROJECT_ROOT/.worktrees"
+if ! grep -qxF '.worktrees' "$PROJECT_ROOT/.gitignore" 2>/dev/null; then
+  echo '.worktrees' >> "$PROJECT_ROOT/.gitignore"
+fi
+```
+
 ## 结果要求
 
 - 项目里有 `.claude/cx/配置.json`

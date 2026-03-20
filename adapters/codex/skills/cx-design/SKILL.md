@@ -12,6 +12,32 @@ description: "Codex 侧 CX 技术设计。基于 PRD 生成设计文档与契约
 - `../cx-shared/references/codex-skill-contract.md`
 - `../cx-shared/references/templates/design.md`
 
+## Worktree 检测（强制）
+
+<HARD-GATE>
+禁止在主分支（main/master）上执行设计阶段。必须在 feature worktree 中。
+</HARD-GATE>
+
+执行前检测：
+
+```bash
+check_output=$(bash ../cx-shared/scripts/cx-worktree.sh check \
+  --project-root "$(git rev-parse --show-toplevel)" 2>&1) || true
+```
+
+如果返回 `on_main=true`：
+
+```
+当前在主分支上，无法执行设计阶段。请先创建 feature worktree：
+
+1. 运行 /cx:cx-prd 创建新功能的 worktree
+2. 手动进入已有 worktree
+
+请回复编号：
+```
+
+**不要继续执行设计阶段。**
+
 ## 目标
 
 - 生成 `.claude/cx/功能/<标题>/设计.md`
