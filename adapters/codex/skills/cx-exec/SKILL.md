@@ -14,6 +14,24 @@ description: "Codex 侧 CX 任务执行。先做 worktree 检查，再 claim lea
 
 然后严格遵守这个顺序：
 
+0. **工作区选择（feature 首次执行时）**
+
+如果 feature 的 `状态.json` 中 `worktree.binding_status` 不是 `bound`，
+Codex 没有 `AskUserQuestion` 工具，**必须（MUST）用编号文字列表 + 等待用户回复**：
+
+```
+功能「{feature_title}」即将开始执行，选择工作区模式：
+
+1. 独立工作区（推荐）— 创建 feature 分支隔离开发，完成后合并
+2. 当前分支直接开始 — 在当前分支上直接开发
+
+请回复 1 或 2：
+```
+
+- 用户选 1：创建 feature 分支 `git checkout -b codex/{feature-slug}`，记录 `isolation_mode: "worktree"`
+- 用户选 2：记录 `isolation_mode: "inline"`
+- 已绑定时不再重复询问
+
 1. 读取 `.claude/cx/core/projects/*.json` 与目标 feature 文件
 2. 确认当前 feature、owner、claimed tasks
 3. 先跑 shared dispatch helper，判断是继续、提问并行、阻塞还是收尾：

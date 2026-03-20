@@ -43,17 +43,32 @@ description: >
 ### Step 0.3: 工作区选择（每个 feature 首次执行时询问一次）
 
 如果当前 feature 还没有绑定 worktree（`状态.json` 中 `worktree.binding_status` 不是 `bound`），
-需要询问用户选择执行方式：
+**必须（MUST）** 使用 `AskUserQuestion` 工具询问用户，**禁止用纯文字列选项**：
 
-> **功能: {feature_title}**
->
-> 执行方式：
-> 1. **创建独立工作区** — 在隔离 worktree 中开发，完成后合并回主分支（推荐）
-> 2. **当前分支直接开始** — 在当前分支上直接开发
->
-> 选择 1 还是 2？
+```json
+{
+  "questions": [
+    {
+      "question": "功能「{feature_title}」即将开始执行，选择工作区模式？",
+      "header": "工作区",
+      "multiSelect": false,
+      "options": [
+        {
+          "label": "独立工作区 (Recommended)",
+          "description": "在隔离 worktree 中开发，主分支不受影响，完成后合并回来"
+        },
+        {
+          "label": "当前分支直接开始",
+          "description": "在当前分支上直接开发，适合小改动或快速修复"
+        }
+      ]
+    }
+  ]
+}
+```
 
-如果 `worktree_isolation=true`，默认推荐选项 1；如果 `worktree_isolation=false`，默认推荐选项 2。
+如果 `worktree_isolation=true`，"独立工作区" 放首位并标 `(Recommended)`。
+如果 `worktree_isolation=false`，"当前分支直接开始" 放首位并标 `(Recommended)`。
 
 **用户选择 1（创建独立工作区）：**
 

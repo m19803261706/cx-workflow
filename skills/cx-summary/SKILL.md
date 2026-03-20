@@ -39,13 +39,35 @@ description: >
 
 ### Step 1: 可选代码审查
 
-如果 `code_review=true`，在闭环前做一次完整审查选择：
+如果 `code_review=true`，**必须（MUST）** 使用 `AskUserQuestion` 工具询问：
 
-- 全面审查
-- 快速审查
-- 跳过
+```json
+{
+  "questions": [
+    {
+      "question": "闭环前做代码审查吗？",
+      "header": "Code Review",
+      "multiSelect": false,
+      "options": [
+        {
+          "label": "全面审查 (Recommended)",
+          "description": "完整检查代码质量、契约一致性和测试覆盖"
+        },
+        {
+          "label": "快速审查",
+          "description": "只检查关键路径和明显问题"
+        },
+        {
+          "label": "跳过",
+          "description": "直接进入总结阶段"
+        }
+      ]
+    }
+  ]
+}
+```
 
-但这一步是闭环前检查，不是执行期主控。
+这一步是闭环前检查，不是执行期主控。
 
 ### Step 2: 生成总结文档
 
@@ -86,16 +108,33 @@ bash scripts/cx-workflow-summary.sh \
 
 **如果 `isolation_mode = "worktree"`（独立工作区）：**
 
-询问用户合并方式：
+**必须（MUST）** 使用 `AskUserQuestion` 工具询问合并方式：
 
-> **功能 {feature_title} 已完成，当前在独立工作区中。**
->
-> 合并方式：
-> 1. **创建 Pull Request** — 推送分支并创建 PR，适合需要 review 的场景
-> 2. **直接合并到主分支** — 将 worktree 分支合并回主分支
-> 3. **暂不合并** — 保留工作区，稍后手动处理
->
-> 选择 1、2 还是 3？
+```json
+{
+  "questions": [
+    {
+      "question": "功能「{feature_title}」已完成，如何合并回主分支？",
+      "header": "合并方式",
+      "multiSelect": false,
+      "options": [
+        {
+          "label": "创建 Pull Request (Recommended)",
+          "description": "推送分支并创建 PR，适合需要 review 的场景"
+        },
+        {
+          "label": "直接合并到主分支",
+          "description": "将 worktree 分支合并回主分支并清理"
+        },
+        {
+          "label": "暂不合并",
+          "description": "保留工作区和分支，稍后手动处理"
+        }
+      ]
+    }
+  ]
+}
+```
 
 选项 1（创建 PR）：
 ```bash
