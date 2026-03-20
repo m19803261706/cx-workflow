@@ -881,13 +881,13 @@ if [[ -d tests/fixtures/minimal-project ]]; then
     tests/fixtures/minimal-project/.claude/cx/功能/示例功能/状态.json
 
   echo "[check] cx-init per-project developer_id prompt"
-  rg '每个项目都单独确认 developer_id' skills/init/SKILL.md
+  rg '每个项目都单独确认 developer_id' skills/cx-init/SKILL.md
 
   echo "[check] cx-init suggests creating GitHub remote"
-  rg '默认建议创建 GitHub 仓库并绑定' skills/init/SKILL.md
+  rg '默认建议创建 GitHub 仓库并绑定' skills/cx-init/SKILL.md
 
   echo "[check] cx-init uses project-level 配置.json wording"
-  rg '配置.json' skills/init/SKILL.md
+  rg '配置.json' skills/cx-init/SKILL.md
 
   echo "[check] cx-init no longer writes project settings hooks"
   ! rg 'settings\\.json|plugin-dir' scripts/cx-init-setup.sh
@@ -966,34 +966,34 @@ else
 fi
 
 echo "[check] prd and plan follow pure cx 3.1 flow"
-rg '自动判断是否需要 Design' skills/prd/SKILL.md
-rg '仅当 PRD 明显引入新技术时' skills/plan/SKILL.md
-! rg -F '{dev_id}-{feature}' skills/prd/SKILL.md skills/design/SKILL.md skills/adr/SKILL.md skills/plan/SKILL.md
+rg '自动判断是否需要 Design' skills/cx-prd/SKILL.md
+rg '仅当 PRD 明显引入新技术时' skills/cx-plan/SKILL.md
+! rg -F '{dev_id}-{feature}' skills/cx-prd/SKILL.md skills/cx-design/SKILL.md skills/cx-adr/SKILL.md skills/cx-plan/SKILL.md
 rg '功能/' references/templates/prd.md references/templates/design.md references/templates/task.md
-rg 'shared workflow core|cx-workflow-prd.sh|core/workflow/protocols/prd.md' skills/prd/SKILL.md
-rg 'core/workflow/protocols/design.md' skills/design/SKILL.md
-rg 'core/workflow/protocols/plan.md' skills/plan/SKILL.md
+rg 'shared workflow core|cx-workflow-prd.sh|core/workflow/protocols/prd.md' skills/cx-prd/SKILL.md
+rg 'core/workflow/protocols/design.md' skills/cx-design/SKILL.md
+rg 'core/workflow/protocols/plan.md' skills/cx-plan/SKILL.md
 
 echo "[check] execution chain follows pure cx 3.1 semantics"
-rg '/cx:cx-exec --all' skills/exec/SKILL.md
-rg -F '3+ 专业代理' skills/exec/SKILL.md
-rg -F '[cx:<feature-slug>] [task:<n>]' skills/exec/SKILL.md
-rg 'worktree 校验|当前 checkout 与 feature 绑定一致' skills/exec/SKILL.md
-rg 'preferred_worktree_path|binding_status' skills/plan/SKILL.md
-rg 'reason_type' skills/status/SKILL.md skills/exec/SKILL.md
-rg 'GitHub 为同步镜像' skills/summary/SKILL.md skills/help/SKILL.md
-rg 'core/workflow/protocols/exec.md' skills/exec/SKILL.md
-rg 'core/workflow/protocols/fix.md' skills/fix/SKILL.md
-rg 'core/workflow/protocols/status.md' skills/status/SKILL.md
-rg 'core/workflow/protocols/summary.md' skills/summary/SKILL.md
-rg 'cx-workflow-design.sh' skills/design/SKILL.md adapters/codex/skills/cx-design/SKILL.md
-rg 'cx-workflow-fix.sh' skills/fix/SKILL.md adapters/codex/skills/cx-fix/SKILL.md
-rg 'cx-workflow-status.sh' skills/status/SKILL.md adapters/codex/skills/cx-status/SKILL.md
-rg 'cx-workflow-summary.sh' skills/summary/SKILL.md adapters/codex/skills/cx-summary/SKILL.md
-rg 'runner `cc`|共享 core|handoff' skills/init/SKILL.md skills/prd/SKILL.md skills/design/SKILL.md skills/adr/SKILL.md skills/plan/SKILL.md skills/exec/SKILL.md skills/fix/SKILL.md skills/status/SKILL.md skills/summary/SKILL.md references/workflow-guide.md
-rg '配置.json' skills/config/SKILL.md
-! rg 'background_agents|prompt_refresh_interval' skills/config/SKILL.md
-rg 'disable-model-invocation: true' skills/init/SKILL.md skills/prd/SKILL.md skills/plan/SKILL.md skills/design/SKILL.md skills/adr/SKILL.md skills/exec/SKILL.md skills/fix/SKILL.md skills/summary/SKILL.md skills/config/SKILL.md skills/scope/SKILL.md
+rg '/cx:cx-exec --all' skills/cx-exec/SKILL.md
+rg -F '3+ 专业代理' skills/cx-exec/SKILL.md
+rg -F '[cx:<feature-slug>] [task:<n>]' skills/cx-exec/SKILL.md
+rg 'worktree 校验|当前 checkout 与 feature 绑定一致' skills/cx-exec/SKILL.md
+rg 'preferred_worktree_path|binding_status' skills/cx-plan/SKILL.md
+rg 'reason_type' skills/cx-status/SKILL.md skills/cx-exec/SKILL.md
+rg 'GitHub 为同步镜像' skills/cx-summary/SKILL.md skills/cx-help/SKILL.md
+rg 'core/workflow/protocols/exec.md' skills/cx-exec/SKILL.md
+rg 'core/workflow/protocols/fix.md' skills/cx-fix/SKILL.md
+rg 'core/workflow/protocols/status.md' skills/cx-status/SKILL.md
+rg 'core/workflow/protocols/summary.md' skills/cx-summary/SKILL.md
+rg 'cx-workflow-design.sh' skills/cx-design/SKILL.md adapters/codex/skills/cx-design/SKILL.md
+rg 'cx-workflow-fix.sh' skills/cx-fix/SKILL.md adapters/codex/skills/cx-fix/SKILL.md
+rg 'cx-workflow-status.sh' skills/cx-status/SKILL.md adapters/codex/skills/cx-status/SKILL.md
+rg 'cx-workflow-summary.sh' skills/cx-summary/SKILL.md adapters/codex/skills/cx-summary/SKILL.md
+rg 'runner `cc`|共享 core|handoff' skills/cx-init/SKILL.md skills/cx-prd/SKILL.md skills/cx-design/SKILL.md skills/cx-adr/SKILL.md skills/cx-plan/SKILL.md skills/cx-exec/SKILL.md skills/cx-fix/SKILL.md skills/cx-status/SKILL.md skills/cx-summary/SKILL.md references/workflow-guide.md
+rg '配置.json' skills/cx-config/SKILL.md
+! rg 'background_agents|prompt_refresh_interval' skills/cx-config/SKILL.md
+rg 'disable-model-invocation: true' skills/cx-init/SKILL.md skills/cx-prd/SKILL.md skills/cx-plan/SKILL.md skills/cx-design/SKILL.md skills/cx-adr/SKILL.md skills/cx-exec/SKILL.md skills/cx-fix/SKILL.md skills/cx-summary/SKILL.md skills/cx-config/SKILL.md skills/cx-scope/SKILL.md
 rg -F 'preferred worktree' references/core-schema-overview.md references/workflow-guide.md
 rg -F 'handoff' references/core-schema-overview.md references/workflow-guide.md
 rg -F '在 claim 前先调用 worktree 绑定检查' references/workflow-guide.md
@@ -1175,14 +1175,14 @@ test -f "$LEGACY_EN_TMP_DIR/.claude/cx/功能/向量记忆/设计.md"
 test -f "$LEGACY_EN_TMP_DIR/.claude/cx/功能/向量记忆/总结.md"
 test -f "$LEGACY_EN_TMP_DIR/.claude/cx/功能/向量记忆/任务/任务-1.md"
 rm -rf "$LEGACY_EN_TMP_DIR"
-rg 'cx-core-migrate.sh|先迁移' README.md references/workflow-guide.md skills/init/SKILL.md
+rg 'cx-core-migrate.sh|先迁移' README.md references/workflow-guide.md skills/cx-init/SKILL.md
 
 echo "[check] public docs and metadata present pure cx 3.1"
 rg '"name": "cx"' .claude-plugin/plugin.json .claude-plugin/marketplace.json
 rg '"version": "3.1.0"' .claude-plugin/plugin.json .claude-plugin/marketplace.json
 rg '只保留 `cx`' README.md references/workflow-guide.md
 ! rg -F '/tc' README.md references/workflow-guide.md
-rg '/cx:cx-init' README.md references/workflow-guide.md skills/help/SKILL.md
+rg '/cx:cx-init' README.md references/workflow-guide.md skills/cx-help/SKILL.md
 rg 'shared workflow core|core/workflow' README.md references/workflow-guide.md docs/codex-adapter-guide.md adapters/codex/README.md
 rg '纯 cx 3.1|/cx:\*|Codex skill adapter' README.md references/workflow-guide.md CHANGELOG.md
 rg '2.1.79|Codex 侧必须同步|先迁移|\.agents/skills|install-codex.sh' README.md CHANGELOG.md docs/codex-adapter-guide.md references/workflow-guide.md
