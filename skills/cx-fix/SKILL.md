@@ -10,6 +10,23 @@ disable-model-invocation: true
 
 先快修，只有问题明显复杂时才升级成更重的调查。
 
+## Worktree 检测
+
+cx-fix 对 worktree 的要求比其他 skill 宽松：
+
+- **小修复（bug fix、hotfix）**：允许在当前分支直接修复（`--inline` 模式）
+- **大修复（涉及多文件重构）**：建议创建 worktree 隔离
+
+执行前检测：
+
+```bash
+check_output=$(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-worktree.sh check \
+  --inline \
+  --project-root "$(git rev-parse --show-toplevel)" 2>&1) || true
+```
+
+默认 inline 模式，不强制 worktree。
+
 先阅读：
 
 - `core/workflow/README.md`
