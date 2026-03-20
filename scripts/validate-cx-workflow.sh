@@ -277,7 +277,14 @@ bridge_accept=$(
 )
 grep '^prompt_state=accepted$' <<< "$bridge_accept" >/dev/null
 grep '^auto_register=true$' <<< "$bridge_accept" >/dev/null
+grep '^service_running=true$' <<< "$bridge_accept" >/dev/null
 grep '^project_registered=true$' <<< "$bridge_accept" >/dev/null
+bridge_frontend_url=$(grep '^frontend_url=' <<< "$bridge_accept" | head -n1 | cut -d= -f2-)
+bridge_api_base_url=$(grep '^api_base_url=' <<< "$bridge_accept" | head -n1 | cut -d= -f2-)
+test -n "$bridge_frontend_url"
+test -n "$bridge_api_base_url"
+curl -fsS -m 5 "$bridge_frontend_url" >/dev/null
+curl -fsS -m 5 "$bridge_api_base_url/health" >/dev/null
 
 bridge_follow_up=$(
   CX_DASHBOARD_HOME="$BRIDGE_HOME/.cx/dashboard" \
@@ -292,6 +299,12 @@ jq -e --arg root "$BRIDGE_PROJECT" '
   and .auto_register == true
   and any(.projects[]; .root_path == $root)
 ' "$BRIDGE_HOME/.cx/dashboard/registry.json" >/dev/null
+if [[ -f "$BRIDGE_HOME/.cx/dashboard/backend.pid" ]]; then
+  kill "$(cat "$BRIDGE_HOME/.cx/dashboard/backend.pid")" >/dev/null 2>&1 || true
+fi
+if [[ -f "$BRIDGE_HOME/.cx/dashboard/frontend.pid" ]]; then
+  kill "$(cat "$BRIDGE_HOME/.cx/dashboard/frontend.pid")" >/dev/null 2>&1 || true
+fi
 
 echo "[check] core claim keeps different features isolated"
 CORE_SCENARIO_DIR=$(mktemp -d)

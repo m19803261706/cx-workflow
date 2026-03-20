@@ -160,6 +160,7 @@ bridge_output=$(bash scripts/cx-dashboard-bridge.sh \
 - 如果 `should_prompt=true`
   - 明确提醒用户存在全局 Web 管理面板能力
   - 这是强推荐，不是强制前置
+  - 禁止在用户没有明确表态前，擅自执行 `--decision decline`
   - 如果用户接受，执行：
 
     ```bash
@@ -182,9 +183,14 @@ bridge_output=$(bash scripts/cx-dashboard-bridge.sh \
   - bridge 会自动把当前项目注册进全局面板
   - 不要重复询问
 
-- 如果 dashboard 已在运行且返回了 `frontend_url`
-  - 可以附带告诉用户面板地址
-  - 但不要阻塞当前 `cx:init`
+- 只有当 `service_running=true` 且返回了 `frontend_url`
+  - 才能告诉用户全局面板已可用
+  - 同时确认 `project_registered=true`，再说明当前项目已接入
+
+- 如果 `prompt_state=accepted` 但 `service_running=false`
+  - 说明 bridge 启动面板失败或仍未就绪
+  - 必须如实告诉用户“接入已记录，但面板暂未成功启动”
+  - 不要把仅有 `frontend_url` 或旧 runtime 记录误报成“已经启动”
 
 ### Step 7: 校验插件 hooks 依赖条件
 

@@ -73,6 +73,7 @@ bridge_output=$(bash scripts/cx-dashboard-bridge.sh \
 - 如果 `should_prompt=true`
   - 用简短问答提醒用户存在全局 Web 管理面板
   - 这不是强制前置，用户跳过也继续当前 PRD
+  - 禁止在用户没有明确表态前，擅自执行 `--decision decline`
   - 用户接受后执行 `--decision accept`
   - 用户暂不启用时执行 `--decision decline`
 
@@ -80,8 +81,12 @@ bridge_output=$(bash scripts/cx-dashboard-bridge.sh \
   - bridge 会自动注册当前项目
   - 直接继续 PRD，不再重复提醒
 
-- 如果 `frontend_url` 已存在
-  - 可以顺手告诉用户当前全局面板地址
+- 只有当 `service_running=true` 且 `frontend_url` 已存在
+  - 才能顺手告诉用户当前全局面板地址
+
+- 如果 `prompt_state=accepted` 但 `service_running=false`
+  - 说明 bridge 尚未把面板成功拉起
+  - 不要误报“面板已可用”
 
 ### Step 1: 读取现有上下文
 

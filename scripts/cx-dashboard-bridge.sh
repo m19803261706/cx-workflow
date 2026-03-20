@@ -9,13 +9,24 @@ DASHBOARD_BASE_DIR="${CX_DASHBOARD_HOME:-$HOME_DIR/.cx/dashboard}"
 REGISTRY_PATH="${CX_DASHBOARD_REGISTRY_PATH:-$DASHBOARD_BASE_DIR/registry.json}"
 RUNTIME_PATH="${CX_DASHBOARD_RUNTIME_PATH:-$DASHBOARD_BASE_DIR/runtime.json}"
 
-bridge_json=$(
-  cd "$REPO_ROOT/apps/dashboard-service" && \
-    node --import tsx src/bridge.ts \
-      --registry-path "$REGISTRY_PATH" \
-      --runtime-path "$RUNTIME_PATH" \
-      "$@"
-)
+run_bridge() {
+  (
+    cd "$REPO_ROOT/apps/dashboard-service" && \
+      node --import tsx src/bridge.ts \
+        --registry-path "$REGISTRY_PATH" \
+        --runtime-path "$RUNTIME_PATH" \
+        "$@"
+  )
+}
+
+bridge_json=$(run_bridge "$@")
+prompt_state=$(jq -r '.promptState' <<< "$bridge_json")
+service_running=$(jq -r '.serviceRunning' <<< "$bridge_json")
+
+if [[ "$prompt_state" == "accepted" && "$service_running" != "true" ]]; then
+  bash "$SCRIPT_DIR/cx-dashboard-ensure.sh" >/dev/null
+  bridge_json=$(run_bridge "$@")
+fi
 
 printf 'decision_applied=%s\n' "$(jq -r '.decisionApplied' <<< "$bridge_json")"
 printf 'prompt_state=%s\n' "$(jq -r '.promptState' <<< "$bridge_json")"
