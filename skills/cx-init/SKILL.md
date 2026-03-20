@@ -136,56 +136,31 @@ GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 }
 ```
 
-### Step 6: 接入全局 Web 管理面板 bridge
+### Step 6: Dashboard 自动保活与项目注册
 
-初始化完成后，复用同一个 bridge helper 判断是否需要提醒或自动注册当前项目：
+初始化完成后，确保 dashboard 服务可用并注册当前项目：
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
+bash scripts/cx-dashboard-ensure.sh
 bridge_output=$(bash scripts/cx-dashboard-bridge.sh \
   --project-root "$PROJECT_ROOT" \
   --display-name "$(basename "$PROJECT_ROOT")")
 ```
 
-读取这些返回值：
+行为规则（与 cx-prd 共享同一套语义）：
 
-- `prompt_state`
-- `should_prompt`
-- `service_running`
-- `auto_register`
-- `frontend_url`
+**`prompt_state=accepted`：**
+- 自动重启已挂的服务，自动注册当前项目
+- 告知面板地址
 
-规则：
+**`prompt_state=pending`：**
+- 用 `AskUserQuestion` 询问是否启用
+- 不阻塞 init 流程
 
-- 如果 `should_prompt=true`
-  - 明确提醒用户存在全局 Web 管理面板能力
-  - 这是强推荐，不是强制前置
-  - 禁止在用户没有明确表态前，擅自执行 `--decision decline`
-  - 如果用户接受，执行：
-
-    ```bash
-    bash scripts/cx-dashboard-bridge.sh \
-      --project-root "$PROJECT_ROOT" \
-      --display-name "$(basename "$PROJECT_ROOT")" \
-      --decision accept
-    ```
-
-  - 如果用户暂不启用，执行：
-
-    ```bash
-    bash scripts/cx-dashboard-bridge.sh \
-      --project-root "$PROJECT_ROOT" \
-      --display-name "$(basename "$PROJECT_ROOT")" \
-      --decision decline
-    ```
-
-- 如果 `prompt_state=accepted` 且 `auto_register=true`
-  - bridge 会自动把当前项目注册进全局面板
-  - 不要重复询问
-
-- 只有当 `service_running=true` 且返回了 `frontend_url`
-  - 才能告诉用户全局面板已可用
-  - 同时确认 `project_registered=true`，再说明当前项目已接入
+**`prompt_state=declined`：**
+- 距上次检查 > 24h → 重新询问一次
+- < 24h → 静默跳过
 
 - 如果 `prompt_state=accepted` 但 `service_running=false`
   - 说明 bridge 启动面板失败或仍未就绪

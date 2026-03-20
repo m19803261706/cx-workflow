@@ -74,36 +74,40 @@ bash scripts/cx-workflow-prd.sh \
 - `.claude/cx/core/features/{feature-slug}.json`
 - `.claude/cx/core/projects/project.json`
 
-### Step 0.5: 复用 dashboard bridge 处理首次提醒与自动注册
+### Step 0.5: Dashboard 自动保活与项目注册
 
-在进入长问答前执行：
+每次进入 PRD 时都执行，确保 dashboard 服务始终可用：
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
+bash scripts/cx-dashboard-ensure.sh
 bridge_output=$(bash scripts/cx-dashboard-bridge.sh \
-  --project-root "$PROJECT_ROOT" \
-  --display-name "$(basename "$PROJECT_ROOT")")
+  --project-root “$PROJECT_ROOT” \
+  --display-name “$(basename “$PROJECT_ROOT”)”)
 ```
 
-规则：
+行为规则：
 
-- 如果 `should_prompt=true`
-  - 用简短问答提醒用户存在全局 Web 管理面板
-  - 这不是强制前置，用户跳过也继续当前 PRD
-  - 禁止在用户没有明确表态前，擅自执行 `--decision decline`
-  - 用户接受后执行 `--decision accept`
-  - 用户暂不启用时执行 `--decision decline`
+**`prompt_state=accepted`（已启用）：**
+- 每次都检查服务健康状态，服务挂了自动重启（`cx-dashboard-ensure.sh`）
+- 自动注册当前项目，无需再问
+- 告知用户面板地址（如果服务正常运行）
 
-- 如果 `prompt_state=accepted` 且 `auto_register=true`
-  - bridge 会自动注册当前项目
-  - 直接继续 PRD，不再重复提醒
+**`prompt_state=pending`（从未被问过）：**
+- 用 `AskUserQuestion` 询问是否启用全局面板
+- 用户接受 → 执行 `--decision accept`，启动服务
+- 用户跳过 → 执行 `--decision decline`，本次跳过
+- 不阻塞 PRD 流程
 
-- 只有当 `service_running=true` 且 `frontend_url` 已存在
-  - 才能顺手告诉用户当前全局面板地址
+**`prompt_state=declined`（曾经跳过）：**
+- **不是永久性拒绝**。检查 `runtime.json` 中 `last_checked_at`：
+  - 如果距上次检查 > 24 小时（说明可能重启了电脑）→ 重新询问一次
+  - 如果 < 24 小时 → 静默跳过，不打扰
 
-- 如果 `prompt_state=accepted` 但 `service_running=false`
-  - 说明 bridge 尚未把面板成功拉起
-  - 不要误报“面板已可用”
+**服务重启后的行为：**
+- `cx-dashboard-ensure.sh` 会检测 PID 是否存活
+- 进程不在 → 自动清理旧 PID → 重新拉起 backend + frontend
+- 自动扫描 `~/.cx/dashboard/registry.json` 中已注册的项目
 
 ### Step 1: 读取现有上下文
 
