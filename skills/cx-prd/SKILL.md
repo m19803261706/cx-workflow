@@ -44,11 +44,60 @@ disable-model-invocation: true
 
 ## 运行边界
 
-- 项目级 `.claude/cx/配置.json` 与 `.claude/cx/状态.json` 是唯一运行时真相
+- 项目级 `.claude/cx/配置.json` 是运行时配置真相
+- Feature 状态在各自 worktree 的 `.claude/cx/功能/{title}/状态.json` 中
+- 全局 `current_feature` 指针已废弃，worktree CWD 即上下文
 - 可见目录与文档名使用中文，内部状态引用始终使用稳定 `slug`
 - `cx-prd` 负责需求收敛，不负责把流程做重
 - Claude Code 侧以 runner `cc` 身份写共享状态；如果 feature 已由 `codex` 持有，先提示 handoff
 - 不要在长时间分析之后才落盘；最小 PRD scaffold 应该先由 shared runner 建好
+
+## Worktree 隔离（强制）
+
+<HARD-GATE>
+除非用户显式传入 --inline，否则禁止在主分支（main/master）上创建 PRD。
+必须先创建 feature worktree。
+</HARD-GATE>
+
+### Step -1: 创建或进入 Feature Worktree
+
+在 Step 0（scaffold）之前执行：
+
+```bash
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+check_output=$(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-worktree.sh check --project-root "$PROJECT_ROOT" 2>&1) || true
+```
+
+**如果 `on_main=true`（在主分支上）：**
+
+使用 `AskUserQuestion` 询问：
+
+```json
+{
+  "questions": [{
+    "question": "当前在主分支上，需要为这个功能创建隔离工作区",
+    "header": "工作区选择",
+    "multiSelect": false,
+    "options": [
+      { "label": "创建 Feature Worktree（推荐）", "description": "自动创建隔离分支和工作目录" },
+      { "label": "在当前分支直接开始（--inline）", "description": "不隔离，适合极小改动" }
+    ]
+  }]
+}
+```
+
+用户选择创建 worktree 时：
+
+```bash
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-worktree.sh create \
+  --feature "{feature-slug}" \
+  --runner cc \
+  --project-root "$PROJECT_ROOT"
+```
+
+然后 `cd` 到新 worktree 路径继续后续步骤。
+
+用户选择 inline 时，继续在当前分支执行。
 
 ## 核心步骤
 
