@@ -64,6 +64,12 @@ echo "[check] dashboard architecture docs and schema exist"
 test -f docs/dashboard-architecture.md
 test -f references/dashboard-registry-schema.json
 test -f references/dashboard-runtime-schema.json
+test -f apps/dashboard-service/package.json
+test -f apps/dashboard-service/src/server.ts
+test -f apps/dashboard-service/src/registry.ts
+test -f apps/dashboard-service/src/projects.ts
+test -f apps/dashboard-service/src/routes/projects.ts
+test -f apps/dashboard-service/src/routes/projects.test.ts
 
 echo "[check] task template exists"
 test -f references/templates/task.md
@@ -211,6 +217,12 @@ bash -n \
   scripts/cx-workflow-status.sh \
   scripts/cx-workflow-summary.sh \
   scripts/cx-workflow-fix.sh
+
+echo "[check] dashboard service tests"
+(cd apps/dashboard-service && npm test)
+
+echo "[check] dashboard service typecheck"
+(cd apps/dashboard-service && npm run typecheck)
 
 echo "[check] core claim keeps different features isolated"
 CORE_SCENARIO_DIR=$(mktemp -d)
