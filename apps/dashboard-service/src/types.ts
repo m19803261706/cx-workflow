@@ -61,6 +61,7 @@ export type ProjectSummary = {
   lastSeenAt: string;
   lastSyncedAt: string | null;
   workflowPhase: string | null;
+  activeFeatureCount: number;
 };
 
 export type ProjectFeatureDetail = {
@@ -91,7 +92,7 @@ export type ProjectFeatureDetail = {
 
 export type ProjectDetail = {
   project: ProjectSummary;
-  feature: ProjectFeatureDetail | null;
+  features: ProjectFeatureDetail[];
   activeSessions: Array<{
     sessionId: string;
     runner: "cx" | "cc" | "codex";

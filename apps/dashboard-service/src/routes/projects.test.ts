@@ -364,10 +364,12 @@ test("GET /api/dashboard/projects/:projectId returns aggregated feature detail",
   assert.equal(payload.project.id, "manual-project");
   assert.equal(payload.project.currentFeatureSlug, "detail-feature");
   assert.equal(payload.project.handoffPending, true);
-  assert.equal(payload.feature.slug, "detail-feature");
-  assert.equal(payload.feature.ownerRunner, "codex");
-  assert.equal(payload.feature.progress.completed, 3);
-  assert.equal(payload.feature.progress.total, 6);
+  assert.ok(Array.isArray(payload.features));
+  assert.equal(payload.features.length, 1);
+  assert.equal(payload.features[0].slug, "detail-feature");
+  assert.equal(payload.features[0].ownerRunner, "codex");
+  assert.equal(payload.features[0].progress.completed, 3);
+  assert.equal(payload.features[0].progress.total, 6);
 
   await server.close();
 });

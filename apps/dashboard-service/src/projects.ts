@@ -197,6 +197,7 @@ function buildProjectSummary(params: {
   lastSeenAt: string;
   lastSyncedAt: string | null;
   workflowPhase: string | null;
+  activeFeatureCount: number;
 }): ProjectSummary {
   return {
     id: params.candidate.id,
@@ -216,7 +217,8 @@ function buildProjectSummary(params: {
     featureRecordPath: params.featureRecordPath,
     lastSeenAt: params.lastSeenAt,
     lastSyncedAt: params.lastSyncedAt,
-    workflowPhase: params.workflowPhase
+    workflowPhase: params.workflowPhase,
+    activeFeatureCount: params.activeFeatureCount
   };
 }
 
@@ -255,7 +257,8 @@ async function readProjectAggregation(candidate: CandidateProject, timestamp = n
         featureRecordPath: null,
         lastSeenAt: timestamp,
         lastSyncedAt: null,
-        workflowPhase: null
+        workflowPhase: null,
+        activeFeatureCount: 0
       }),
       detail: null
     };
@@ -267,9 +270,74 @@ async function readProjectAggregation(candidate: CandidateProject, timestamp = n
       features?: Record<string, { title?: string; path?: string; status?: string }>;
     }>(projectStatusPath);
     const coreProject = await readJsonFile<CoreProjectRegistry>(coreProjectPath);
-    const currentFeatureSlug = projectStatus.current_feature ?? coreProject.current_feature ?? null;
 
-    if (!currentFeatureSlug) {
+    const activeSessions = Object.values(coreProject.active_sessions ?? {}).map((session) => ({
+      sessionId: session.session_id,
+      runner: session.runner,
+      branch: session.branch,
+      worktreePath: session.worktree_path,
+      claimedFeature: session.claimed_feature,
+      claimedTasks: session.claimed_tasks,
+      lastHeartbeat: session.last_heartbeat
+    }));
+
+    // 遍历所有 feature，而非只读取 current_feature
+    const allFeatureSlugs = Object.keys(coreProject.features ?? {});
+    const detailFeatures: ProjectFeatureDetail[] = [];
+    const completedPhases = new Set(["completed", "archived", "summarized"]);
+
+    for (const slug of allFeatureSlugs) {
+      const featureSummary = coreProject.features[slug];
+      if (!featureSummary) {
+        continue;
+      }
+
+      try {
+        const featureRecordPath = resolveRelativeProjectPath(projectRoot, featureSummary.path);
+        const coreFeature = await readJsonFile<CoreFeatureRecord>(featureRecordPath);
+        const featureStatus = await readFeatureStatus(projectRoot, projectStatus.features?.[slug]?.path);
+        const handoffPending = (coreFeature.handoffs ?? []).some((handoff) => !handoff.accepted_at);
+        const ownerRunner =
+          (coreFeature.execution_owner?.runner ?? coreFeature.planning_owner?.runner ?? "none") as OwnerRunner;
+
+        detailFeatures.push({
+          slug,
+          title: projectStatus.features?.[slug]?.title ?? featureSummary.title ?? coreFeature.title,
+          workflowPhase: coreFeature.workflow?.current_phase ?? featureSummary.workflow_phase ?? null,
+          nextRoute: coreFeature.workflow?.next_route ?? featureSummary.next_route ?? null,
+          ownerRunner,
+          ownerSessionId: coreFeature.execution_owner?.session_id ?? coreFeature.planning_owner?.session_id ?? null,
+          worktreePath: coreFeature.worktree.worktree_path ?? null,
+          bindingStatus: coreFeature.worktree.binding_status ?? null,
+          handoffPending,
+          progress: {
+            completed: featureStatus?.completed ?? 0,
+            total: featureStatus?.total ?? 0
+          },
+          docs: coreFeature.docs ?? {},
+          tasks: (coreFeature.tasks ?? []).map((task) => ({
+            id: task.id,
+            title: task.title,
+            status: task.status,
+            phase: task.phase ?? null,
+            parallel: task.parallel ?? false,
+            dependsOn: task.depends_on ?? [],
+            parallelGroup: task.parallel_group ?? null
+          }))
+        });
+      } catch {
+        // feature 记录文件缺失或损坏，跳过该 feature
+        continue;
+      }
+    }
+
+    // 找到第一个活跃的 feature（非 completed/archived/summarized）作为主显示 feature
+    const activeFeatures = detailFeatures.filter(
+      (f) => f.workflowPhase && !completedPhases.has(f.workflowPhase)
+    );
+    const primaryFeature = activeFeatures[0] ?? detailFeatures[0] ?? null;
+
+    if (!primaryFeature) {
       const summary = buildProjectSummary({
         candidate,
         syncStatus: "healthy",
@@ -285,92 +353,49 @@ async function readProjectAggregation(candidate: CandidateProject, timestamp = n
         featureRecordPath: null,
         lastSeenAt: timestamp,
         lastSyncedAt: timestamp,
-        workflowPhase: null
+        workflowPhase: null,
+        activeFeatureCount: 0
       });
       return {
         summary,
         detail: {
           project: summary,
-          feature: null,
-          activeSessions: Object.values(coreProject.active_sessions ?? {}).map((session) => ({
-            sessionId: session.session_id,
-            runner: session.runner,
-            branch: session.branch,
-            worktreePath: session.worktree_path,
-            claimedFeature: session.claimed_feature,
-            claimedTasks: session.claimed_tasks,
-            lastHeartbeat: session.last_heartbeat
-          }))
+          features: detailFeatures,
+          activeSessions
         } satisfies ProjectDetail
       };
     }
 
-    const featureSummary = coreProject.features[currentFeatureSlug];
-    const featureRecordPath = resolveRelativeProjectPath(projectRoot, featureSummary.path);
-    const coreFeature = await readJsonFile<CoreFeatureRecord>(featureRecordPath);
-    const featureStatus = await readFeatureStatus(projectRoot, projectStatus.features?.[currentFeatureSlug]?.path);
-    const handoffPending = (coreFeature.handoffs ?? []).some((handoff) => !handoff.accepted_at);
-    const ownerRunner =
-      (coreFeature.execution_owner?.runner ?? coreFeature.planning_owner?.runner ?? "none") as OwnerRunner;
+    // 使用主 feature 填充 summary（向后兼容 currentFeatureSlug/currentFeatureTitle）
+    const primarySlug = primaryFeature.slug;
+    const primaryCoreSummary = coreProject.features[primarySlug];
+    const primaryRecordPath = resolveRelativeProjectPath(projectRoot, primaryCoreSummary.path);
 
     const summary = buildProjectSummary({
       candidate,
       syncStatus: "healthy",
-      currentFeatureSlug,
-      currentFeatureTitle: projectStatus.features?.[currentFeatureSlug]?.title ?? featureSummary.title ?? coreFeature.title,
-      lifecycleStage: coreFeature.lifecycle.stage,
-      ownerRunner,
-      worktreePath: coreFeature.worktree.worktree_path ?? featureSummary.worktree_path ?? null,
-      handoffPending,
-      progressCompleted: featureStatus?.completed ?? 0,
-      progressTotal: featureStatus?.total ?? 0,
-      featureStatus: featureStatus?.status ?? null,
-      featureRecordPath: path.relative(projectRoot, featureRecordPath),
+      currentFeatureSlug: primarySlug,
+      currentFeatureTitle: primaryFeature.title,
+      lifecycleStage: primaryCoreSummary.lifecycle as LifecycleStage,
+      ownerRunner: primaryFeature.ownerRunner,
+      worktreePath: primaryFeature.worktreePath ?? primaryCoreSummary.worktree_path ?? null,
+      handoffPending: primaryFeature.handoffPending,
+      progressCompleted: primaryFeature.progress.completed,
+      progressTotal: primaryFeature.progress.total,
+      featureStatus: projectStatus.features?.[primarySlug]?.status ?? null,
+      featureRecordPath: path.relative(projectRoot, primaryRecordPath),
       lastSeenAt: timestamp,
       lastSyncedAt: timestamp,
-      workflowPhase: coreFeature.workflow?.current_phase ?? featureSummary.workflow_phase ?? null
+      workflowPhase: primaryFeature.workflowPhase,
+      activeFeatureCount: activeFeatures.length
     });
-
-    const detailFeature: ProjectFeatureDetail = {
-      slug: currentFeatureSlug,
-      title: summary.currentFeatureTitle ?? coreFeature.title,
-      workflowPhase: coreFeature.workflow?.current_phase ?? featureSummary.workflow_phase ?? null,
-      nextRoute: coreFeature.workflow?.next_route ?? featureSummary.next_route ?? null,
-      ownerRunner,
-      ownerSessionId: coreFeature.execution_owner?.session_id ?? coreFeature.planning_owner?.session_id ?? null,
-      worktreePath: coreFeature.worktree.worktree_path ?? null,
-      bindingStatus: coreFeature.worktree.binding_status ?? null,
-      handoffPending,
-      progress: {
-        completed: summary.progressCompleted,
-        total: summary.progressTotal
-      },
-      docs: coreFeature.docs ?? {},
-      tasks: (coreFeature.tasks ?? []).map((task) => ({
-        id: task.id,
-        title: task.title,
-        status: task.status,
-        phase: task.phase ?? null,
-        parallel: task.parallel ?? false,
-        dependsOn: task.depends_on ?? [],
-        parallelGroup: task.parallel_group ?? null
-      }))
-    };
 
     return {
       summary,
       detail: {
         project: summary,
-        feature: detailFeature,
-        activeSessions: Object.values(coreProject.active_sessions ?? {}).map((session) => ({
-          sessionId: session.session_id,
-          runner: session.runner,
-          branch: session.branch,
-          worktreePath: session.worktree_path,
-          claimedFeature: session.claimed_feature,
-          claimedTasks: session.claimed_tasks,
-          lastHeartbeat: session.last_heartbeat
-        }))
+        features: detailFeatures,
+        activeSessions
       } satisfies ProjectDetail
     };
   } catch {
@@ -390,7 +415,8 @@ async function readProjectAggregation(candidate: CandidateProject, timestamp = n
         featureRecordPath: null,
         lastSeenAt: timestamp,
         lastSyncedAt: null,
-        workflowPhase: null
+        workflowPhase: null,
+        activeFeatureCount: 0
       }),
       detail: null
     };
