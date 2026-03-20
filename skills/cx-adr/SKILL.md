@@ -5,7 +5,6 @@ description: >
   "ADR"、"为什么选择 X"、"架构方案对比"时可能触发（通常由 cx-design 自动调用）。
   仅在 L 规模或重大架构取舍出现时记录，保存到本地
   .claude/cx/功能/{feature_title}/架构决策.md。
-disable-model-invocation: true
 ---
 
 # cx-adr: 架构决策记录
@@ -30,6 +29,7 @@ disable-model-invocation: true
 
 普通实现细节不要滥用 ADR。
 Claude Code 侧写 ADR 时仍然只是在共享 core 上补充文档，不改变其他 runner 的 lease。
+允许在用户明确确认需要 ADR 后，由工作流自动衔接到本 skill。
 
 ## 核心步骤
 

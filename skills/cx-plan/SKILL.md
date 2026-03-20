@@ -5,7 +5,6 @@ description: >
   "plan"、"拆分任务"时触发。读取设计文档（小功能则读取 PRD），
   生成任务分解，创建子任务文件并将契约下沉到任务中。
   产物保存到本地 .claude/cx/功能/{feature_title}/任务/。
-disable-model-invocation: true
 ---
 
 # cx-plan: 任务规划与契约下沉
@@ -30,6 +29,7 @@ disable-model-invocation: true
 - 仅当 PRD 明显引入新技术时，才进入技术识别和 skill 准备支线
 - 任务目录使用中文显示名，状态关联始终用稳定 `slug`
 - Claude Code 侧规划属于 runner `cc` 的 adapter 行为；共享 core 被 `codex` 持有时先建议 handoff
+- 允许在用户明确确认“进入规划阶段”后，由工作流自动衔接到本 skill
 
 ## 核心步骤
 

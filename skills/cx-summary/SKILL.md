@@ -3,7 +3,6 @@ name: cx-summary
 description: >
   CX 工作流 — 汇总发布与闭环。手动触发或在所有任务完成后进入。
   负责生成总结、同步 GitHub 镜像、清理当前 feature 指针。
-disable-model-invocation: true
 ---
 
 # cx-summary: 闭环与汇总
@@ -28,6 +27,7 @@ disable-model-invocation: true
 - `cx:summary` 不负责补救执行问题
 - `GitHub 为同步镜像`，项目级 `.claude/cx` 才是真相
 - 这是 Claude Code 侧的 `cc` adapter 收尾动作，不会擅自改写其他 runner 的 lease
+- 允许在用户明确确认“开始收尾”后，由工作流自动衔接到本 skill
 
 ## 核心步骤
 

@@ -15,7 +15,7 @@
 - GitHub 是同步镜像，不是主控面
 - 中文目录与文档名面向使用者，英文 JSON 协议面向脚本
 - 默认自动路由，普通执行尽量不打断用户
-- 强副作用 skill 默认手动触发
+- 入口型与管理型 skill 默认手动触发；Design / ADR / Plan / Exec / Summary 允许在用户确认后自动衔接
 - 插件 hooks 由 `hooks/hooks.json` 自动接线，不再通过 init 写项目 settings
 
 ## 初始化

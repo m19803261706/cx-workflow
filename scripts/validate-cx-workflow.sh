@@ -993,7 +993,9 @@ rg 'cx-workflow-summary.sh' skills/cx-summary/SKILL.md adapters/codex/skills/cx-
 rg 'runner `cc`|共享 core|handoff' skills/cx-init/SKILL.md skills/cx-prd/SKILL.md skills/cx-design/SKILL.md skills/cx-adr/SKILL.md skills/cx-plan/SKILL.md skills/cx-exec/SKILL.md skills/cx-fix/SKILL.md skills/cx-status/SKILL.md skills/cx-summary/SKILL.md references/workflow-guide.md
 rg '配置.json' skills/cx-config/SKILL.md
 ! rg 'background_agents|prompt_refresh_interval' skills/cx-config/SKILL.md
-rg 'disable-model-invocation: true' skills/cx-init/SKILL.md skills/cx-prd/SKILL.md skills/cx-plan/SKILL.md skills/cx-design/SKILL.md skills/cx-adr/SKILL.md skills/cx-exec/SKILL.md skills/cx-fix/SKILL.md skills/cx-summary/SKILL.md skills/cx-config/SKILL.md skills/cx-scope/SKILL.md
+rg 'disable-model-invocation: true' skills/cx-init/SKILL.md skills/cx-prd/SKILL.md skills/cx-fix/SKILL.md skills/cx-config/SKILL.md skills/cx-scope/SKILL.md
+! rg 'disable-model-invocation: true' skills/cx-design/SKILL.md skills/cx-adr/SKILL.md skills/cx-plan/SKILL.md skills/cx-exec/SKILL.md skills/cx-summary/SKILL.md
+rg '自动衔接到本 skill' skills/cx-design/SKILL.md skills/cx-adr/SKILL.md skills/cx-plan/SKILL.md skills/cx-exec/SKILL.md skills/cx-summary/SKILL.md
 rg -F 'preferred worktree' references/core-schema-overview.md references/workflow-guide.md
 rg -F 'handoff' references/core-schema-overview.md references/workflow-guide.md
 rg -F '在 claim 前先调用 worktree 绑定检查' references/workflow-guide.md

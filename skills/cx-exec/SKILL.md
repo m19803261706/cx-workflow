@@ -4,7 +4,6 @@ description: >
   CX 工作流 — 任务执行与自动推进。当用户提到"执行任务"、"开始开发"、
   "实现功能"、"写代码"、"继续做"、"下一个任务"时触发。
   默认读取项目级状态并自动推进可执行任务，完成后再进入 summary 闭环。
-disable-model-invocation: true
 ---
 
 # cx-exec: 自动执行与任务推进
@@ -31,6 +30,7 @@ disable-model-invocation: true
 - `/cx:cx-exec --all` 才进入高自治团队模式
 - GitHub 不参与执行态主控，闭环同步交给 `/cx:cx-summary`
 - Claude Code 在共享 core 中始终注册为 runner `cc`；如果 feature 当前由 `codex` 持有，必须先 handoff，不能静默抢占
+- 允许在用户明确确认“进入执行阶段”或“继续执行”后，由工作流自动衔接到本 skill
 
 ## 核心步骤
 

@@ -5,7 +5,6 @@ description: >
   "API 设计"、"接口设计"、"架构设计"、"系统设计"时触发。
   读取 PRD 生成设计文档，保存到本地 .claude/cx/功能/{feature_title}/设计.md。
   该步骤只服务中大 feature 的执行契约，不强加给所有小功能。
-disable-model-invocation: true
 ---
 
 # cx-design: 技术设计与执行契约
@@ -30,6 +29,7 @@ disable-model-invocation: true
 - 设计文档是执行契约，不是长篇论文
 - 优先锁定 API、状态枚举、字段映射、风险点和测试重点
 - Claude Code 是共享 cx core 上的 `cc` adapter，不能绕过租约直接覆盖其他 runner 的 feature
+- 允许在用户明确确认“进入设计阶段”后，由工作流自动衔接到本 skill
 
 ## 核心步骤
 
