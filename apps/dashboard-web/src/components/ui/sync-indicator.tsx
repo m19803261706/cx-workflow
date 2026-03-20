@@ -18,6 +18,7 @@ export function SyncIndicator({ lastSyncedAt, error }: SyncIndicatorProps) {
       void controls.start({
         scale: [1, 1.8, 1],
         opacity: [1, 0.8, 1],
+        backgroundColor: ["rgb(100 116 139 / 0.6)", "rgb(34 211 238 / 0.8)", "rgb(100 116 139 / 0.6)"],
         transition: { duration: 0.6 }
       });
     }
