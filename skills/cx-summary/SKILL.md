@@ -160,6 +160,52 @@ git branch -d worktree-{feature-slug}
 
 - 跳过合并步骤，代码已在当前分支上
 
+### Step 4.5: 分支整合（Worktree 模式）
+
+如果当前在 feature worktree 中（非 inline 模式），summary 完成后提供整合选项：
+
+使用 `AskUserQuestion`：
+
+```json
+{
+  "questions": [{
+    "question": "所有任务已完成，如何处理这个 feature 分支？",
+    "header": "分支整合",
+    "multiSelect": false,
+    "options": [
+      { "label": "Merge 回主分支", "description": "合并后删除分支和 worktree" },
+      { "label": "Push + 创建 Pull Request", "description": "推送到远程，创建 PR 供审查" },
+      { "label": "保留分支（稍后处理）", "description": "保持 worktree 和分支不变" },
+      { "label": "丢弃（需确认）", "description": "删除分支和 worktree，放弃所有改动" }
+    ]
+  }]
+}
+```
+
+**选项 1 — Merge：**
+```bash
+git checkout main && git pull && git merge {feature-branch}
+# 验证测试通过后
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-worktree.sh cleanup --feature {slug}
+git branch -d {feature-branch}
+```
+
+**选项 2 — PR：**
+```bash
+git push -u origin {feature-branch}
+gh pr create --title "{feature-title}" --body "..."
+```
+
+**选项 3 — 保留：**
+不执行任何操作。
+
+**选项 4 — 丢弃：**
+使用 `AskUserQuestion` 二次确认后：
+```bash
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-worktree.sh cleanup --feature {slug} --force
+git branch -D {feature-branch}
+```
+
 ### Step 5: 收尾状态
 
 闭环完成后：
