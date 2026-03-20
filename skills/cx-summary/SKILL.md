@@ -11,8 +11,8 @@ description: >
 
 先阅读：
 
-- `core/workflow/README.md`
-- `core/workflow/protocols/summary.md`
+- `${CLAUDE_PLUGIN_ROOT}/core/workflow/README.md`
+- `${CLAUDE_PLUGIN_ROOT}/core/workflow/protocols/summary.md`
 
 ## 使用方法
 

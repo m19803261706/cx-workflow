@@ -13,8 +13,8 @@ description: >
 
 先阅读：
 
-- `core/workflow/README.md`
-- `core/workflow/protocols/design.md`
+- `${CLAUDE_PLUGIN_ROOT}/core/workflow/README.md`
+- `${CLAUDE_PLUGIN_ROOT}/core/workflow/protocols/design.md`
 
 ## Worktree 检测（强制）
 

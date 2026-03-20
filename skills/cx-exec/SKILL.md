@@ -36,8 +36,8 @@ check_output=$(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-worktree.sh check \
 
 先阅读：
 
-- `core/workflow/README.md`
-- `core/workflow/protocols/exec.md`
+- `${CLAUDE_PLUGIN_ROOT}/core/workflow/README.md`
+- `${CLAUDE_PLUGIN_ROOT}/core/workflow/protocols/exec.md`
 
 ## 使用方法
 

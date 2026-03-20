@@ -14,9 +14,9 @@ disable-model-invocation: true
 
 先阅读：
 
-- `core/workflow/README.md`
-- `core/workflow/protocols/prd.md`
-- `references/templates/prd.md`
+- `${CLAUDE_PLUGIN_ROOT}/core/workflow/README.md`
+- `${CLAUDE_PLUGIN_ROOT}/core/workflow/protocols/prd.md`
+- `${CLAUDE_PLUGIN_ROOT}/references/templates/prd.md`
 
 ## 使用方法
 

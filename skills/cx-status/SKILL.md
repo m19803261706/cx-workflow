@@ -11,8 +11,8 @@ description: >
 
 先阅读：
 
-- `core/workflow/README.md`
-- `core/workflow/protocols/status.md`
+- `${CLAUDE_PLUGIN_ROOT}/core/workflow/README.md`
+- `${CLAUDE_PLUGIN_ROOT}/core/workflow/protocols/status.md`
 
 ## 读取来源
 
