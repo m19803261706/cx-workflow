@@ -36,13 +36,75 @@ description: >
 
 ### Step 0: 读取当前功能和任务图
 
-- 从 `.claude/cx/配置.json` 读取 `current_feature`
+- 从 `.claude/cx/配置.json` 读取 `current_feature` 和 `worktree_isolation`
 - 从项目级 `.claude/cx/状态.json` 找到对应中文目录
 - 从 `.claude/cx/功能/{功能标题}/状态.json` 读取 `tasks / phases / execution_order`
 
+### Step 0.3: 工作区选择（每个 feature 首次执行时询问一次）
+
+如果当前 feature 还没有绑定 worktree（`状态.json` 中 `worktree.binding_status` 不是 `bound`），
+需要询问用户选择执行方式：
+
+> **功能: {feature_title}**
+>
+> 执行方式：
+> 1. **创建独立工作区** — 在隔离 worktree 中开发，完成后合并回主分支（推荐）
+> 2. **当前分支直接开始** — 在当前分支上直接开发
+>
+> 选择 1 还是 2？
+
+如果 `worktree_isolation=true`，默认推荐选项 1；如果 `worktree_isolation=false`，默认推荐选项 2。
+
+**用户选择 1（创建独立工作区）：**
+
+使用 Claude Code 内置的 `EnterWorktree` 工具创建隔离工作区：
+
+```
+EnterWorktree(name: "{feature-slug}")
+```
+
+这会：
+- 在 `<repo>/.claude/worktrees/{feature-slug}/` 创建独立目录
+- 自动创建 `worktree-{feature-slug}` 分支
+- 将当前会话切换到新工作区
+
+创建成功后，把 worktree 信息记录到 feature 的 `状态.json`：
+
+```json
+{
+  "worktree": {
+    "preferred_branch": "worktree-{feature-slug}",
+    "preferred_worktree_path": ".claude/worktrees/{feature-slug}",
+    "binding_status": "bound",
+    "isolation_mode": "worktree"
+  }
+}
+```
+
+**用户选择 2（当前分支直接开始）：**
+
+记录用户选择，后续不再询问：
+
+```json
+{
+  "worktree": {
+    "preferred_branch": "{当前分支名}",
+    "preferred_worktree_path": "{当前目录}",
+    "binding_status": "bound",
+    "isolation_mode": "inline"
+  }
+}
+```
+
+**如果 feature 已经绑定了 worktree：**
+
+- `isolation_mode = "worktree"` 且当前不在该 worktree 中：提示用户切换或使用 `EnterWorktree` 进入
+- `isolation_mode = "inline"`：直接继续
+- 不再重复询问
+
 ### Step 0.5: 校验 worktree 绑定
 
-在 claim 之前先做 worktree 校验，确保 runner 当前 checkout 与 feature 绑定一致：
+在 claim 之前做最终校验，确保 runner 当前 checkout 与 feature 绑定一致：
 
 ```bash
 bash scripts/cx-core-worktree.sh \
@@ -53,7 +115,6 @@ bash scripts/cx-core-worktree.sh \
   --worktree-path {preferred-worktree-path}
 ```
 
-- 如果脚本返回推荐 worktree，说明还在规划阶段，先落盘推荐再继续
 - 如果脚本拒绝当前 checkout，先走 handoff 或切换到正确 worktree，不能直接 claim
 - 同一 feature 只能在一个 worktree 中持有活跃执行权，除非已经发生 handoff
 - claim helper 注册当前 session 时，runner 固定使用 `cc`

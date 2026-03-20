@@ -211,6 +211,31 @@
         ]
       }
     },
+    "worktree": {
+      "type": "object",
+      "properties": {
+        "preferred_branch": {
+          "type": "string"
+        },
+        "preferred_worktree_path": {
+          "type": "string"
+        },
+        "binding_status": {
+          "type": "string",
+          "enum": ["unbound", "recommended", "bound"]
+        },
+        "isolation_mode": {
+          "type": "string",
+          "enum": ["worktree", "inline", "merged"],
+          "description": "worktree=独立工作区, inline=当前分支, merged=已合并回主分支"
+        },
+        "bound_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
     "docs": {
       "type": "object",
       "required": ["prd"],

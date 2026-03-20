@@ -80,10 +80,52 @@ bash scripts/cx-workflow-summary.sh \
 
 但无论哪种模式，GitHub 都不是执行真相源。
 
-### Step 4: 收尾状态
+### Step 4: 分支合并与工作区清理
+
+检查 feature 的 `状态.json` 中的 `worktree.isolation_mode`：
+
+**如果 `isolation_mode = "worktree"`（独立工作区）：**
+
+询问用户合并方式：
+
+> **功能 {feature_title} 已完成，当前在独立工作区中。**
+>
+> 合并方式：
+> 1. **创建 Pull Request** — 推送分支并创建 PR，适合需要 review 的场景
+> 2. **直接合并到主分支** — 将 worktree 分支合并回主分支
+> 3. **暂不合并** — 保留工作区，稍后手动处理
+>
+> 选择 1、2 还是 3？
+
+选项 1（创建 PR）：
+```bash
+git push -u origin worktree-{feature-slug}
+gh pr create --title "feat: {feature_title}" --body "..."
+```
+
+选项 2（直接合并）：
+```bash
+# 先退出 worktree 回到主目录
+ExitWorktree(save: true)
+# 在主分支合并
+git merge worktree-{feature-slug}
+# 清理 worktree 分支
+git branch -d worktree-{feature-slug}
+```
+
+选项 3（暂不合并）：
+- 保留 worktree 和分支
+- 提示用户后续可以通过 `git worktree list` 查看
+
+**如果 `isolation_mode = "inline"`（当前分支直接开发）：**
+
+- 跳过合并步骤，代码已在当前分支上
+
+### Step 5: 收尾状态
 
 闭环完成后：
 
 - feature 状态更新为 `summarized`
 - `配置.json.current_feature` 清空
 - 历史 feature 文档完整保留
+- 如果使用了独立工作区且已合并，worktree 信息标记为 `merged`

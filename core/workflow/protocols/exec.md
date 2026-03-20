@@ -3,6 +3,7 @@
 ## 进入条件
 
 - feature 已完成规划
+- 已完成工作区选择（worktree 或 inline）
 - 当前 runner 已通过 worktree 检查
 - 当前 runner 已合法持有 lease
 
@@ -33,6 +34,14 @@
 - shared core feature / project / session records
 - runner-specific runtime artifacts
 - exec dispatch 决策输出
+
+## 工作区选择规则
+
+- 每个 feature 首次执行时必须询问用户：创建独立工作区 or 当前分支直接开始
+- `worktree_isolation=true` 时默认推荐创建独立工作区
+- 使用 Claude Code 内置 `EnterWorktree` 工具创建隔离 worktree
+- 用户选择后记录到 feature 状态的 `worktree.isolation_mode`（`worktree` 或 `inline`）
+- 后续 resume 同一 feature 时不再重复询问
 
 ## 调度规则
 

@@ -126,8 +126,8 @@ feature 级 `状态.json` 至少包含：
 规划完成后默认建议：
 
 ```text
-下一步：/cx:cx-exec（先完成 worktree 绑定检查）
+下一步：/cx:cx-exec
+执行开始时会询问：创建独立工作区 or 当前分支直接开始
 ```
 
 如果任务图中存在清晰并行组，再在状态中标注 `parallel_group`，供 `/cx:cx-exec --all` 使用。
-推荐 worktree 只是共享 core 的建议值，不代表 CC 可以跳过租约直接开工。
