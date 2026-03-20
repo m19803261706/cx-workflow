@@ -101,7 +101,9 @@ export function ProjectsPage() {
 
       <section style={{ display: "grid", gap: 16 }}>
         {projects.map((project) => (
-          <ProjectCard key={project.id} project={project} />
+          <a key={project.id} href={`#/projects/${project.id}`} style={{ textDecoration: "none" }}>
+            <ProjectCard project={project} />
+          </a>
         ))}
         {!projects.length && !error ? (
           <div style={{ ...sectionCardStyle, textAlign: "center", color: "#7d5b44" }}>

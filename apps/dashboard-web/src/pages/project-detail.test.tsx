@@ -1,0 +1,91 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+
+import { ProjectDetailPage } from "./project-detail.tsx";
+
+test("ProjectDetailPage renders feature summary, handoff banner and read-only helper actions", () => {
+  const html = renderToStaticMarkup(
+    <ProjectDetailPage
+      detail={{
+        project: {
+          id: "taichu",
+          displayName: "太初八卦",
+          rootPath: "/Users/cx/Documents/code/java/taichubagua",
+          registrationSource: "manual",
+          syncStatus: "healthy",
+          currentFeatureSlug: "cx-global-web-dashboard",
+          currentFeatureTitle: "CX 全局 Web 管理面板",
+          lifecycleStage: "executing",
+          ownerRunner: "codex",
+          worktreePath: "/worktrees/cx-global-web-dashboard",
+          handoffPending: true,
+          progressCompleted: 4,
+          progressTotal: 7,
+          featureStatus: "executing"
+        },
+        feature: {
+          slug: "cx-global-web-dashboard",
+          title: "CX 全局 Web 管理面板",
+          workflowPhase: "exec",
+          nextRoute: "cx-exec",
+          ownerRunner: "codex",
+          ownerSessionId: "codex-exec-1",
+          worktreePath: "/worktrees/cx-global-web-dashboard",
+          bindingStatus: "bound",
+          handoffPending: true,
+          progress: {
+            completed: 4,
+            total: 7
+          },
+          docs: {
+            prd: ".claude/cx/功能/CX 全局 Web 管理面板/需求.md"
+          },
+          tasks: [
+            {
+              id: 1,
+              title: "任务 1",
+              status: "completed",
+              phase: 1,
+              parallel: false,
+              dependsOn: [],
+              parallelGroup: null
+            },
+            {
+              id: 2,
+              title: "任务 2",
+              status: "in_progress",
+              phase: 2,
+              parallel: true,
+              dependsOn: [1],
+              parallelGroup: "backend-core"
+            }
+          ]
+        },
+        activeSessions: [
+          {
+            sessionId: "codex-exec-1",
+            runner: "codex",
+            branch: "codex/cx-global-web-dashboard",
+            worktreePath: "/worktrees/cx-global-web-dashboard",
+            claimedFeature: "cx-global-web-dashboard",
+            claimedTasks: [2],
+            lastHeartbeat: "2026-03-20T09:00:00Z"
+          }
+        ]
+      }}
+      onBackHref="#/"
+    />
+  );
+
+  assert.match(html, /CX 全局 Web 管理面板/);
+  assert.match(html, /codex-exec-1/);
+  assert.match(html, /\/worktrees\/cx-global-web-dashboard/);
+  assert.match(html, /handoff pending/i);
+  assert.match(html, /打开项目目录/);
+  assert.match(html, /复制建议命令/);
+  assert.match(html, /手动刷新/);
+  assert.match(html, /任务 1/);
+  assert.match(html, /任务 2/);
+});

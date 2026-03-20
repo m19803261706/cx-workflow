@@ -76,8 +76,12 @@ test -f apps/dashboard-web/package.json
 test -f apps/dashboard-web/src/main.tsx
 test -f apps/dashboard-web/src/App.tsx
 test -f apps/dashboard-web/src/pages/projects.tsx
+test -f apps/dashboard-web/src/pages/project-detail.tsx
 test -f apps/dashboard-web/src/components/project-card.tsx
 test -f apps/dashboard-web/src/components/project-card.test.tsx
+test -f apps/dashboard-web/src/components/feature-summary.tsx
+test -f apps/dashboard-web/src/components/handoff-banner.tsx
+test -f apps/dashboard-web/src/pages/project-detail.test.tsx
 test -f scripts/cx-dashboard-ensure.sh
 test -f scripts/cx-dashboard-open.sh
 

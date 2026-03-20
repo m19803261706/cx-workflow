@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --import tsx --test src/components/project-card.test.tsx",
+    "test": "node --import tsx --test src/components/project-card.test.tsx src/pages/project-detail.test.tsx",
     "typecheck": "tsc --noEmit",
     "dev": "vite",
     "build": "vite build"
