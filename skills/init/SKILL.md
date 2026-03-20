@@ -136,7 +136,57 @@ GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 }
 ```
 
-### Step 6: 校验插件 hooks 依赖条件
+### Step 6: 接入全局 Web 管理面板 bridge
+
+初始化完成后，复用同一个 bridge helper 判断是否需要提醒或自动注册当前项目：
+
+```bash
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+bridge_output=$(bash scripts/cx-dashboard-bridge.sh \
+  --project-root "$PROJECT_ROOT" \
+  --display-name "$(basename "$PROJECT_ROOT")")
+```
+
+读取这些返回值：
+
+- `prompt_state`
+- `should_prompt`
+- `service_running`
+- `auto_register`
+- `frontend_url`
+
+规则：
+
+- 如果 `should_prompt=true`
+  - 明确提醒用户存在全局 Web 管理面板能力
+  - 这是强推荐，不是强制前置
+  - 如果用户接受，执行：
+
+    ```bash
+    bash scripts/cx-dashboard-bridge.sh \
+      --project-root "$PROJECT_ROOT" \
+      --display-name "$(basename "$PROJECT_ROOT")" \
+      --decision accept
+    ```
+
+  - 如果用户暂不启用，执行：
+
+    ```bash
+    bash scripts/cx-dashboard-bridge.sh \
+      --project-root "$PROJECT_ROOT" \
+      --display-name "$(basename "$PROJECT_ROOT")" \
+      --decision decline
+    ```
+
+- 如果 `prompt_state=accepted` 且 `auto_register=true`
+  - bridge 会自动把当前项目注册进全局面板
+  - 不要重复询问
+
+- 如果 dashboard 已在运行且返回了 `frontend_url`
+  - 可以附带告诉用户面板地址
+  - 但不要阻塞当前 `cx:init`
+
+### Step 7: 校验插件 hooks 依赖条件
 
 项目初始化不再向 `.claude/settings.json` 写入 hooks。
 
@@ -148,7 +198,7 @@ GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 - `cx:init` 只负责告知当前项目已具备被插件 hooks 读取的运行时真相
 - 如果项目是旧布局，先迁移到共享 `cx core`，再启用双运行器
 
-### Step 7: 检查并建议 GitHub 接入
+### Step 8: 检查并建议 GitHub 接入
 
 如果 `origin` 不存在：
 
@@ -156,7 +206,7 @@ GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 - 默认建议创建 GitHub 仓库并绑定
 - 由后续命令或配套脚本完成仓库接入
 
-### Step 8: 更新 CLAUDE.md / AGENTS.md 最小规则
+### Step 9: 更新 CLAUDE.md / AGENTS.md 最小规则
 
 只补最小规则，不塞完整流程实现细节。
 

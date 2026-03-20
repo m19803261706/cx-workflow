@@ -82,6 +82,7 @@ test -f apps/dashboard-web/src/components/project-card.test.tsx
 test -f apps/dashboard-web/src/components/feature-summary.tsx
 test -f apps/dashboard-web/src/components/handoff-banner.tsx
 test -f apps/dashboard-web/src/pages/project-detail.test.tsx
+test -f scripts/cx-dashboard-bridge.sh
 test -f scripts/cx-dashboard-ensure.sh
 test -f scripts/cx-dashboard-open.sh
 
@@ -231,6 +232,7 @@ bash -n \
   scripts/cx-workflow-status.sh \
   scripts/cx-workflow-summary.sh \
   scripts/cx-workflow-fix.sh \
+  scripts/cx-dashboard-bridge.sh \
   scripts/cx-dashboard-ensure.sh \
   scripts/cx-dashboard-open.sh
 
@@ -248,6 +250,45 @@ echo "[check] dashboard web typecheck"
 
 echo "[check] dashboard web build"
 (cd apps/dashboard-web && npm run build)
+
+echo "[check] dashboard bridge honors first-use prompt and later auto-register"
+BRIDGE_HOME=$(mktemp -d)
+BRIDGE_PROJECT=$(mktemp -d)
+
+bridge_initial=$(
+  CX_DASHBOARD_HOME="$BRIDGE_HOME/.cx/dashboard" \
+    bash scripts/cx-dashboard-bridge.sh \
+      --project-root "$BRIDGE_PROJECT" \
+      --display-name "Bridge Smoke"
+)
+grep '^prompt_state=unknown$' <<< "$bridge_initial" >/dev/null
+grep '^should_prompt=true$' <<< "$bridge_initial" >/dev/null
+grep '^project_registered=false$' <<< "$bridge_initial" >/dev/null
+
+bridge_accept=$(
+  CX_DASHBOARD_HOME="$BRIDGE_HOME/.cx/dashboard" \
+    bash scripts/cx-dashboard-bridge.sh \
+      --project-root "$BRIDGE_PROJECT" \
+      --display-name "Bridge Smoke" \
+      --decision accept
+)
+grep '^prompt_state=accepted$' <<< "$bridge_accept" >/dev/null
+grep '^auto_register=true$' <<< "$bridge_accept" >/dev/null
+grep '^project_registered=true$' <<< "$bridge_accept" >/dev/null
+
+bridge_follow_up=$(
+  CX_DASHBOARD_HOME="$BRIDGE_HOME/.cx/dashboard" \
+    bash scripts/cx-dashboard-bridge.sh \
+      --project-root "$BRIDGE_PROJECT" \
+      --display-name "Bridge Smoke"
+)
+grep '^should_prompt=false$' <<< "$bridge_follow_up" >/dev/null
+grep '^project_registered=true$' <<< "$bridge_follow_up" >/dev/null
+jq -e --arg root "$BRIDGE_PROJECT" '
+  .prompt_state == "accepted"
+  and .auto_register == true
+  and any(.projects[]; .root_path == $root)
+' "$BRIDGE_HOME/.cx/dashboard/registry.json" >/dev/null
 
 echo "[check] core claim keeps different features isolated"
 CORE_SCENARIO_DIR=$(mktemp -d)

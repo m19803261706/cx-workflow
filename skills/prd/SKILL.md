@@ -57,6 +57,32 @@ bash scripts/cx-workflow-prd.sh \
 - `.claude/cx/core/features/{feature-slug}.json`
 - `.claude/cx/core/projects/project.json`
 
+### Step 0.5: 复用 dashboard bridge 处理首次提醒与自动注册
+
+在进入长问答前执行：
+
+```bash
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+bridge_output=$(bash scripts/cx-dashboard-bridge.sh \
+  --project-root "$PROJECT_ROOT" \
+  --display-name "$(basename "$PROJECT_ROOT")")
+```
+
+规则：
+
+- 如果 `should_prompt=true`
+  - 用简短问答提醒用户存在全局 Web 管理面板
+  - 这不是强制前置，用户跳过也继续当前 PRD
+  - 用户接受后执行 `--decision accept`
+  - 用户暂不启用时执行 `--decision decline`
+
+- 如果 `prompt_state=accepted` 且 `auto_register=true`
+  - bridge 会自动注册当前项目
+  - 直接继续 PRD，不再重复提醒
+
+- 如果 `frontend_url` 已存在
+  - 可以顺手告诉用户当前全局面板地址
+
 ### Step 1: 读取现有上下文
 
 - 扫描项目技术栈和已有模块

@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 
 import { registerProjectRoutes } from "./routes/projects.ts";
+import { registerRuntimeRoutes } from "./routes/runtime.ts";
 import { buildDashboardHealth, inferRuntimePathFromRegistryPath, loadDashboardRuntime } from "./runtime.ts";
 
 export type DashboardServerOptions = {
@@ -21,6 +22,11 @@ export function buildServer(options: DashboardServerOptions) {
     return buildDashboardHealth(runtime);
   });
 
+  void registerRuntimeRoutes(
+    server,
+    options.registryPath,
+    options.runtimePath ?? inferRuntimePathFromRegistryPath(options.registryPath)
+  );
   void registerProjectRoutes(server, options.registryPath);
   return server;
 }
