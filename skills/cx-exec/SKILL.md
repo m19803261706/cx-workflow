@@ -10,6 +10,20 @@ description: >
 
 默认像一个稳健主程一样持续推进；带 `--all` 时，再升级成高自治 agent teams。
 
+## 强制规则
+
+**禁止跳过工作区选择。** 无论是 `/cx:cx-exec` 还是 `/cx:cx-exec --all`，
+如果当前 feature 还没有绑定 worktree（`状态.json` 中 `worktree.binding_status` 不是 `bound`），
+必须（MUST）先用 `AskUserQuestion` 询问用户选择工作区模式，得到回答后才能开始任何实现工作。
+
+违反这条规则的行为：
+- ❌ `--all` 模式直接在当前分支开干
+- ❌ 跳过询问默认选择 inline
+- ❌ 在拉起子代理之前没有完成工作区选择
+
+正确的行为：
+- ✅ 读取状态 → AskUserQuestion 询问工作区 → 用户回答 → 记录选择 → 然后才开始执行/拉代理
+
 先阅读：
 
 - `core/workflow/README.md`
