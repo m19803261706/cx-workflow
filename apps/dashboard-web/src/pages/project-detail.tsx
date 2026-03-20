@@ -3,6 +3,7 @@ import { BookCopy, FolderOpen, RefreshCw, TerminalSquare, Waypoints } from "luci
 
 import { FeatureSummary } from "../components/feature-summary.tsx";
 import { HandoffBanner } from "../components/handoff-banner.tsx";
+import { WorkflowStepper } from "../components/ui/workflow-stepper.tsx";
 import { formatOwnerRunner } from "../labels.ts";
 import { DashboardShell } from "../components/ui/dashboard-shell.tsx";
 import { GlowPanel } from "../components/ui/glow-panel.tsx";
@@ -65,6 +66,16 @@ export function ProjectDetailPage({ detail, onBackHref }: ProjectDetailPageProps
 
         <HandoffBanner visible={detail.project.handoffPending || detail.feature?.handoffPending === true} />
       </div>
+
+      {detail.feature && (
+        <div className="panel-border panel-surface rounded-[28px] px-6 py-5">
+          <WorkflowStepper
+            workflowPhase={detail.feature.workflowPhase}
+            lifecycleStage={detail.project.lifecycleStage ?? null}
+            variant="full"
+          />
+        </div>
+      )}
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.9fr)]">
         <FeatureSummary detail={detail} />

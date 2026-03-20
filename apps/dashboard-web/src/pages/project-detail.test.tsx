@@ -32,4 +32,7 @@ test("ProjectDetailPage renders feature summary, handoff banner and read-only he
   assert.match(html, /工作流文档/);
   assert.match(html, /任务 1/);
   assert.match(html, /任务 2/);
+  assert.match(html, /工作流阶段/);
+  assert.match(html, /PRD 收敛/);
+  assert.match(html, /执行调度/);
 });
