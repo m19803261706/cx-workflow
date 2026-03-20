@@ -196,6 +196,7 @@ function buildProjectSummary(params: {
   featureRecordPath: string | null;
   lastSeenAt: string;
   lastSyncedAt: string | null;
+  workflowPhase: string | null;
 }): ProjectSummary {
   return {
     id: params.candidate.id,
@@ -214,7 +215,8 @@ function buildProjectSummary(params: {
     featureStatus: params.featureStatus,
     featureRecordPath: params.featureRecordPath,
     lastSeenAt: params.lastSeenAt,
-    lastSyncedAt: params.lastSyncedAt
+    lastSyncedAt: params.lastSyncedAt,
+    workflowPhase: params.workflowPhase
   };
 }
 
@@ -252,7 +254,8 @@ async function readProjectAggregation(candidate: CandidateProject, timestamp = n
         featureStatus: null,
         featureRecordPath: null,
         lastSeenAt: timestamp,
-        lastSyncedAt: null
+        lastSyncedAt: null,
+        workflowPhase: null
       }),
       detail: null
     };
@@ -281,7 +284,8 @@ async function readProjectAggregation(candidate: CandidateProject, timestamp = n
         featureStatus: null,
         featureRecordPath: null,
         lastSeenAt: timestamp,
-        lastSyncedAt: timestamp
+        lastSyncedAt: timestamp,
+        workflowPhase: null
       });
       return {
         summary,
@@ -323,7 +327,8 @@ async function readProjectAggregation(candidate: CandidateProject, timestamp = n
       featureStatus: featureStatus?.status ?? null,
       featureRecordPath: path.relative(projectRoot, featureRecordPath),
       lastSeenAt: timestamp,
-      lastSyncedAt: timestamp
+      lastSyncedAt: timestamp,
+      workflowPhase: coreFeature.workflow?.current_phase ?? featureSummary.workflow_phase ?? null
     });
 
     const detailFeature: ProjectFeatureDetail = {
@@ -384,7 +389,8 @@ async function readProjectAggregation(candidate: CandidateProject, timestamp = n
         featureStatus: null,
         featureRecordPath: null,
         lastSeenAt: timestamp,
-        lastSyncedAt: null
+        lastSyncedAt: null,
+        workflowPhase: null
       }),
       detail: null
     };

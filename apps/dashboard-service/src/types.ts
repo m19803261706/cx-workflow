@@ -60,6 +60,7 @@ export type ProjectSummary = {
   featureRecordPath: string | null;
   lastSeenAt: string;
   lastSyncedAt: string | null;
+  workflowPhase: string | null;
 };
 
 export type ProjectFeatureDetail = {
