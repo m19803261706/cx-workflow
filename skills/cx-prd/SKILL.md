@@ -5,7 +5,6 @@ description: >
   "我想做一个"、"帮我规划"、"收集需求"、"功能规划"时触发。
   多轮对话收集需求，自动评估规模，保存到本地
   .claude/cx/功能/{feature_title}/需求.md，并自动判断是否需要 Design。
-disable-model-invocation: true
 ---
 
 # cx-prd: 需求收集与规模评估

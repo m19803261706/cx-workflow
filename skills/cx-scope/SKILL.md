@@ -5,7 +5,6 @@ description: >
   "scope"、"项目探讨"、"功能方案"时触发。多轮对话探讨项目或功能方案，
   将结果保存到本地 `.claude/cx/功能/{功能标题}/范围.md`，
   可选同步到 GitHub Issue（基于 config.github_sync 模式）。
-disable-model-invocation: true
 ---
 
 # cx-scope: 项目与功能探讨

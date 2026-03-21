@@ -4,7 +4,6 @@ description: >
   CX 工作流 — 项目初始化。每个项目都单独确认 developer_id、GitHub 同步策略、
   agent teams、code review、worktree isolation、auto memory，并建立项目级
   .claude/cx 运行时真相目录。仅在用户明确调用 `/cx:cx-init` 时执行。
-disable-model-invocation: true
 ---
 
 # cx-init — 初始化纯 CX 3.1 项目环境
