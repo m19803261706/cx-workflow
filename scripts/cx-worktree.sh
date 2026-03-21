@@ -130,6 +130,51 @@ resolve_branch_name() {
   printf '%s/%s\n' "$BRANCH_PREFIX" "$FEATURE_SLUG"
 }
 
+# Sync .claude/ settings from main repo to worktree
+# CC reads project-level permissions from CWD's .claude/ directory.
+# Worktrees have their own file tree, so .claude/settings.local.json
+# must be copied or generated for tool permissions to work.
+sync_claude_settings() {
+  local wt_path="$1"
+  local wt_claude_dir="$wt_path/.claude"
+  local main_settings_local="$PROJECT_ROOT/.claude/settings.local.json"
+  local main_settings="$PROJECT_ROOT/.claude/settings.json"
+
+  mkdir -p "$wt_claude_dir"
+
+  # Copy settings.local.json from main repo if exists
+  if [[ -f "$main_settings_local" ]]; then
+    cp "$main_settings_local" "$wt_claude_dir/settings.local.json"
+    log_ok "synced .claude/settings.local.json to worktree"
+    return
+  fi
+
+  # Copy settings.json from main repo if exists
+  if [[ -f "$main_settings" ]]; then
+    cp "$main_settings" "$wt_claude_dir/settings.json"
+    log_ok "synced .claude/settings.json to worktree"
+    return
+  fi
+
+  # No project-level settings — create minimal permissions for worktree
+  cat > "$wt_claude_dir/settings.local.json" << 'SETTINGS_EOF'
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Write",
+      "Edit",
+      "MultiEdit",
+      "Bash(*)",
+      "Grep",
+      "Glob"
+    ]
+  }
+}
+SETTINGS_EOF
+  log_ok "created default .claude/settings.local.json in worktree"
+}
+
 cmd_create() {
   [[ -n "$FEATURE_SLUG" ]] || die "create requires --feature <slug>"
 
@@ -141,6 +186,8 @@ cmd_create() {
   # Check if worktree already exists
   if [[ -d "$worktree_path" ]]; then
     log_warn "worktree already exists at $worktree_path"
+    # Still sync settings in case they were updated
+    sync_claude_settings "$worktree_path"
     printf 'worktree_path=%s\n' "$worktree_path"
     printf 'branch=%s\n' "$branch_name"
     printf 'status=exists\n'
@@ -162,6 +209,9 @@ cmd_create() {
     log_info "creating new branch $branch_name"
     git -C "$PROJECT_ROOT" worktree add "$worktree_path" -b "$branch_name"
   fi
+
+  # Sync .claude/settings.local.json to worktree (CC reads project-level permissions from CWD)
+  sync_claude_settings "$worktree_path"
 
   log_ok "worktree created at $worktree_path (branch: $branch_name)"
   printf 'worktree_path=%s\n' "$worktree_path"
