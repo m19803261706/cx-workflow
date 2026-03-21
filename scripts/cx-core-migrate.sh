@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "$SCRIPT_DIR/cx-lib.sh"
+
 PROJECT_ROOT="${PROJECT_ROOT:-$(pwd)}"
 FORCE="false"
 
@@ -8,7 +11,7 @@ usage() {
   cat <<'EOF'
 usage: cx-core-migrate.sh [--project-root <path>] [--force]
 
-Migrate a legacy project-level .claude/cx layout into the shared cx core control plane.
+Migrate a legacy project-level .claude/cx layout into the new .cx + 开发文档/CX工作流 structure.
 EOF
 }
 
@@ -231,11 +234,9 @@ discover_feature_source() {
 build_tasks_json() {
   local status_file="$1"
   local feature_title="$2"
-  local feature_path="$3"
 
   jq -c \
     --arg feature_title "$feature_title" \
-    --arg feature_path "$feature_path" \
     '
       (.tasks // [])
       | map(
@@ -254,7 +255,7 @@ build_tasks_json() {
           | .owner_session_id = null
           | .path = (
               if (($task.path // "") | length) > 0 then $task.path
-              else ".claude/cx/" + $feature_path + "/任务/任务-" + (($task.id // $task.number // 0) | tostring) + ".md"
+              else "开发文档/CX工作流/功能/" + $feature_title + "/任务/任务-" + (($task.id // $task.number // 0) | tostring) + ".md"
               end
             )
         )
@@ -271,21 +272,21 @@ main() {
   local public_config_file public_status_file public_feature_root public_fix_root public_initialized_at
   local source_project_status_file
 
-  cx_dir="$PROJECT_ROOT/.claude/cx"
-  core_dir="$cx_dir/core"
-  core_project_dir="$core_dir/projects"
-  core_feature_dir="$core_dir/features"
-  core_worktree_dir="$core_dir/worktrees"
-  core_session_dir="$core_dir/sessions"
-  core_handoff_dir="$core_dir/handoffs"
-  runtime_dir="$cx_dir/runtime"
-  cc_runtime_dir="$runtime_dir/cc"
+  cx_dir="$(cx_legacy_root "$PROJECT_ROOT")"
+  core_dir="$(cx_core_root "$PROJECT_ROOT")"
+  core_project_dir="$(cx_core_projects_root "$PROJECT_ROOT")"
+  core_feature_dir="$(cx_core_features_root "$PROJECT_ROOT")"
+  core_worktree_dir="$(cx_core_worktrees_root "$PROJECT_ROOT")"
+  core_session_dir="$(cx_core_sessions_root "$PROJECT_ROOT")"
+  core_handoff_dir="$(cx_core_handoffs_root "$PROJECT_ROOT")"
+  runtime_dir="$(cx_runtime_root "$PROJECT_ROOT")"
+  cc_runtime_dir="$(cx_runner_runtime_root "cc" "$PROJECT_ROOT")"
   settings_file="$PROJECT_ROOT/.claude/settings.json"
   migrated_at=$(now_iso)
-  public_config_file="$cx_dir/配置.json"
-  public_status_file="$cx_dir/状态.json"
-  public_feature_root="$cx_dir/功能"
-  public_fix_root="$cx_dir/修复"
+  public_config_file="$(cx_public_config_file "$PROJECT_ROOT")"
+  public_status_file="$(cx_public_status_file "$PROJECT_ROOT")"
+  public_feature_root="$(cx_public_feature_root "$PROJECT_ROOT")"
+  public_fix_root="$(cx_public_fix_root "$PROJECT_ROOT")"
 
   if [[ -f "$cx_dir/配置.json" && -f "$cx_dir/状态.json" ]]; then
     legacy_mode="zh"
@@ -376,15 +377,15 @@ main() {
       features: {},
       active_sessions: {},
       runtime_roots: {
-        projects: ".claude/cx/core/projects",
-        features: ".claude/cx/core/features",
-        sessions: ".claude/cx/core/sessions",
-        handoffs: ".claude/cx/core/handoffs",
-        worktrees: ".claude/cx/core/worktrees",
+        projects: ".cx/core/projects",
+        features: ".cx/core/features",
+        sessions: ".cx/core/sessions",
+        handoffs: ".cx/core/handoffs",
+        worktrees: ".cx/core/worktrees",
         artifacts: {
-          cx: ".claude/cx/runtime/cx",
-          cc: ".claude/cx/runtime/cc",
-          codex: ".claude/cx/runtime/codex"
+          cx: ".cx/runtime/cx",
+          cc: ".cx/runtime/cc",
+          codex: ".cx/runtime/codex"
         }
       },
       migrated_at: $migrated_at
@@ -448,7 +449,7 @@ main() {
     design_doc=$(doc_if_exists "$source_dir" "设计.md" "design.md")
     adr_doc=$(doc_if_exists "$source_dir" "架构决策.md" "adr.md")
     summary_doc=$(doc_if_exists "$source_dir" "总结.md" "summary.md")
-    tasks_json=$(build_tasks_json "$status_file" "$feature_title" "$feature_path")
+    tasks_json=$(build_tasks_json "$status_file" "$feature_title")
     worktree_path="/worktrees/$target_slug"
     worktree_branch="feature/$target_slug"
     feature_file="$core_feature_dir/$target_slug.json"
@@ -568,7 +569,7 @@ main() {
         session_id: null,
         current_worktree_path: null,
         current_branch: null,
-        record_path: (".claude/cx/core/worktrees/" + $feature_slug + ".json")
+        record_path: (".cx/core/worktrees/" + $feature_slug + ".json")
       }
     ' > "$worktree_file"
 
@@ -576,7 +577,7 @@ main() {
       --arg raw_slug "$raw_slug" \
       --arg slug "$target_slug" \
       --arg title "$feature_title" \
-      --arg path ".claude/cx/core/features/$target_slug.json" \
+      --arg path ".cx/core/features/$target_slug.json" \
       --arg stage "$feature_stage" \
       --arg worktree_path "$worktree_path" \
       --arg updated_at "$migrated_at" \
@@ -689,7 +690,7 @@ main() {
     echo "[migrate] detected project-copied hooks in .claude/settings.json; plugin-managed hooks should replace them after migration" >&2
   fi
 
-  echo "[migrate] migrated legacy cx runtime at $cx_dir into shared core"
+  echo "[migrate] migrated legacy cx runtime at $cx_dir into .cx + 开发文档/CX工作流"
   echo "[migrate] core project: $core_project_dir/project.json"
 
   if [[ "$source_project_status_file" != "$project_status_file" ]]; then

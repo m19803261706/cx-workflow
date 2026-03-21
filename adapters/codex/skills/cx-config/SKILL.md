@@ -1,6 +1,6 @@
 ---
 name: cx-config
-description: "Codex 侧 CX 配置管理。查看或修改项目级 .claude/cx/配置.json，并保持双运行器配置清晰。"
+description: "Codex 侧 CX 配置管理。查看或修改项目级 开发文档/CX工作流/配置.json，并保持双运行器配置清晰。"
 ---
 
 # CX Config (Codex Adapter)

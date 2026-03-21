@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "$SCRIPT_DIR/cx-lib.sh"
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -133,24 +136,35 @@ detect_remote_state() {
 }
 
 create_directories() {
-  local cx_root="$PROJECT_ROOT/.claude/cx"
+  local docs_root machine_root
 
-  log_info "Creating cx 3.1 directory structure..."
-  mkdir -p "$cx_root/功能"
-  mkdir -p "$cx_root/修复"
-  log_success "Created .claude/cx/功能 and .claude/cx/修复"
+  docs_root=$(cx_docs_root "$PROJECT_ROOT")
+  machine_root=$(cx_machine_root "$PROJECT_ROOT")
+
+  log_info "Creating cx directory structure..."
+  mkdir -p "$docs_root/功能"
+  mkdir -p "$docs_root/修复"
+  mkdir -p "$machine_root/core/projects"
+  mkdir -p "$machine_root/core/features"
+  mkdir -p "$machine_root/core/worktrees"
+  mkdir -p "$machine_root/core/sessions"
+  mkdir -p "$machine_root/core/handoffs"
+  mkdir -p "$machine_root/runtime/cc"
+  mkdir -p "$machine_root/runtime/codex"
+  mkdir -p "$machine_root/runtime/cx"
+  log_success "Created 开发文档/CX工作流 and .cx runtime roots"
 }
 
 create_config() {
-  local cx_root="$PROJECT_ROOT/.claude/cx"
-  local config_file="$cx_root/配置.json"
+  local config_file
+  config_file=$(cx_public_config_file "$PROJECT_ROOT")
 
   if [[ -f "$config_file" ]]; then
     log_warning "配置.json already exists, skipping creation"
     return
   fi
 
-  log_info "Creating .claude/cx/配置.json..."
+  log_info "Creating 开发文档/CX工作流/配置.json..."
   cat > "$config_file" <<EOF
 {
   "version": "3.0",
@@ -173,13 +187,14 @@ create_config() {
   }
 }
 EOF
-  log_success "Created .claude/cx/配置.json"
+  log_success "Created 开发文档/CX工作流/配置.json"
 }
 
 create_status() {
-  local cx_root="$PROJECT_ROOT/.claude/cx"
-  local status_file="$cx_root/状态.json"
+  local status_file
   local now
+
+  status_file=$(cx_public_status_file "$PROJECT_ROOT")
 
   if [[ -f "$status_file" ]]; then
     log_warning "状态.json already exists, skipping creation"
@@ -187,7 +202,7 @@ create_status() {
   fi
 
   now=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-  log_info "Creating .claude/cx/状态.json..."
+  log_info "Creating 开发文档/CX工作流/状态.json..."
   cat > "$status_file" <<EOF
 {
   "initialized_at": "$now",
@@ -197,15 +212,48 @@ create_status() {
   "fixes": {}
 }
 EOF
-  log_success "Created .claude/cx/状态.json"
+  log_success "Created 开发文档/CX工作流/状态.json"
+}
+
+create_core_project_registry() {
+  local project_file
+  project_file="$(cx_core_projects_root "$PROJECT_ROOT")/project.json"
+
+  if [[ -f "$project_file" ]]; then
+    log_warning ".cx/core/projects/project.json already exists, skipping creation"
+    return
+  fi
+
+  log_info "Creating .cx/core/projects/project.json..."
+  cat > "$project_file" <<EOF
+{
+  "version": "1.0",
+  "current_feature": null,
+  "features": {},
+  "active_sessions": {},
+  "runtime_roots": {
+    "projects": ".cx/core/projects",
+    "features": ".cx/core/features",
+    "sessions": ".cx/core/sessions",
+    "handoffs": ".cx/core/handoffs",
+    "worktrees": ".cx/core/worktrees",
+    "artifacts": {
+      "cx": ".cx/runtime/cx",
+      "cc": ".cx/runtime/cc",
+      "codex": ".cx/runtime/codex"
+    }
+  }
+}
+EOF
+  log_success "Created .cx/core/projects/project.json"
 }
 
 update_gitignore() {
   local gitignore="$PROJECT_ROOT/.gitignore"
   local entries_to_add=(
-    ".claude/cx/context-snapshot.md"
-    ".claude/cx/最近失败.json"
-    ".claude/cx/最近配置变更.json"
+    ".cx/runtime/"
+    ".cx/core/sessions/"
+    ".cx/core/handoffs/"
   )
 
   if [[ ! -f "$gitignore" ]]; then
@@ -241,6 +289,7 @@ main() {
   create_directories
   create_config
   create_status
+  create_core_project_registry
   update_gitignore
 
   echo ""
@@ -249,8 +298,10 @@ main() {
   echo "PROJECT_ROOT=$PROJECT_ROOT"
   echo "DEVELOPER_ID=$DEVELOPER_ID"
   echo "GITHUB_SYNC=$GITHUB_SYNC"
-  echo "CONFIG_FILE=$PROJECT_ROOT/.claude/cx/配置.json"
-  echo "STATUS_FILE=$PROJECT_ROOT/.claude/cx/状态.json"
+  echo "CONFIG_FILE=$(cx_public_config_file "$PROJECT_ROOT")"
+  echo "STATUS_FILE=$(cx_public_status_file "$PROJECT_ROOT")"
+  echo "DOCS_ROOT=$(cx_docs_root "$PROJECT_ROOT")"
+  echo "MACHINE_ROOT=$(cx_machine_root "$PROJECT_ROOT")"
   echo "HOOKS_MODE=plugin-managed"
   echo ""
 }

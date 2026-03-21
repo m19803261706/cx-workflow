@@ -1,5 +1,6 @@
 ---
 name: cx-fix
+disable-model-invocation: true
 description: >
   CX 工作流 — Bug 修复。当用户提到"修 bug"、"fix"、"报错"、"debug"、
   "修复"时触发。默认走快速修复路径，复杂问题再升级为更深入的调查。
@@ -76,7 +77,7 @@ bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-workflow-fix.sh \
 修复记录保存到：
 
 ```text
-.claude/cx/修复/{问题标题}/修复记录.md
+开发文档/CX工作流/修复/{问题标题}/修复记录.md
 ```
 
 如果修复过程被阻塞，也应在修复记录里写明：
@@ -102,4 +103,4 @@ fix(liuyao): repair divine transaction path [cx-fix:liuyao-divine-500]
 ## 与 GitHub 的关系
 
 GitHub 只承担同步记录，不是修复主控。
-本地 `.claude/cx/修复/` 才是运行时真相。
+本地 `开发文档/CX工作流/修复/` 才是运行时真相。

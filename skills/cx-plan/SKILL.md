@@ -4,7 +4,7 @@ description: >
   CX 工作流 — 任务规划与契约下沉。当用户提到"规划任务"、"制定计划"、
   "plan"、"拆分任务"时触发。读取设计文档（小功能则读取 PRD），
   生成任务分解，创建子任务文件并将契约下沉到任务中。
-  产物保存到本地 .claude/cx/功能/{feature_title}/任务/。
+  产物保存到本地 开发文档/CX工作流/功能/{feature_title}/任务/。
 ---
 
 # cx-plan: 任务规划与契约下沉
@@ -60,7 +60,7 @@ check_output=$(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-worktree.sh check \
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
-CX_DIR="$PROJECT_ROOT/.claude/cx"
+CX_DOCS_DIR="$PROJECT_ROOT/开发文档/CX工作流"
 FEATURE_TITLE="{功能标题}"
 FEATURE_SLUG="{feature-slug}"
 FEATURE_DIR="$CX_DIR/功能/$FEATURE_TITLE"
@@ -94,7 +94,7 @@ mkdir -p "$TASK_DIR"
 契约文件位置：
 
 ```text
-.claude/cx/功能/{功能标题}/契约.md
+开发文档/CX工作流/功能/{功能标题}/契约.md
 ```
 
 契约至少包含：
@@ -148,8 +148,8 @@ mkdir -p "$TASK_DIR"
 任务文件统一为：
 
 ```text
-.claude/cx/功能/{功能标题}/任务/任务-1.md
-.claude/cx/功能/{功能标题}/任务/任务-2.md
+开发文档/CX工作流/功能/{功能标题}/任务/任务-1.md
+开发文档/CX工作流/功能/{功能标题}/任务/任务-2.md
 ```
 
 任务文档里要同时保留：

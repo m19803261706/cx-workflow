@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "current_feature": "sample-feature",
+  "features": {
+    "sample-feature": {
+      "slug": "sample-feature",
+      "title": "示例功能",
+      "path": ".cx/core/features/sample-feature.json",
+      "lifecycle": "executing",
+      "worktree_path": "/worktrees/sample-feature",
+      "lease_session_id": "cc-sample-001",
+      "last_updated": "2026-03-19T15:30:00Z"
+    }
+  },
+  "active_sessions": {
+    "cc-sample-001": {
+      "runner": "cc",
+      "session_id": "cc-sample-001",
+      "branch": "cc/sample-feature",
+      "worktree_path": "/worktrees/sample-feature",
+      "started_at": "2026-03-19T15:10:00Z",
+      "last_heartbeat": "2026-03-19T15:30:00Z",
+      "claimed_feature": "sample-feature",
+      "claimed_tasks": [2]
+    }
+  },
+  "runtime_roots": {
+    "projects": ".cx/core/projects",
+    "features": ".cx/core/features",
+    "sessions": ".cx/core/sessions",
+    "handoffs": ".cx/core/handoffs",
+    "worktrees": ".cx/core/worktrees",
+    "artifacts": {
+      "cx": ".cx/runtime/cx",
+      "cc": ".cx/runtime/cc",
+      "codex": ".cx/runtime/codex"
+    }
+  }
+}

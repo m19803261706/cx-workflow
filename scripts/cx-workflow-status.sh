@@ -92,8 +92,8 @@ validate_args() {
 }
 
 ensure_runtime() {
-  [[ -f "$PROJECT_ROOT/.claude/cx/状态.json" ]] || die "missing .claude/cx/状态.json"
-  [[ -f "$PROJECT_ROOT/.claude/cx/core/projects/project.json" ]] || die "missing .claude/cx/core/projects/project.json"
+  [[ -f "$(cx_public_status_file "$PROJECT_ROOT")" ]] || die "missing 开发文档/CX工作流/状态.json"
+  [[ -f "$(cx_core_project_file "$PROJECT_ROOT")" ]] || die "missing .cx/core/projects/project.json"
 }
 
 resolve_feature_slug() {
@@ -105,11 +105,11 @@ resolve_feature_slug() {
 }
 
 feature_title() {
-  jq -r --arg slug "$FEATURE_SLUG" '.features[$slug].title // empty' "$PROJECT_ROOT/.claude/cx/状态.json"
+  cx_feature_title_from_slug "$FEATURE_SLUG" "$PROJECT_ROOT"
 }
 
 feature_dir() {
-  printf '%s/.claude/cx/功能/%s\n' "$PROJECT_ROOT" "$(feature_title)"
+  cx_feature_dir_from_slug "$FEATURE_SLUG" "$PROJECT_ROOT"
 }
 
 feature_status_file() {
@@ -117,15 +117,15 @@ feature_status_file() {
 }
 
 core_feature_file() {
-  printf '%s/.claude/cx/core/features/%s.json\n' "$PROJECT_ROOT" "$FEATURE_SLUG"
+  cx_core_feature_registry_file "$FEATURE_SLUG" "$PROJECT_ROOT"
 }
 
 worktree_file() {
-  printf '%s/.claude/cx/core/worktrees/%s.json\n' "$PROJECT_ROOT" "$FEATURE_SLUG"
+  cx_core_worktree_file "$FEATURE_SLUG" "$PROJECT_ROOT"
 }
 
 runtime_snapshot_file() {
-  printf '%s/.claude/cx/runtime/%s/当前状态.json\n' "$PROJECT_ROOT" "$RUNNER"
+  cx_runner_runtime_file "$RUNNER" "当前状态.json" "$PROJECT_ROOT"
 }
 
 write_empty_snapshot() {
@@ -147,7 +147,7 @@ write_feature_snapshot() {
   local feature_status core_feature core_project worktree_json
   feature_status=$(cat "$(feature_status_file)")
   core_feature=$(cat "$(core_feature_file)")
-  core_project=$(cat "$PROJECT_ROOT/.claude/cx/core/projects/project.json")
+  core_project=$(cat "$(cx_core_project_file "$PROJECT_ROOT")")
   if [[ -f "$(worktree_file)" ]]; then
     worktree_json=$(cat "$(worktree_file)")
   else
@@ -233,7 +233,7 @@ main() {
   printf 'workflow_phase=%s\n' "$(jq -r '.workflow.current_phase' "$(feature_status_file)")"
   printf 'next_route=%s\n' "$(jq -r '.workflow.next_route // empty' "$(feature_status_file)")"
   printf 'owner_runner=%s\n' "$(jq -r '.execution_owner.runner // .planning_owner.runner // empty' "$(core_feature_file)")"
-  printf 'owner_session_id=%s\n' "$(jq -r --arg slug "$FEATURE_SLUG" '.features[$slug].lease_session_id // empty' "$PROJECT_ROOT/.claude/cx/core/projects/project.json")"
+  printf 'owner_session_id=%s\n' "$(jq -r --arg slug "$FEATURE_SLUG" '.features[$slug].lease_session_id // empty' "$(cx_core_project_file "$PROJECT_ROOT")")"
   if [[ -f "$(worktree_file)" ]]; then
     printf 'worktree_path=%s\n' "$(jq -r '.preferred_worktree_path // empty' "$(worktree_file)")"
     printf 'binding_status=%s\n' "$(jq -r '.binding_status // empty' "$(worktree_file)")"

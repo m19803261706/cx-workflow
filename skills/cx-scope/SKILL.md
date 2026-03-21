@@ -1,9 +1,10 @@
 ---
 name: cx-scope
+disable-model-invocation: true
 description: >
   CX 工作流 — 项目蓝图探讨。当用户提到"蓝图"、"整体规划"、"项目范围"、
   "scope"、"项目探讨"、"功能方案"时触发。多轮对话探讨项目或功能方案，
-  将结果保存到本地 `.claude/cx/功能/{功能标题}/范围.md`，
+  将结果保存到本地 `开发文档/CX工作流/功能/{功能标题}/范围.md`，
   可选同步到 GitHub Issue（基于 config.github_sync 模式）。
 ---
 
@@ -25,7 +26,7 @@ description: >
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
 FEATURE_TITLE="{功能标题}"
-FEATURE_DIR="$PROJECT_ROOT/.claude/cx/功能/${FEATURE_TITLE}"
+FEATURE_DIR="$PROJECT_ROOT/开发文档/CX工作流/功能/${FEATURE_TITLE}"
 mkdir -p "$FEATURE_DIR"
 ```
 
@@ -79,7 +80,7 @@ mkdir -p "$FEATURE_DIR"
 
 ### Step 5: 保存到本地
 
-生成结构化 `范围.md` 文档，保存到 `.claude/cx/功能/{功能标题}/范围.md`。
+生成结构化 `范围.md` 文档，保存到 `开发文档/CX工作流/功能/{功能标题}/范围.md`。
 
 **项目级模板**：
 ```markdown
@@ -137,7 +138,7 @@ Phase 2: ...
 
 根据 `配置.json.github_sync`：
 - **off**：仅保存本地，不创建 Issue
-- **local/collab/full**：创建 GitHub Issue（标签 `doc:scope`），并在 `.claude/cx/功能/{功能标题}/范围.json` 中记录 Issue 编号
+- **local/collab/full**：创建 GitHub Issue（标签 `doc:scope`），并在 `开发文档/CX工作流/功能/{功能标题}/范围.json` 中记录 Issue 编号
 
 ### Step 7: 下一步引导
 
@@ -163,7 +164,7 @@ Phase 2: ...
 ## 本地文件结构
 
 ```
-.claude/cx/功能/
+开发文档/CX工作流/功能/
 └── {功能标题}/
     ├── 范围.md           ← Scope 文档
     ├── 范围.json         ← Issue 编号（仅 collab/full 模式）

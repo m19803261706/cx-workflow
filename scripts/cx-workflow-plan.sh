@@ -2,6 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "$SCRIPT_DIR/cx-lib.sh"
 
 PROJECT_ROOT="${PROJECT_ROOT:-}"
 FEATURE_SLUG=""
@@ -131,9 +132,9 @@ validate_args() {
 }
 
 ensure_runtime() {
-  [[ -f "$PROJECT_ROOT/.claude/cx/配置.json" ]] || die "missing .claude/cx/配置.json; run cx-init first"
-  [[ -f "$PROJECT_ROOT/.claude/cx/状态.json" ]] || die "missing .claude/cx/状态.json; run cx-init first"
-  [[ -f "$PROJECT_ROOT/.claude/cx/core/projects/project.json" ]] || die "missing shared core project registry; run PRD or migration first"
+  [[ -f "$(cx_public_config_file "$PROJECT_ROOT")" ]] || die "missing 开发文档/CX工作流/配置.json; run cx-init first"
+  [[ -f "$(cx_public_status_file "$PROJECT_ROOT")" ]] || die "missing 开发文档/CX工作流/状态.json; run cx-init first"
+  [[ -f "$(cx_core_project_file "$PROJECT_ROOT")" ]] || die "missing shared core project registry; run PRD or migration first"
 }
 
 resolve_feature_title() {
@@ -141,9 +142,9 @@ resolve_feature_title() {
     return
   fi
 
-  FEATURE_TITLE=$(jq -r --arg slug "$FEATURE_SLUG" '.features[$slug].title // empty' "$PROJECT_ROOT/.claude/cx/状态.json" 2>/dev/null)
+  FEATURE_TITLE=$(jq -r --arg slug "$FEATURE_SLUG" '.features[$slug].title // empty' "$(cx_public_status_file "$PROJECT_ROOT")" 2>/dev/null)
   if [[ -z "$FEATURE_TITLE" ]]; then
-    FEATURE_TITLE=$(jq -r '.title // empty' "$PROJECT_ROOT/.claude/cx/core/features/$FEATURE_SLUG.json" 2>/dev/null)
+    FEATURE_TITLE=$(jq -r '.title // empty' "$(cx_core_feature_registry_file "$FEATURE_SLUG" "$PROJECT_ROOT")" 2>/dev/null)
   fi
   [[ -n "$FEATURE_TITLE" ]] || die "unable to resolve feature title for $FEATURE_SLUG"
 }
@@ -175,7 +176,7 @@ validate_plan_payload() {
 }
 
 feature_dir() {
-  printf '%s/.claude/cx/功能/%s\n' "$PROJECT_ROOT" "$FEATURE_TITLE"
+  cx_public_feature_dir_by_title "$FEATURE_TITLE" "$PROJECT_ROOT"
 }
 
 feature_status_file() {
@@ -183,15 +184,15 @@ feature_status_file() {
 }
 
 core_feature_file() {
-  printf '%s/.claude/cx/core/features/%s.json\n' "$PROJECT_ROOT" "$FEATURE_SLUG"
+  cx_core_feature_registry_file "$FEATURE_SLUG" "$PROJECT_ROOT"
 }
 
 project_status_file() {
-  printf '%s/.claude/cx/状态.json\n' "$PROJECT_ROOT"
+  cx_public_status_file "$PROJECT_ROOT"
 }
 
 core_project_file() {
-  printf '%s/.claude/cx/core/projects/project.json\n' "$PROJECT_ROOT"
+  cx_core_project_file "$PROJECT_ROOT"
 }
 
 task_dir() {
@@ -205,7 +206,7 @@ task_file_path() {
 
 task_doc_path() {
   local number="$1"
-  printf '.claude/cx/功能/%s/任务/任务-%s.md\n' "$FEATURE_TITLE" "$number"
+  printf '开发文档/CX工作流/功能/%s/任务/任务-%s.md\n' "$FEATURE_TITLE" "$number"
 }
 
 ensure_feature_can_be_planned() {
@@ -344,7 +345,7 @@ build_core_tasks_json() {
             depends_on: $task.depends_on,
             status: (if ($task.depends_on | length) == 0 then "ready" else "pending" end),
             owner_session_id: null,
-            path: (".claude/cx/功能/" + $feature_title + "/任务/任务-" + ($task.number | tostring) + ".md")
+            path: ("开发文档/CX工作流/功能/" + $feature_title + "/任务/任务-" + ($task.number | tostring) + ".md")
           }
         | if ($task.parallel_group // null) != null then . + {parallel_group: $task.parallel_group} else . end
       )
@@ -390,7 +391,7 @@ write_task_docs() {
     cat > "$(task_file_path "$number")" <<EOF
 # 任务 ${number}：${title}
 
-- 保存路径：\`.claude/cx/功能/${FEATURE_TITLE}/任务/任务-${number}.md\`
+- 保存路径：\`开发文档/CX工作流/功能/${FEATURE_TITLE}/任务/任务-${number}.md\`
 
 ## 元信息
 
@@ -586,13 +587,16 @@ update_project_status() {
 
 update_core_project_registry() {
   local now="$1"
+  local feature_record_path
+
+  feature_record_path=$(cx_relative_path "$(core_feature_file)" "$PROJECT_ROOT")
 
   # DEPRECATED: current_feature is a hint for non-worktree fallback.
   # Primary feature context comes from worktree branch name.
   jq \
     --arg slug "$FEATURE_SLUG" \
     --arg title "$FEATURE_TITLE" \
-    --arg path ".claude/cx/core/features/$FEATURE_SLUG.json" \
+    --arg path "$feature_record_path" \
     --arg worktree "$PREFERRED_WORKTREE_PATH" \
     --arg now "$now" '
       .current_feature = $slug

@@ -2,6 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "$SCRIPT_DIR/cx-lib.sh"
 
 PROJECT_ROOT="${PROJECT_ROOT:-}"
 FEATURE_TITLE=""
@@ -224,12 +225,12 @@ resolve_needs_design() {
 }
 
 ensure_initialized() {
-  [[ -f "$PROJECT_ROOT/.claude/cx/配置.json" ]] || die "missing .claude/cx/配置.json; run cx-init first"
-  [[ -f "$PROJECT_ROOT/.claude/cx/状态.json" ]] || die "missing .claude/cx/状态.json; run cx-init first"
+  [[ -f "$(cx_public_config_file "$PROJECT_ROOT")" ]] || die "missing 开发文档/CX工作流/配置.json; run cx-init first"
+  [[ -f "$(cx_public_status_file "$PROJECT_ROOT")" ]] || die "missing 开发文档/CX工作流/状态.json; run cx-init first"
 }
 
 ensure_core() {
-  if [[ -f "$PROJECT_ROOT/.claude/cx/core/projects/project.json" ]]; then
+  if [[ -f "$(cx_core_project_file "$PROJECT_ROOT")" ]]; then
     return
   fi
 
@@ -237,10 +238,10 @@ ensure_core() {
 }
 
 ensure_dirs() {
-  mkdir -p "$PROJECT_ROOT/.claude/cx/功能/$FEATURE_TITLE/任务"
-  mkdir -p "$PROJECT_ROOT/.claude/cx/runtime/$RUNNER"
-  mkdir -p "$PROJECT_ROOT/.claude/cx/core/features"
-  mkdir -p "$PROJECT_ROOT/.claude/cx/core/worktrees"
+  mkdir -p "$(cx_public_feature_dir_by_title "$FEATURE_TITLE" "$PROJECT_ROOT")/任务"
+  mkdir -p "$(cx_runner_runtime_root "$RUNNER" "$PROJECT_ROOT")"
+  mkdir -p "$(cx_core_features_root "$PROJECT_ROOT")"
+  mkdir -p "$(cx_core_worktrees_root "$PROJECT_ROOT")"
 }
 
 default_text() {
@@ -304,7 +305,7 @@ write_prd_doc() {
 
   {
     printf '# 需求文档：%s\n\n' "$FEATURE_TITLE"
-    printf -- '- 保存路径：`.claude/cx/功能/%s/需求.md`\n' "$FEATURE_TITLE"
+    printf -- '- 保存路径：`开发文档/CX工作流/功能/%s/需求.md`\n' "$FEATURE_TITLE"
     printf -- '- 稳定 slug：`%s`\n' "$FEATURE_SLUG"
     printf -- '- 当前状态：`drafting`\n'
     printf -- '- 共享 workflow 协议：`1.0`\n'
@@ -515,13 +516,16 @@ write_feature_record() {
 write_worktree_recommendation() {
   local worktree_file="$1"
   local now="$2"
+  local record_path
+
+  record_path=$(cx_relative_path "$worktree_file" "$PROJECT_ROOT")
 
   jq -n \
     --arg slug "$FEATURE_SLUG" \
     --arg now "$now" \
     --arg preferred_worktree_path "/worktrees/$FEATURE_SLUG" \
     --arg preferred_branch "codex/$FEATURE_SLUG" \
-    --arg record_path ".claude/cx/core/worktrees/$FEATURE_SLUG.json" \
+    --arg record_path "$record_path" \
     '{
       feature_slug: $slug,
       preferred_worktree_path: $preferred_worktree_path,
@@ -563,7 +567,10 @@ update_project_status() {
 update_core_project_registry() {
   local registry_file="$1"
   local now="$2"
+  local feature_record_path
   local next_route
+
+  feature_record_path=$(cx_relative_path "$(cx_core_feature_registry_file "$FEATURE_SLUG" "$PROJECT_ROOT")" "$PROJECT_ROOT")
 
   if [[ "$NEEDS_DESIGN" == "true" ]]; then
     next_route="cx-design"
@@ -576,7 +583,7 @@ update_core_project_registry() {
   jq \
     --arg slug "$FEATURE_SLUG" \
     --arg title "$FEATURE_TITLE" \
-    --arg path ".claude/cx/core/features/$FEATURE_SLUG.json" \
+    --arg path "$feature_record_path" \
     --arg worktree_path "/worktrees/$FEATURE_SLUG" \
     --arg workflow_phase "prd" \
     --arg next_route "$next_route" \
@@ -608,24 +615,23 @@ main() {
   ensure_core
   ensure_dirs
 
-  local now cx_dir feature_dir prd_file feature_status_file core_feature_file core_project_file worktree_file
+  local now feature_dir prd_file feature_status_file core_feature_file core_project_file worktree_file
   local feature_doc_path
 
   now=$(now_iso)
-  cx_dir="$PROJECT_ROOT/.claude/cx"
-  feature_dir="$cx_dir/功能/$FEATURE_TITLE"
+  feature_dir="$(cx_public_feature_dir_by_title "$FEATURE_TITLE" "$PROJECT_ROOT")"
   prd_file="$feature_dir/需求.md"
   feature_status_file="$feature_dir/状态.json"
-  core_feature_file="$cx_dir/core/features/$FEATURE_SLUG.json"
-  core_project_file="$cx_dir/core/projects/project.json"
-  worktree_file="$cx_dir/core/worktrees/$FEATURE_SLUG.json"
-  feature_doc_path=".claude/cx/功能/$FEATURE_TITLE/需求.md"
+  core_feature_file="$(cx_core_feature_registry_file "$FEATURE_SLUG" "$PROJECT_ROOT")"
+  core_project_file="$(cx_core_project_file "$PROJECT_ROOT")"
+  worktree_file="$(cx_core_worktree_file "$FEATURE_SLUG" "$PROJECT_ROOT")"
+  feature_doc_path="开发文档/CX工作流/功能/$FEATURE_TITLE/需求.md"
 
   write_prd_doc "$prd_file"
   write_feature_status "$feature_status_file" "$now"
   write_feature_record "$core_feature_file" "$now" "$feature_doc_path"
   write_worktree_recommendation "$worktree_file" "$now"
-  update_project_status "$cx_dir/状态.json" "$now"
+  update_project_status "$(cx_public_status_file "$PROJECT_ROOT")" "$now"
   update_core_project_registry "$core_project_file" "$now"
 
   printf 'feature_title=%s\n' "$FEATURE_TITLE"

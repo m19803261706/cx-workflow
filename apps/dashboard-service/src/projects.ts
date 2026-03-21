@@ -112,6 +112,10 @@ type FeatureStatusFile = {
   status: string;
 };
 
+const DOCS_ROOT = path.join("开发文档", "CX工作流");
+const MACHINE_ROOT = ".cx";
+const LEGACY_ROOT = path.join(".claude", "cx");
+
 async function fileExists(filePath: string) {
   try {
     await access(filePath);
@@ -138,9 +142,12 @@ function resolveRelativeProjectPath(projectRoot: string, candidatePath: string) 
     return candidatePath;
   }
 
-  const normalized = candidatePath.startsWith(".claude/cx/")
-    ? candidatePath
-    : path.join(".claude/cx", candidatePath);
+  const normalized =
+    candidatePath.startsWith(`${MACHINE_ROOT}/`) ||
+    candidatePath.startsWith(`${DOCS_ROOT}/`) ||
+    candidatePath.startsWith(`${LEGACY_ROOT}/`)
+      ? candidatePath
+      : path.join(DOCS_ROOT, candidatePath);
   return path.join(projectRoot, normalized);
 }
 
@@ -153,8 +160,9 @@ async function discoverProjectRoots(scanRoot: string, ignoredRoots: Set<string>)
       return;
     }
 
-    const marker = path.join(currentPath, ".claude/cx/core/projects/project.json");
-    if (await fileExists(marker)) {
+    const marker = path.join(currentPath, ".cx/core/projects/project.json");
+    const legacyMarker = path.join(currentPath, ".claude/cx/core/projects/project.json");
+    if ((await fileExists(marker)) || (await fileExists(legacyMarker))) {
       discovered.add(currentPath);
       return;
     }
@@ -237,8 +245,12 @@ async function readFeatureStatus(projectRoot: string, featurePath: string | unde
 
 async function readProjectAggregation(candidate: CandidateProject, timestamp = nowIso()) {
   const projectRoot = candidate.rootPath;
-  const projectStatusPath = path.join(projectRoot, ".claude/cx/状态.json");
-  const coreProjectPath = path.join(projectRoot, ".claude/cx/core/projects/project.json");
+  const projectStatusPath = (await fileExists(path.join(projectRoot, "开发文档/CX工作流/状态.json")))
+    ? path.join(projectRoot, "开发文档/CX工作流/状态.json")
+    : path.join(projectRoot, ".claude/cx/状态.json");
+  const coreProjectPath = (await fileExists(path.join(projectRoot, ".cx/core/projects/project.json")))
+    ? path.join(projectRoot, ".cx/core/projects/project.json")
+    : path.join(projectRoot, ".claude/cx/core/projects/project.json");
 
   if (!(await fileExists(projectStatusPath)) || !(await fileExists(coreProjectPath))) {
     return {

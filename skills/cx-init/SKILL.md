@@ -1,9 +1,10 @@
 ---
 name: cx-init
+disable-model-invocation: true
 description: >
   CX 工作流 — 项目初始化。每个项目都单独确认 developer_id、GitHub 同步策略、
   agent teams、code review、worktree isolation、auto memory，并建立项目级
-  .claude/cx 运行时真相目录。仅在用户明确调用 `/cx:cx-init` 时执行。
+  `开发文档/CX工作流 + .cx` 运行时真相目录。仅在用户明确调用 `/cx:cx-init` 时执行。
 ---
 
 # cx-init — 初始化纯 CX 3.1 项目环境
@@ -15,7 +16,7 @@ description: >
 它负责:
 
 - 为每个项目单独确认 `developer_id`
-- 初始化项目级 `.claude/cx`
+- 初始化项目级 `开发文档/CX工作流` 与 `.cx`
 - 建立项目内 `配置.json` 与 `状态.json`
 - 安装插件级 hooks 接线
 - 检查 GitHub remote
@@ -28,7 +29,7 @@ description: >
 
 - 这是唯一一次集中式配置交互
 - 后续命令尽量少打断用户
-- 运行时真相只保存在项目级 `.claude/cx`
+- 运行时真相保存在项目级 `开发文档/CX工作流` 与 `.cx`
 - hooks 由插件层提供，不再复制到项目目录
 - Claude Code 插件只是 runner `cc` 的 adapter，不直接拥有项目真相
 
@@ -80,7 +81,7 @@ GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 在项目中创建:
 
 ```text
-.claude/cx/
+开发文档/CX工作流/
 ├── 配置.json
 ├── 状态.json
 ├── 功能/
@@ -105,7 +106,7 @@ fi
 
 ### Step 4: 生成项目级 配置.json
 
-生成 `.claude/cx/配置.json`，至少包含:
+生成 `开发文档/CX工作流/配置.json`，至少包含:
 
 ```json
 {
@@ -132,7 +133,7 @@ fi
 
 ### Step 5: 生成项目级 状态.json
 
-生成 `.claude/cx/状态.json`，只做项目索引摘要:
+生成 `开发文档/CX工作流/状态.json`，只做项目索引摘要:
 
 ```json
 {
@@ -182,7 +183,7 @@ bridge_output=$(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-dashboard-bridge.sh \
 关键点:
 
 - 插件 hooks 由插件自身 `hooks/hooks.json` 自动提供
-- 不再复制 hook 到项目 `.claude/cx/hooks/`
+- 不再复制 hook 到项目运行时目录
 - 运行时 hook 只读取项目级 `配置.json` 与 feature 级 `状态.json`
 - `cx:init` 只负责告知当前项目已具备被插件 hooks 读取的运行时真相
 - 如果项目是旧布局，先迁移到共享 `cx core`，再启用双运行器
@@ -209,9 +210,9 @@ bridge_output=$(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-dashboard-bridge.sh \
 
 `cx-init` 完成后应满足:
 
-- 项目级 `.claude/cx/配置.json` 已创建
-- 项目级 `.claude/cx/状态.json` 已创建
-- `.claude/cx/功能/` 与 `.claude/cx/修复/` 已存在
+- 项目级 `开发文档/CX工作流/配置.json` 已创建
+- 项目级 `开发文档/CX工作流/状态.json` 已创建
+- `开发文档/CX工作流/功能/` 与 `开发文档/CX工作流/修复/` 已存在
 - GitHub 接入状态已明确
 - 项目可以直接进入下一步
 

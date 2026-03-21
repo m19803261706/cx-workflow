@@ -1,7 +1,8 @@
 ---
 name: cx-config
+disable-model-invocation: true
 description: >
-  CX 工作流 — 配置管理。查看或修改项目级 `.claude/cx/配置.json`
+  CX 工作流 — 配置管理。查看或修改项目级 `开发文档/CX工作流/配置.json`
   中公开的少量字段。仅在用户明确调用 `/cx:cx-config` 时执行。
 ---
 
@@ -14,7 +15,7 @@ description: >
 运行时只读取：
 
 ```text
-.claude/cx/配置.json
+开发文档/CX工作流/配置.json
 ```
 
 全局插件配置只用于 `cx:init` 提供默认值，不参与后续运行时决策。

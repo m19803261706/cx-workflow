@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "$SCRIPT_DIR/cx-lib.sh"
+
 PROJECT_ROOT="${PROJECT_ROOT:-$(pwd)}"
 PROJECT_FILE="${PROJECT_FILE:-}"
 RUNNER=""
@@ -25,15 +28,6 @@ die() {
   exit 1
 }
 
-resolve_path() {
-  local path="$1"
-  if [[ "$path" = /* ]]; then
-    printf '%s\n' "$path"
-  else
-    printf '%s/%s\n' "$PROJECT_ROOT" "$path"
-  fi
-}
-
 now_iso() {
   if [[ -n "${CX_CORE_NOW:-}" ]]; then
     printf '%s\n' "$CX_CORE_NOW"
@@ -44,25 +38,15 @@ now_iso() {
 
 find_project_file() {
   if [[ -n "$PROJECT_FILE" ]]; then
-    resolve_path "$PROJECT_FILE"
+    cx_resolve_path "$PROJECT_FILE" "$PROJECT_ROOT"
     return
   fi
 
-  local candidate="$PROJECT_ROOT/.claude/cx/core/project.json"
-  if [[ -f "$candidate" ]]; then
+  local candidate=""
+  candidate=$(cx_core_project_file "$PROJECT_ROOT")
+  if [[ -n "$candidate" && -f "$candidate" ]]; then
     printf '%s\n' "$candidate"
     return
-  fi
-
-  local project_dir="$PROJECT_ROOT/.claude/cx/core/projects"
-  local matches=("$project_dir"/*.json)
-  if [[ ${#matches[@]} -eq 1 && -f "${matches[0]}" ]]; then
-    printf '%s\n' "${matches[0]}"
-    return
-  fi
-
-  if [[ ${#matches[@]} -gt 1 ]]; then
-    die "multiple project registry files found under $project_dir; pass --project-file"
   fi
 
   die "no project registry file found; pass --project-file"
@@ -174,7 +158,7 @@ main() {
   parse_args "$@"
   require_arguments
 
-  local project_file project_json feature_rel_path feature_file worktree_root worktree_file now
+  local project_file project_json feature_rel_path feature_file worktree_root worktree_file now record_path
   local feature_json existing_worktree_path existing_worktree_branch existing_binding_status existing_lease_session
   local recommended_worktree_path recommended_branch current_worktree_path current_branch
   local binding_status bound_at target_worktree_path target_branch target_runner target_session
@@ -183,12 +167,13 @@ main() {
   project_json=$(cat "$project_file")
   feature_rel_path=$(jq -re --arg feature "$FEATURE_SLUG" '.features[$feature].path' <<< "$project_json") \
     || die "feature $FEATURE_SLUG is missing from project registry"
-  feature_file=$(resolve_path "$feature_rel_path")
+  feature_file=$(cx_resolve_path "$feature_rel_path" "$PROJECT_ROOT")
   [[ -f "$feature_file" ]] || die "feature file not found: $feature_file"
 
-  worktree_root=$(jq -r '.runtime_roots.worktrees // ".claude/cx/core/worktrees"' <<< "$project_json")
-  worktree_root=$(resolve_path "$worktree_root")
+  worktree_root=$(jq -r --arg fallback ".cx/core/worktrees" '.runtime_roots.worktrees // $fallback' <<< "$project_json")
+  worktree_root=$(cx_resolve_path "$worktree_root" "$PROJECT_ROOT")
   worktree_file="$worktree_root/$FEATURE_SLUG.json"
+  record_path=$(cx_relative_path "$worktree_file" "$PROJECT_ROOT")
 
   feature_json=$(cat "$feature_file")
   existing_worktree_path=$(jq -r '.worktree.worktree_path // empty' <<< "$feature_json")
@@ -275,7 +260,7 @@ main() {
     --arg current_branch "$current_branch" \
     --arg runner "$target_runner" \
     --arg session "$target_session" \
-    --arg record_path ".claude/cx/core/worktrees/$FEATURE_SLUG.json" '
+    --arg record_path "$record_path" '
       {
         feature_slug: $feature,
         preferred_worktree_path: $worktree,

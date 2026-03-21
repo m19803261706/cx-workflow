@@ -123,10 +123,10 @@
         "claimed_tasks": [1],
         "state": "active",
         "runtime_artifacts": {
-          "root": ".claude/cx/runtime/codex/codex-20260320-001",
-          "state_file": ".claude/cx/runtime/codex/codex-20260320-001/session.json",
-          "transcript": ".claude/cx/runtime/codex/codex-20260320-001/transcript.md",
-          "heartbeat_file": ".claude/cx/runtime/codex/codex-20260320-001/heartbeat.json"
+          "root": ".cx/runtime/codex/codex-20260320-001",
+          "state_file": ".cx/runtime/codex/codex-20260320-001/session.json",
+          "transcript": ".cx/runtime/codex/codex-20260320-001/transcript.md",
+          "heartbeat_file": ".cx/runtime/codex/codex-20260320-001/heartbeat.json"
         }
       }
     }

@@ -167,8 +167,8 @@ result=$(detect_feature_from_branch)
 assert_eq "" "$result" "detect_feature_from_branch: main -> empty"
 
 # 3e: resolve_current_feature 在 main 上回退到 状态.json
-mkdir -p .claude/cx
-cat > .claude/cx/状态.json << 'STATUSEOF'
+mkdir -p "开发文档/CX工作流"
+cat > "开发文档/CX工作流/状态.json" << 'STATUSEOF'
 {"current_feature": "fallback-slug"}
 STATUSEOF
 result=$(resolve_current_feature "$TEST_DIR")
@@ -190,10 +190,10 @@ echo "Scenario 4: Dashboard aggregation file structure"
 setup
 
 # 4a: 创建 core/projects/project.json，包含 2 个 features
-mkdir -p "$TEST_DIR/.claude/cx/core/projects"
-mkdir -p "$TEST_DIR/.claude/cx/core/features"
+mkdir -p "$TEST_DIR/.cx/core/projects"
+mkdir -p "$TEST_DIR/.cx/core/features"
 
-cat > "$TEST_DIR/.claude/cx/core/projects/project.json" << 'PROJEOF'
+cat > "$TEST_DIR/.cx/core/projects/project.json" << 'PROJEOF'
 {
   "project_id": "test-project",
   "name": "Test Project",
@@ -203,7 +203,7 @@ cat > "$TEST_DIR/.claude/cx/core/projects/project.json" << 'PROJEOF'
 PROJEOF
 
 # 4b: 创建 2 个 feature 文件
-cat > "$TEST_DIR/.claude/cx/core/features/feature-alpha.json" << 'FEATEOF'
+cat > "$TEST_DIR/.cx/core/features/feature-alpha.json" << 'FEATEOF'
 {
   "slug": "feature-alpha",
   "title": "Alpha Feature",
@@ -212,7 +212,7 @@ cat > "$TEST_DIR/.claude/cx/core/features/feature-alpha.json" << 'FEATEOF'
 }
 FEATEOF
 
-cat > "$TEST_DIR/.claude/cx/core/features/feature-beta.json" << 'FEATEOF'
+cat > "$TEST_DIR/.cx/core/features/feature-beta.json" << 'FEATEOF'
 {
   "slug": "feature-beta",
   "title": "Beta Feature",
@@ -222,24 +222,24 @@ cat > "$TEST_DIR/.claude/cx/core/features/feature-beta.json" << 'FEATEOF'
 FEATEOF
 
 # 4c: 验证文件结构
-assert_eq "true" "$(test -f "$TEST_DIR/.claude/cx/core/projects/project.json" && echo true || echo false)" "project.json exists"
-assert_eq "true" "$(test -f "$TEST_DIR/.claude/cx/core/features/feature-alpha.json" && echo true || echo false)" "feature-alpha.json exists"
-assert_eq "true" "$(test -f "$TEST_DIR/.claude/cx/core/features/feature-beta.json" && echo true || echo false)" "feature-beta.json exists"
+assert_eq "true" "$(test -f "$TEST_DIR/.cx/core/projects/project.json" && echo true || echo false)" "project.json exists"
+assert_eq "true" "$(test -f "$TEST_DIR/.cx/core/features/feature-alpha.json" && echo true || echo false)" "feature-alpha.json exists"
+assert_eq "true" "$(test -f "$TEST_DIR/.cx/core/features/feature-beta.json" && echo true || echo false)" "feature-beta.json exists"
 
 # 4d: 验证 project.json 列出了两个 features
-feature_count=$(jq '.features | length' "$TEST_DIR/.claude/cx/core/projects/project.json")
+feature_count=$(jq '.features | length' "$TEST_DIR/.cx/core/projects/project.json")
 assert_eq "2" "$feature_count" "project.json lists 2 features"
 
 # 4e: 验证 resolve_current_feature 可以从 project.json 回退
 source "$CX_LIB"
 # main 分支上，无 状态.json，回退到 project.json 的 current_feature
-rm -f "$TEST_DIR/.claude/cx/状态.json"
+rm -f "$TEST_DIR/开发文档/CX工作流/状态.json"
 result=$(resolve_current_feature "$TEST_DIR")
 assert_eq "feature-alpha" "$result" "resolve_current_feature falls back to project.json"
 
 # 4f: 验证每个 feature 文件的 slug 字段
-alpha_slug=$(jq -r '.slug' "$TEST_DIR/.claude/cx/core/features/feature-alpha.json")
-beta_slug=$(jq -r '.slug' "$TEST_DIR/.claude/cx/core/features/feature-beta.json")
+alpha_slug=$(jq -r '.slug' "$TEST_DIR/.cx/core/features/feature-alpha.json")
+beta_slug=$(jq -r '.slug' "$TEST_DIR/.cx/core/features/feature-beta.json")
 assert_eq "feature-alpha" "$alpha_slug" "feature-alpha.json has correct slug"
 assert_eq "feature-beta" "$beta_slug" "feature-beta.json has correct slug"
 

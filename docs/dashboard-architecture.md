@@ -1,11 +1,11 @@
 # CX Dashboard Architecture
 
 `cx dashboard` 是共享 `cx core` 之上的全局观察台能力。
-它不是新的真相源，而是对多个项目 `.claude/cx` 与 `.claude/cx/core` 的聚合视图。
+它不是新的真相源，而是对多个项目 `开发文档/CX工作流` 与 `.cx/core` 的聚合视图。
 
 ## Goals
 
-- Keep project-level `.claude/cx` as the only workflow truth.
+- Keep project-level `开发文档/CX工作流 + .cx` as the workflow truth.
 - Add a global local-only dashboard for multi-project visibility.
 - Make `cx:init` and `cx:prd` reuse one bridge helper for dashboard detection, reminder, and auto-registration.
 - Keep the first version read-only so the dashboard cannot mutate shared workflow state directly.
@@ -19,7 +19,7 @@
 Responsibilities:
 
 - read user-level registry and runtime state
-- load project-level `.claude/cx` and shared core summaries
+- load project-level `开发文档/CX工作流` and `.cx/core` summaries
 - expose dashboard HTTP APIs
 - manage health state and chosen ports
 - coordinate manual registration and directory scan flows
@@ -208,6 +208,6 @@ Not allowed:
 
 This architecture keeps three boundaries stable:
 
-- project `.claude/cx` remains the source of truth
+- project `开发文档/CX工作流 + .cx` remains the source of truth
 - dashboard service becomes the only global aggregator
 - adapters only need one bridge helper to make dashboard behavior feel consistent in both CC and Codex

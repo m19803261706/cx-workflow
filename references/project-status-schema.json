@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "cx-workflow 3.0 Project Status Schema",
-  "description": "Schema for .claude/cx/状态.json — project-level feature and fix index",
+  "description": "Schema for 开发文档/CX工作流/状态.json — project-level feature and fix index",
   "type": "object",
   "required": [
     "initialized_at",

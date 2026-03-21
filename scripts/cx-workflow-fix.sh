@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "$SCRIPT_DIR/cx-lib.sh"
+
 PROJECT_ROOT="${PROJECT_ROOT:-}"
 FIX_TITLE=""
 FIX_SLUG=""
@@ -156,7 +159,7 @@ validate_args() {
 }
 
 ensure_runtime() {
-  [[ -f "$PROJECT_ROOT/.claude/cx/状态.json" ]] || die "missing .claude/cx/状态.json"
+  [[ -f "$(cx_public_status_file "$PROJECT_ROOT")" ]] || die "missing 开发文档/CX工作流/状态.json"
 }
 
 slugify() {
@@ -177,7 +180,7 @@ resolve_fix_slug() {
 }
 
 fix_dir() {
-  printf '%s/.claude/cx/修复/%s\n' "$PROJECT_ROOT" "$FIX_TITLE"
+  cx_public_fix_dir_by_title "$FIX_TITLE" "$PROJECT_ROOT"
 }
 
 fix_file() {
@@ -185,7 +188,7 @@ fix_file() {
 }
 
 project_status_file() {
-  printf '%s/.claude/cx/状态.json\n' "$PROJECT_ROOT"
+  cx_public_status_file "$PROJECT_ROOT"
 }
 
 default_text() {
@@ -229,7 +232,7 @@ load_fix_content() {
 
   {
     printf '# 修复记录：%s\n\n' "$FIX_TITLE"
-    printf -- '- 保存路径：`.claude/cx/修复/%s/修复记录.md`\n' "$FIX_TITLE"
+    printf -- '- 保存路径：`开发文档/CX工作流/修复/%s/修复记录.md`\n' "$FIX_TITLE"
     printf -- '- 稳定 slug：`%s`\n\n' "$FIX_SLUG"
 
     printf '## 问题描述\n\n'
@@ -262,11 +265,11 @@ ensure_feature_access() {
     return
   fi
 
-  [[ -f "$PROJECT_ROOT/.claude/cx/core/projects/project.json" ]] || die "missing .claude/cx/core/projects/project.json for related feature validation"
-  jq -e --arg slug "$FEATURE_SLUG" '.features[$slug]' "$PROJECT_ROOT/.claude/cx/core/projects/project.json" >/dev/null \
+  [[ -f "$(cx_core_project_file "$PROJECT_ROOT")" ]] || die "missing .cx/core/projects/project.json for related feature validation"
+  jq -e --arg slug "$FEATURE_SLUG" '.features[$slug]' "$(cx_core_project_file "$PROJECT_ROOT")" >/dev/null \
     || die "related feature $FEATURE_SLUG is not registered"
 
-  lease_session=$(jq -r --arg slug "$FEATURE_SLUG" '.features[$slug].lease_session_id // empty' "$PROJECT_ROOT/.claude/cx/core/projects/project.json")
+  lease_session=$(jq -r --arg slug "$FEATURE_SLUG" '.features[$slug].lease_session_id // empty' "$(cx_core_project_file "$PROJECT_ROOT")")
   if [[ "$FORCE" != "true" && -n "$lease_session" ]]; then
     [[ -n "$SESSION_ID" ]] || die "session id is required when related feature $FEATURE_SLUG has an active lease"
     [[ "$lease_session" == "$SESSION_ID" ]] || die "related feature $FEATURE_SLUG is currently leased by $lease_session, not $SESSION_ID"

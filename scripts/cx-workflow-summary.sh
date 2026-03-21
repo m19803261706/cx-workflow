@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "$SCRIPT_DIR/cx-lib.sh"
+
 PROJECT_ROOT="${PROJECT_ROOT:-}"
 FEATURE_SLUG=""
 FEATURE_TITLE=""
@@ -150,9 +153,9 @@ validate_args() {
 }
 
 ensure_runtime() {
-  [[ -f "$PROJECT_ROOT/.claude/cx/状态.json" ]] || die "missing .claude/cx/状态.json"
-  [[ -f "$PROJECT_ROOT/.claude/cx/core/projects/project.json" ]] || die "missing .claude/cx/core/projects/project.json"
-  [[ -f "$PROJECT_ROOT/.claude/cx/core/features/$FEATURE_SLUG.json" ]] || die "missing feature record for $FEATURE_SLUG"
+  [[ -f "$(cx_public_status_file "$PROJECT_ROOT")" ]] || die "missing 开发文档/CX工作流/状态.json"
+  [[ -f "$(cx_core_project_file "$PROJECT_ROOT")" ]] || die "missing .cx/core/projects/project.json"
+  [[ -f "$(cx_core_feature_registry_file "$FEATURE_SLUG" "$PROJECT_ROOT")" ]] || die "missing feature record for $FEATURE_SLUG"
 }
 
 resolve_feature_title() {
@@ -160,15 +163,15 @@ resolve_feature_title() {
     return
   fi
 
-  FEATURE_TITLE=$(jq -r --arg slug "$FEATURE_SLUG" '.features[$slug].title // empty' "$PROJECT_ROOT/.claude/cx/状态.json" 2>/dev/null)
+  FEATURE_TITLE=$(jq -r --arg slug "$FEATURE_SLUG" '.features[$slug].title // empty' "$(cx_public_status_file "$PROJECT_ROOT")" 2>/dev/null)
   if [[ -z "$FEATURE_TITLE" ]]; then
-    FEATURE_TITLE=$(jq -r '.title // empty' "$PROJECT_ROOT/.claude/cx/core/features/$FEATURE_SLUG.json" 2>/dev/null)
+    FEATURE_TITLE=$(jq -r '.title // empty' "$(cx_core_feature_registry_file "$FEATURE_SLUG" "$PROJECT_ROOT")" 2>/dev/null)
   fi
   [[ -n "$FEATURE_TITLE" ]] || die "unable to resolve feature title for $FEATURE_SLUG"
 }
 
 feature_dir() {
-  printf '%s/.claude/cx/功能/%s\n' "$PROJECT_ROOT" "$FEATURE_TITLE"
+  cx_public_feature_dir_by_title "$FEATURE_TITLE" "$PROJECT_ROOT"
 }
 
 summary_file() {
@@ -180,19 +183,19 @@ feature_status_file() {
 }
 
 core_feature_file() {
-  printf '%s/.claude/cx/core/features/%s.json\n' "$PROJECT_ROOT" "$FEATURE_SLUG"
+  cx_core_feature_registry_file "$FEATURE_SLUG" "$PROJECT_ROOT"
 }
 
 worktree_file() {
-  printf '%s/.claude/cx/core/worktrees/%s.json\n' "$PROJECT_ROOT" "$FEATURE_SLUG"
+  cx_core_worktree_file "$FEATURE_SLUG" "$PROJECT_ROOT"
 }
 
 project_status_file() {
-  printf '%s/.claude/cx/状态.json\n' "$PROJECT_ROOT"
+  cx_public_status_file "$PROJECT_ROOT"
 }
 
 core_project_file() {
-  printf '%s/.claude/cx/core/projects/project.json\n' "$PROJECT_ROOT"
+  cx_core_project_file "$PROJECT_ROOT"
 }
 
 default_text() {
@@ -240,7 +243,7 @@ load_summary_content() {
 
   {
     printf '# 总结文档：%s\n\n' "$FEATURE_TITLE"
-    printf -- '- 保存路径：`.claude/cx/功能/%s/总结.md`\n' "$FEATURE_TITLE"
+    printf -- '- 保存路径：`开发文档/CX工作流/功能/%s/总结.md`\n' "$FEATURE_TITLE"
     printf -- '- 稳定 slug：`%s`\n\n' "$FEATURE_SLUG"
 
     printf '## 完成概览\n\n'
@@ -291,7 +294,7 @@ update_summary_state() {
   local feature_status core_feature project_status core_project
   local summary_doc_path
 
-  summary_doc_path=".claude/cx/功能/$FEATURE_TITLE/总结.md"
+  summary_doc_path="开发文档/CX工作流/功能/$FEATURE_TITLE/总结.md"
   feature_status=$(cat "$(feature_status_file)")
   core_feature=$(cat "$(core_feature_file)")
   project_status=$(cat "$(project_status_file)")

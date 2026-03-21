@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "$SCRIPT_DIR/cx-lib.sh"
+
 PROJECT_ROOT="${PROJECT_ROOT:-$(pwd)}"
 PROJECT_FILE="${PROJECT_FILE:-}"
 SOURCE_RUNNER=""
@@ -24,15 +27,6 @@ die() {
   exit 1
 }
 
-resolve_path() {
-  local path="$1"
-  if [[ "$path" = /* ]]; then
-    printf '%s\n' "$path"
-  else
-    printf '%s/%s\n' "$PROJECT_ROOT" "$path"
-  fi
-}
-
 now_iso() {
   if [[ -n "${CX_CORE_NOW:-}" ]]; then
     printf '%s\n' "$CX_CORE_NOW"
@@ -43,25 +37,15 @@ now_iso() {
 
 find_project_file() {
   if [[ -n "$PROJECT_FILE" ]]; then
-    resolve_path "$PROJECT_FILE"
+    cx_resolve_path "$PROJECT_FILE" "$PROJECT_ROOT"
     return
   fi
 
-  local candidate="$PROJECT_ROOT/.claude/cx/core/project.json"
-  if [[ -f "$candidate" ]]; then
+  local candidate=""
+  candidate=$(cx_core_project_file "$PROJECT_ROOT")
+  if [[ -n "$candidate" && -f "$candidate" ]]; then
     printf '%s\n' "$candidate"
     return
-  fi
-
-  local project_dir="$PROJECT_ROOT/.claude/cx/core/projects"
-  local matches=("$project_dir"/*.json)
-  if [[ ${#matches[@]} -eq 1 && -f "${matches[0]}" ]]; then
-    printf '%s\n' "${matches[0]}"
-    return
-  fi
-
-  if [[ ${#matches[@]} -gt 1 ]]; then
-    die "multiple project registry files found under $project_dir; pass --project-file"
   fi
 
   die "no project registry file found; pass --project-file"
@@ -145,20 +129,20 @@ main() {
 
   local project_file project_json feature_rel_path feature_file now handoff_stamp handoff_root source_session_file target_session_file
   local source_session_json target_session_json existing_lease_session existing_target_feature source_claimed_tasks_json
-  local handoff_record_path
+  local handoff_record_path handoff_record_file
 
   project_file=$(find_project_file)
   project_json=$(cat "$project_file")
   feature_rel_path=$(jq -re --arg feature "$FEATURE_SLUG" '.features[$feature].path' <<< "$project_json") || die "feature $FEATURE_SLUG is missing from project registry"
-  feature_file=$(resolve_path "$feature_rel_path")
+  feature_file=$(cx_resolve_path "$feature_rel_path" "$PROJECT_ROOT")
   [[ -f "$feature_file" ]] || die "feature file not found: $feature_file"
 
-  handoff_root=$(jq -r '.runtime_roots.handoffs // ".claude/cx/core/handoffs"' <<< "$project_json")
-  handoff_root=$(resolve_path "$handoff_root")
-  source_session_file=$(jq -r '.runtime_roots.sessions // ".claude/cx/core/sessions"' <<< "$project_json")
-  source_session_file=$(resolve_path "$source_session_file")/$SOURCE_SESSION_ID.json
-  target_session_file=$(jq -r '.runtime_roots.sessions // ".claude/cx/core/sessions"' <<< "$project_json")
-  target_session_file=$(resolve_path "$target_session_file")/$TARGET_SESSION_ID.json
+  handoff_root=$(jq -r --arg fallback ".cx/core/handoffs" '.runtime_roots.handoffs // $fallback' <<< "$project_json")
+  handoff_root=$(cx_resolve_path "$handoff_root" "$PROJECT_ROOT")
+  source_session_file=$(jq -r --arg fallback ".cx/core/sessions" '.runtime_roots.sessions // $fallback' <<< "$project_json")
+  source_session_file="$(cx_resolve_path "$source_session_file" "$PROJECT_ROOT")/$SOURCE_SESSION_ID.json"
+  target_session_file=$(jq -r --arg fallback ".cx/core/sessions" '.runtime_roots.sessions // $fallback' <<< "$project_json")
+  target_session_file="$(cx_resolve_path "$target_session_file" "$PROJECT_ROOT")/$TARGET_SESSION_ID.json"
 
   [[ -f "$source_session_file" ]] || die "source session file not found: $source_session_file"
   [[ -f "$target_session_file" ]] || die "target session file not found: $target_session_file"
@@ -184,7 +168,8 @@ main() {
   TMP_DIR=$(mktemp -d)
   trap 'rm -rf "$TMP_DIR"' EXIT
 
-  handoff_record_path=".claude/cx/core/handoffs/$FEATURE_SLUG/$handoff_stamp-$SOURCE_SESSION_ID-to-$TARGET_SESSION_ID.json"
+  handoff_record_file="$handoff_root/$FEATURE_SLUG/$handoff_stamp-$SOURCE_SESSION_ID-to-$TARGET_SESSION_ID.json"
+  handoff_record_path=$(cx_relative_path "$handoff_record_file" "$PROJECT_ROOT")
 
   jq \
     --arg runner "$SOURCE_RUNNER" \
@@ -333,13 +318,13 @@ main() {
   ensure_parent_dir "$project_file"
   ensure_parent_dir "$source_session_file"
   ensure_parent_dir "$target_session_file"
-  ensure_parent_dir "$handoff_root/$FEATURE_SLUG/$handoff_stamp-$SOURCE_SESSION_ID-to-$TARGET_SESSION_ID.json"
+  ensure_parent_dir "$handoff_record_file"
 
   mv "$TMP_DIR/project.json" "$project_file"
   mv "$TMP_DIR/feature.updated.json" "$feature_file"
   mv "$TMP_DIR/source-session.json" "$source_session_file"
   mv "$TMP_DIR/target-session.json" "$target_session_file"
-  mv "$TMP_DIR/handoff.json" "$handoff_root/$FEATURE_SLUG/$handoff_stamp-$SOURCE_SESSION_ID-to-$TARGET_SESSION_ID.json"
+  mv "$TMP_DIR/handoff.json" "$handoff_record_file"
 
   echo "[handoff] appended record $handoff_record_path"
   echo "[handoff] transferred $FEATURE_SLUG from $SOURCE_SESSION_ID to $TARGET_SESSION_ID"

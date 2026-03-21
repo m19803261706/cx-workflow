@@ -31,10 +31,10 @@ async function writeJson(filePath: string, value: unknown) {
 async function createSampleProject(options: SampleProjectOptions) {
   const completed = options.completed ?? 1;
   const total = options.total ?? 3;
-  const projectStatusPath = path.join(options.root, ".claude/cx/状态.json");
-  const coreProjectPath = path.join(options.root, ".claude/cx/core/projects/project.json");
-  const coreFeaturePath = path.join(options.root, `.claude/cx/core/features/${options.slug}.json`);
-  const featureStatusPath = path.join(options.root, `.claude/cx/功能/${options.title}/状态.json`);
+  const projectStatusPath = path.join(options.root, "开发文档/CX工作流/状态.json");
+  const coreProjectPath = path.join(options.root, ".cx/core/projects/project.json");
+  const coreFeaturePath = path.join(options.root, `.cx/core/features/${options.slug}.json`);
+  const featureStatusPath = path.join(options.root, `开发文档/CX工作流/功能/${options.title}/状态.json`);
 
   await writeJson(projectStatusPath, {
     initialized_at: "2026-03-20T08:00:00Z",
@@ -58,7 +58,7 @@ async function createSampleProject(options: SampleProjectOptions) {
       [options.slug]: {
         slug: options.slug,
         title: options.title,
-        path: `.claude/cx/core/features/${options.slug}.json`,
+        path: `.cx/core/features/${options.slug}.json`,
         lifecycle: "executing",
         worktree_path: options.worktreePath ?? `/worktrees/${options.slug}`,
         lease_session_id: `${options.ownerRunner ?? "codex"}-session-1`,
@@ -80,15 +80,15 @@ async function createSampleProject(options: SampleProjectOptions) {
       }
     },
     runtime_roots: {
-      projects: ".claude/cx/core/projects",
-      features: ".claude/cx/core/features",
-      sessions: ".claude/cx/core/sessions",
-      handoffs: ".claude/cx/core/handoffs",
-      worktrees: ".claude/cx/core/worktrees",
+      projects: ".cx/core/projects",
+      features: ".cx/core/features",
+      sessions: ".cx/core/sessions",
+      handoffs: ".cx/core/handoffs",
+      worktrees: ".cx/core/worktrees",
       artifacts: {
-        cx: ".claude/cx/runtime/cx",
-        cc: ".claude/cx/runtime/cc",
-        codex: ".claude/cx/runtime/codex"
+        cx: ".cx/runtime/cx",
+        cc: ".cx/runtime/cc",
+        codex: ".cx/runtime/codex"
       }
     }
   });
@@ -126,7 +126,7 @@ async function createSampleProject(options: SampleProjectOptions) {
       expires_at: "2026-03-20T10:00:00Z"
     },
     docs: {
-      prd: `.claude/cx/功能/${options.title}/需求.md`
+      prd: `开发文档/CX工作流/功能/${options.title}/需求.md`
     },
     workflow: {
       protocol_version: "1.0",
@@ -149,7 +149,7 @@ async function createSampleProject(options: SampleProjectOptions) {
         depends_on: [],
         status: "completed",
         owner_session_id: `${options.ownerRunner ?? "codex"}-session-1`,
-        path: `.claude/cx/功能/${options.title}/任务/任务-1.md`
+        path: `开发文档/CX工作流/功能/${options.title}/任务/任务-1.md`
       },
       {
         id: 2,
@@ -159,7 +159,7 @@ async function createSampleProject(options: SampleProjectOptions) {
         depends_on: [1],
         status: "in_progress",
         owner_session_id: `${options.ownerRunner ?? "codex"}-session-1`,
-        path: `.claude/cx/功能/${options.title}/任务/任务-2.md`
+        path: `开发文档/CX工作流/功能/${options.title}/任务/任务-2.md`
       }
     ],
     handoffs: options.handoffPending
@@ -217,7 +217,7 @@ async function createSampleProject(options: SampleProjectOptions) {
     ],
     execution_order: [1, 2],
     docs: {
-      prd: `.claude/cx/功能/${options.title}/需求.md`
+      prd: `开发文档/CX工作流/功能/${options.title}/需求.md`
     },
     workflow: {
       protocol_version: "1.0",

@@ -3,7 +3,7 @@ name: cx-design
 description: >
   CX 工作流 — 技术设计与执行契约。当用户提到"技术设计"、"Design Doc"、
   "API 设计"、"接口设计"、"架构设计"、"系统设计"时触发。
-  读取 PRD 生成设计文档，保存到本地 .claude/cx/功能/{feature_title}/设计.md。
+  读取 PRD 生成设计文档，保存到本地 开发文档/CX工作流/功能/{feature_title}/设计.md。
   该步骤只服务中大 feature 的执行契约，不强加给所有小功能。
 ---
 
@@ -60,7 +60,7 @@ check_output=$(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-worktree.sh check \
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
-CX_DIR="$PROJECT_ROOT/.claude/cx"
+CX_DOCS_DIR="$PROJECT_ROOT/开发文档/CX工作流"
 FEATURE_TITLE="{功能标题}"
 FEATURE_SLUG="{feature-slug}"
 FEATURE_DIR="$CX_DIR/功能/$FEATURE_TITLE"
@@ -110,7 +110,7 @@ bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-workflow-design.sh \
 写入：
 
 ```text
-.claude/cx/功能/{功能标题}/设计.md
+开发文档/CX工作流/功能/{功能标题}/设计.md
 ```
 
 同时把 feature 状态推进到可规划阶段，例如：

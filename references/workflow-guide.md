@@ -1,6 +1,6 @@
 # CX Workflow Guide
 
-纯 `cx 3.1` 的参考指南。目标很简单：插件层提供能力，项目级 `.claude/cx` 提供真相。
+纯 `cx 3.1` 的参考指南。目标很简单：插件层提供能力，项目级 `开发文档/CX工作流 + .cx` 提供真相。
 在双运行器模式下，Claude Code 插件只是共享 `cx core` 上的 `cc` adapter，不再把自己视为整个系统。
 从这版开始，`core/workflow/` 也开始承载共享工作流大脑。
 
@@ -8,7 +8,7 @@
 
 - 只保留 `cx`
 - 插件命令遵循官方 namespaced 形式：`/cx:*`
-- 项目级 `.claude/cx` 是运行时真相
+- 项目级 `开发文档/CX工作流 + .cx` 是运行时真相
 - 共享 `cx core` 允许 `cc` / `codex` 两个 runner 协作
 - `shared workflow core` 统一 PRD / Design / Plan / Exec / Fix / Status / Summary 的规则
 - `cx dashboard` 作为全局观察台聚合多个项目状态，但不替代项目级真相源
@@ -28,14 +28,14 @@
 
 初始化负责：
 
-- 创建 `.claude/cx/配置.json`
-- 创建 `.claude/cx/状态.json`
+- 创建 `开发文档/CX工作流/配置.json`
+- 创建 `开发文档/CX工作流/状态.json`
 - 创建 `功能/` 与 `修复/`
 - 在每个项目单独确认 `developer_id`
 - 检查 Git / GitHub 接入状态
 - 后续通过 `cx-dashboard-bridge` 接入全局面板检测与自动注册
 
-如果项目已经带有旧版 `.claude/cx`，先运行：
+如果项目已经带有旧版 `.claude/cx`，先运行迁移，再切到新的 `开发文档/CX工作流 + .cx`：
 
 ```text
 bash scripts/cx-core-migrate.sh
@@ -52,25 +52,25 @@ bash scripts/cx-core-migrate.sh
 - 自动判断是否需要 Design
 - 通过共享 runner `scripts/cx-workflow-prd.sh` 做确定性落盘
 - 后续会复用 `scripts/cx-dashboard-bridge.sh` 做全局面板检测、首次提醒与项目自动注册
-- 产物：`.claude/cx/功能/{功能标题}/需求.md`
+- 产物：`开发文档/CX工作流/功能/{功能标题}/需求.md`
 
 ### 2. `/cx:cx-design`
 
 - 只服务中大 feature
 - 锁接口契约、状态枚举、字段映射、风险点
-- 产物：`.claude/cx/功能/{功能标题}/设计.md`
+- 产物：`开发文档/CX工作流/功能/{功能标题}/设计.md`
 
 ### 3. `/cx:cx-adr`
 
 - 只在 L 规模或重大架构取舍时出现
-- 产物：`.claude/cx/功能/{功能标题}/架构决策.md`
+- 产物：`开发文档/CX工作流/功能/{功能标题}/架构决策.md`
 
 ### 4. `/cx:cx-plan`
 
 - 默认轻量拆任务
 - 仅当 PRD 明显引入新技术时，才进入技术识别支线
 - 先记录 feature 的推荐 worktree，再拆任务和状态
-- 产物：`.claude/cx/功能/{功能标题}/任务/任务-{n}.md`
+- 产物：`开发文档/CX工作流/功能/{功能标题}/任务/任务-{n}.md`
 
 ### 5. `/cx:cx-exec`
 
@@ -91,7 +91,7 @@ bash scripts/cx-core-migrate.sh
 ### 7. `/cx:cx-summary`
 
 - 只负责闭环
-- 生成 `.claude/cx/功能/{功能标题}/总结.md`
+- 生成 `开发文档/CX工作流/功能/{功能标题}/总结.md`
 - 清空 `current_feature`
 - 同步 GitHub 镜像
 
@@ -112,7 +112,7 @@ bash scripts/cx-core-migrate.sh
 
 ### 项目级
 
-`.claude/cx/状态.json` 维护：
+`开发文档/CX工作流/状态.json` 维护：
 
 - `current_feature`
 - `features`
@@ -120,7 +120,7 @@ bash scripts/cx-core-migrate.sh
 
 ### 功能级
 
-`.claude/cx/功能/{功能标题}/状态.json` 维护：
+`开发文档/CX工作流/功能/{功能标题}/状态.json` 维护：
 
 - `status`
 - `total`
@@ -175,7 +175,7 @@ adapter 只负责入口与交互载体，不能再各自重新解释 PRD、Plan 
 
 稳定边界：
 
-- 项目 `.claude/cx` 继续是真相源
+- 项目 `开发文档/CX工作流 + .cx` 继续是真相源
 - 本地服务负责聚合多个项目
 - Web 前端只读展示聚合结果
 - `cx:init` / `cx:prd` 通过同一 bridge helper 感知“面板是否已运行、是否需要提醒、是否自动注册当前项目”

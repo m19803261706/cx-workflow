@@ -268,7 +268,7 @@
           "cx-core-dual-runner": {
             "slug": "cx-core-dual-runner",
             "title": "Shared cx core control plane",
-            "path": ".claude/cx/core/features/cx-core-dual-runner.json",
+            "path": ".cx/core/features/cx-core-dual-runner.json",
             "lifecycle": "executing",
             "worktree_path": "/worktrees/codex-cx-core-dual-runner",
             "lease_session_id": "codex-20260320-001",
@@ -288,15 +288,15 @@
           }
         },
         "runtime_roots": {
-          "projects": ".claude/cx/core/projects",
-          "features": ".claude/cx/core/features",
-          "sessions": ".claude/cx/core/sessions",
-          "handoffs": ".claude/cx/core/handoffs",
-          "worktrees": ".claude/cx/core/worktrees",
+          "projects": ".cx/core/projects",
+          "features": ".cx/core/features",
+          "sessions": ".cx/core/sessions",
+          "handoffs": ".cx/core/handoffs",
+          "worktrees": ".cx/core/worktrees",
           "artifacts": {
-            "cx": ".claude/cx/runtime/cx",
-            "cc": ".claude/cx/runtime/cc",
-            "codex": ".claude/cx/runtime/codex"
+            "cx": ".cx/runtime/cx",
+            "cc": ".cx/runtime/cc",
+            "codex": ".cx/runtime/codex"
           }
         }
       }

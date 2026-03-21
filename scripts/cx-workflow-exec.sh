@@ -159,31 +159,29 @@ validate_args() {
 }
 
 ensure_runtime() {
-  [[ -f "$PROJECT_ROOT/.claude/cx/状态.json" ]] || die "missing .claude/cx/状态.json"
-  [[ -f "$PROJECT_ROOT/.claude/cx/core/projects/project.json" ]] || die "missing .claude/cx/core/projects/project.json"
-  [[ -f "$PROJECT_ROOT/.claude/cx/core/features/$FEATURE_SLUG.json" ]] || die "missing feature record for $FEATURE_SLUG"
+  [[ -f "$(cx_public_status_file "$PROJECT_ROOT")" ]] || die "missing 开发文档/CX工作流/状态.json"
+  [[ -f "$(cx_core_project_file "$PROJECT_ROOT")" ]] || die "missing .cx/core/projects/project.json"
+  [[ -f "$(cx_core_feature_registry_file "$FEATURE_SLUG" "$PROJECT_ROOT")" ]] || die "missing feature record for $FEATURE_SLUG"
 }
 
 feature_title() {
-  jq -r --arg slug "$FEATURE_SLUG" '.features[$slug].title // empty' "$PROJECT_ROOT/.claude/cx/状态.json"
+  cx_feature_title_from_slug "$FEATURE_SLUG" "$PROJECT_ROOT"
 }
 
 feature_status_file() {
-  local title
-  title=$(feature_title)
-  printf '%s/.claude/cx/功能/%s/状态.json\n' "$PROJECT_ROOT" "$title"
+  cx_feature_status_file_from_slug "$FEATURE_SLUG" "$PROJECT_ROOT"
 }
 
 core_feature_file() {
-  printf '%s/.claude/cx/core/features/%s.json\n' "$PROJECT_ROOT" "$FEATURE_SLUG"
+  cx_core_feature_registry_file "$FEATURE_SLUG" "$PROJECT_ROOT"
 }
 
 project_status_file() {
-  printf '%s/.claude/cx/状态.json\n' "$PROJECT_ROOT"
+  cx_public_status_file "$PROJECT_ROOT"
 }
 
 core_project_file() {
-  printf '%s/.claude/cx/core/projects/project.json\n' "$PROJECT_ROOT"
+  cx_core_project_file "$PROJECT_ROOT"
 }
 
 ensure_task_exists() {

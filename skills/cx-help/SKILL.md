@@ -25,7 +25,7 @@ description: >
 
 ## 核心体验
 
-- 项目级 `.claude/cx` 是唯一运行时真相
+- 项目级 `开发文档/CX工作流 + .cx` 是运行时真相
 - `shared workflow core` 统一 PRD / Design / Plan / Exec / Fix / Status / Summary 逻辑
 - 命令默认自动路由，不要求你频繁带参数
 - 普通执行优先少打断

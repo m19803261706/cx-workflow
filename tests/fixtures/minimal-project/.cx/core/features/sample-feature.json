@@ -1,0 +1,73 @@
+{
+  "slug": "sample-feature",
+  "title": "示例功能",
+  "lifecycle": {
+    "stage": "executing",
+    "updated_at": "2026-03-19T15:30:00Z"
+  },
+  "planning_owner": {
+    "runner": "cc",
+    "session_id": "cc-sample-001"
+  },
+  "execution_owner": {
+    "runner": "cc",
+    "session_id": "cc-sample-001"
+  },
+  "worktree": {
+    "branch": "cc/sample-feature",
+    "worktree_path": "/worktrees/sample-feature",
+    "binding_status": "bound",
+    "bound_at": "2026-03-19T15:10:00Z"
+  },
+  "lease": {
+    "runner": "cc",
+    "session_id": "cc-sample-001",
+    "branch": "cc/sample-feature",
+    "worktree_path": "/worktrees/sample-feature",
+    "claimed_feature": "sample-feature",
+    "claimed_tasks": [2],
+    "claimed_at": "2026-03-19T15:10:00Z",
+    "last_heartbeat": "2026-03-19T15:30:00Z",
+    "expires_at": "2099-03-19T16:30:00Z"
+  },
+  "docs": {
+    "prd": "开发文档/CX工作流/功能/示例功能/需求.md",
+    "design": "开发文档/CX工作流/功能/示例功能/设计.md",
+    "summary": "开发文档/CX工作流/功能/示例功能/总结.md"
+  },
+  "workflow": {
+    "protocol_version": "1.0",
+    "current_phase": "exec",
+    "completion_status": "ready",
+    "question_mode": "conversation",
+    "size": "M",
+    "needs_design": true,
+    "needs_adr": false,
+    "next_route": "cx-exec",
+    "decision_basis": "最小夹具用于 hook 验证",
+    "last_transition_at": "2026-03-19T15:30:00Z"
+  },
+  "tasks": [
+    {
+      "id": 1,
+      "title": "建立 schema",
+      "phase": 1,
+      "parallel": false,
+      "depends_on": [],
+      "status": "completed",
+      "owner_session_id": "cc-sample-001",
+      "path": "开发文档/CX工作流/功能/示例功能/任务/任务-1.md"
+    },
+    {
+      "id": 2,
+      "title": "更新执行链",
+      "phase": 2,
+      "parallel": false,
+      "depends_on": [1],
+      "status": "in_progress",
+      "owner_session_id": "cc-sample-001",
+      "path": "开发文档/CX工作流/功能/示例功能/任务/任务-2.md"
+    }
+  ],
+  "handoffs": []
+}

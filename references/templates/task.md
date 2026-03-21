@@ -1,6 +1,6 @@
 # 任务 {number}：[title]
 
-- 保存路径：`.claude/cx/功能/{feature_title}/任务/任务-{number}.md`
+- 保存路径：`开发文档/CX工作流/功能/{feature_title}/任务/任务-{number}.md`
 
 ## 元信息
 

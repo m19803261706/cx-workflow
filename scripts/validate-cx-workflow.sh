@@ -450,18 +450,18 @@ CX_CORE_NOW=2026-03-20T10:10:00Z CX_WORKFLOW_NOW=2026-03-20T10:10:00Z bash scrip
   --requirements "生成最小 PRD|注册 shared core" \
   --acceptance "需求文档存在|shared core feature 已注册" \
   --decision-basis "M 规模默认需要设计。" >/dev/null
-test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/需求.md"
-test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/状态.json"
-test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json"
-test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/worktrees/workflow-smoke.json"
-jq -e '.current_feature == "workflow-smoke"' "$WORKFLOW_SCENARIO_DIR/.claude/cx/状态.json" >/dev/null
-jq -e '.features["workflow-smoke"].status == "drafting"' "$WORKFLOW_SCENARIO_DIR/.claude/cx/状态.json" >/dev/null
+test -f "$WORKFLOW_SCENARIO_DIR/开发文档/CX工作流/功能/共享工作流冒烟/需求.md"
+test -f "$WORKFLOW_SCENARIO_DIR/开发文档/CX工作流/功能/共享工作流冒烟/状态.json"
+test -f "$WORKFLOW_SCENARIO_DIR/.cx/core/features/workflow-smoke.json"
+test -f "$WORKFLOW_SCENARIO_DIR/.cx/core/worktrees/workflow-smoke.json"
+jq -e '.current_feature == "workflow-smoke"' "$WORKFLOW_SCENARIO_DIR/开发文档/CX工作流/状态.json" >/dev/null
+jq -e '.features["workflow-smoke"].status == "drafting"' "$WORKFLOW_SCENARIO_DIR/开发文档/CX工作流/状态.json" >/dev/null
 jq -e '.features["workflow-smoke"].workflow_phase == "prd" and .features["workflow-smoke"].next_route == "cx-design"' \
-  "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/projects/project.json" >/dev/null
+  "$WORKFLOW_SCENARIO_DIR/.cx/core/projects/project.json" >/dev/null
 jq -e '.workflow.current_phase == "prd" and .workflow.next_route == "cx-design" and .workflow.needs_design == true and .workflow.size == "M"' \
-  "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/状态.json" >/dev/null
+  "$WORKFLOW_SCENARIO_DIR/开发文档/CX工作流/功能/共享工作流冒烟/状态.json" >/dev/null
 jq -e '.workflow.current_phase == "prd" and .workflow.next_route == "cx-design" and .workflow.needs_design == true and .planning_owner.runner == "codex" and .planning_owner.session_id == "codex-prd-001"' \
-  "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json" >/dev/null
+  "$WORKFLOW_SCENARIO_DIR/.cx/core/features/workflow-smoke.json" >/dev/null
 
 echo "[check] workflow design runner writes design doc and advances next route"
 CX_CORE_NOW=2026-03-20T10:10:30Z CX_WORKFLOW_NOW=2026-03-20T10:10:30Z bash scripts/cx-workflow-design.sh \
@@ -470,11 +470,11 @@ CX_CORE_NOW=2026-03-20T10:10:30Z CX_WORKFLOW_NOW=2026-03-20T10:10:30Z bash scrip
   --runner codex \
   --session-id codex-design-001 \
   --decision-basis "设计契约已确认，可以进入任务规划。" >/dev/null
-test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/设计.md"
+test -f "$WORKFLOW_SCENARIO_DIR/开发文档/CX工作流/功能/共享工作流冒烟/设计.md"
 jq -e '.status == "planned" and .docs.design == "设计.md" and .workflow.current_phase == "design" and .workflow.next_route == "cx-plan"' \
-  "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/状态.json" >/dev/null
-jq -e '.lifecycle.stage == "planned" and .docs.design == ".claude/cx/功能/共享工作流冒烟/设计.md" and .workflow.current_phase == "design" and .workflow.next_route == "cx-plan" and .planning_owner.session_id == "codex-design-001"' \
-  "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json" >/dev/null
+  "$WORKFLOW_SCENARIO_DIR/开发文档/CX工作流/功能/共享工作流冒烟/状态.json" >/dev/null
+jq -e '.lifecycle.stage == "planned" and .docs.design == "开发文档/CX工作流/功能/共享工作流冒烟/设计.md" and .workflow.current_phase == "design" and .workflow.next_route == "cx-plan" and .planning_owner.session_id == "codex-design-001"' \
+  "$WORKFLOW_SCENARIO_DIR/.cx/core/features/workflow-smoke.json" >/dev/null
 
 cat > "$WORKFLOW_SCENARIO_DIR/plan.json" <<'EOF'
 {
@@ -491,7 +491,7 @@ cat > "$WORKFLOW_SCENARIO_DIR/plan.json" <<'EOF'
       "depends_on": [],
       "goal": "生成任务拆分。",
       "modified_files": ["core/workflow/protocols/plan.md"],
-      "created_files": [".claude/cx/功能/共享工作流冒烟/任务/任务-1.md"],
+      "created_files": ["开发文档/CX工作流/功能/共享工作流冒烟/任务/任务-1.md"],
       "test_files": ["scripts/validate-cx-workflow.sh"],
       "acceptance": ["任务图完成", "任务文档完成"],
       "api_contracts": ["无"],
@@ -541,17 +541,17 @@ CX_CORE_NOW=2026-03-20T10:11:00Z CX_WORKFLOW_NOW=2026-03-20T10:11:00Z bash scrip
   --runner codex \
   --session-id codex-plan-001 \
   --plan-json-file "$WORKFLOW_SCENARIO_DIR/plan.json" >/dev/null
-test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/任务/任务-1.md"
-test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/任务/任务-2.md"
-test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/任务/任务-3.md"
+test -f "$WORKFLOW_SCENARIO_DIR/开发文档/CX工作流/功能/共享工作流冒烟/任务/任务-1.md"
+test -f "$WORKFLOW_SCENARIO_DIR/开发文档/CX工作流/功能/共享工作流冒烟/任务/任务-2.md"
+test -f "$WORKFLOW_SCENARIO_DIR/开发文档/CX工作流/功能/共享工作流冒烟/任务/任务-3.md"
 jq -e '.status == "planned" and .workflow.current_phase == "plan" and .workflow.next_route == "cx-exec"' \
-  "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/状态.json" >/dev/null
+  "$WORKFLOW_SCENARIO_DIR/开发文档/CX工作流/功能/共享工作流冒烟/状态.json" >/dev/null
 jq -e '.tasks[0].status == "ready" and .tasks[1].status == "pending" and .tasks[2].status == "pending"' \
-  "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/状态.json" >/dev/null
+  "$WORKFLOW_SCENARIO_DIR/开发文档/CX工作流/功能/共享工作流冒烟/状态.json" >/dev/null
 jq -e '.lifecycle.stage == "ready" and .workflow.current_phase == "plan" and .workflow.next_route == "cx-exec"' \
-  "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json" >/dev/null
+  "$WORKFLOW_SCENARIO_DIR/.cx/core/features/workflow-smoke.json" >/dev/null
 jq -e '.tasks[0].status == "ready" and .tasks[1].status == "pending" and .tasks[2].status == "pending"' \
-  "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json" >/dev/null
+  "$WORKFLOW_SCENARIO_DIR/.cx/core/features/workflow-smoke.json" >/dev/null
 
 echo "[check] workflow exec dispatch chooses next work instead of stopping at task boundary"
 DISPATCH_OUTPUT=$(bash scripts/cx-workflow-exec-dispatch.sh \
@@ -574,9 +574,9 @@ CX_CORE_NOW=2026-03-20T10:12:00Z CX_WORKFLOW_NOW=2026-03-20T10:12:00Z bash scrip
   --action start \
   --task 1 >/dev/null
 jq -e '.status == "executing" and .in_progress == 1 and .tasks[0].status == "in_progress"' \
-  "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/状态.json" >/dev/null
+  "$WORKFLOW_SCENARIO_DIR/开发文档/CX工作流/功能/共享工作流冒烟/状态.json" >/dev/null
 jq -e '.lifecycle.stage == "executing" and .lease.session_id == "codex-exec-001" and .tasks[0].status == "in_progress"' \
-  "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json" >/dev/null
+  "$WORKFLOW_SCENARIO_DIR/.cx/core/features/workflow-smoke.json" >/dev/null
 
 CX_CORE_NOW=2026-03-20T10:13:00Z CX_WORKFLOW_NOW=2026-03-20T10:13:00Z bash scripts/cx-workflow-exec.sh \
   --project-root "$WORKFLOW_SCENARIO_DIR" \
@@ -589,9 +589,9 @@ CX_CORE_NOW=2026-03-20T10:13:00Z CX_WORKFLOW_NOW=2026-03-20T10:13:00Z bash scrip
   --task 1 \
   --commit abc123 >/dev/null
 jq -e '.completed == 1 and .in_progress == 0 and .tasks[0].status == "completed" and .tasks[0].commit == "abc123" and .tasks[1].status == "ready"' \
-  "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/状态.json" >/dev/null
+  "$WORKFLOW_SCENARIO_DIR/开发文档/CX工作流/功能/共享工作流冒烟/状态.json" >/dev/null
 jq -e '.lifecycle.stage == "executing" and .lease.claimed_tasks == [] and .tasks[0].status == "completed" and .tasks[1].status == "ready" and .tasks[2].status == "ready"' \
-  "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json" >/dev/null
+  "$WORKFLOW_SCENARIO_DIR/.cx/core/features/workflow-smoke.json" >/dev/null
 
 echo "[check] workflow exec dispatch surfaces parallel-ready choice after task completion"
 DISPATCH_OUTPUT=$(bash scripts/cx-workflow-exec-dispatch.sh \
@@ -661,9 +661,9 @@ CX_CORE_NOW=2026-03-20T10:15:30Z CX_WORKFLOW_NOW=2026-03-20T10:15:30Z bash scrip
   --task 3 \
   --commit ghi789 >/dev/null
 jq -e '.status == "completed" and .completed == 3 and .workflow.next_route == "cx-summary" and .tasks[1].commit == "def456" and .tasks[2].commit == "ghi789"' \
-  "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/状态.json" >/dev/null
+  "$WORKFLOW_SCENARIO_DIR/开发文档/CX工作流/功能/共享工作流冒烟/状态.json" >/dev/null
 jq -e '.lifecycle.stage == "completed" and .workflow.next_route == "cx-summary" and .lease.claimed_tasks == []' \
-  "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json" >/dev/null
+  "$WORKFLOW_SCENARIO_DIR/.cx/core/features/workflow-smoke.json" >/dev/null
 
 echo "[check] workflow status runner summarizes shared state and writes runtime snapshot"
 STATUS_OUTPUT=$(CX_CORE_NOW=2026-03-20T10:15:30Z CX_WORKFLOW_NOW=2026-03-20T10:15:30Z bash scripts/cx-workflow-status.sh \
@@ -673,9 +673,9 @@ STATUS_OUTPUT=$(CX_CORE_NOW=2026-03-20T10:15:30Z CX_WORKFLOW_NOW=2026-03-20T10:1
 printf '%s\n' "$STATUS_OUTPUT" | rg 'current_feature=workflow-smoke'
 printf '%s\n' "$STATUS_OUTPUT" | rg 'next_route=cx-summary'
 printf '%s\n' "$STATUS_OUTPUT" | rg 'owner_runner=codex'
-test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/runtime/codex/当前状态.json"
+test -f "$WORKFLOW_SCENARIO_DIR/.cx/runtime/codex/当前状态.json"
 jq -e '.current_feature.slug == "workflow-smoke" and .current_feature.next_route == "cx-summary"' \
-  "$WORKFLOW_SCENARIO_DIR/.claude/cx/runtime/codex/当前状态.json" >/dev/null
+  "$WORKFLOW_SCENARIO_DIR/.cx/runtime/codex/当前状态.json" >/dev/null
 
 echo "[check] workflow summary runner archives completed feature"
 CX_CORE_NOW=2026-03-20T10:16:00Z CX_WORKFLOW_NOW=2026-03-20T10:16:00Z bash scripts/cx-workflow-summary.sh \
@@ -687,17 +687,17 @@ CX_CORE_NOW=2026-03-20T10:16:00Z CX_WORKFLOW_NOW=2026-03-20T10:16:00Z bash scrip
   --test-command "bash scripts/validate-cx-workflow.sh" \
   --test-result "通过" \
   --review-result "通过" >/dev/null
-test -f "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/总结.md"
+test -f "$WORKFLOW_SCENARIO_DIR/开发文档/CX工作流/功能/共享工作流冒烟/总结.md"
 jq -e '.status == "summarized" and .workflow.current_phase == "summary" and .workflow.completion_status == "done" and .workflow.next_route == null' \
-  "$WORKFLOW_SCENARIO_DIR/.claude/cx/功能/共享工作流冒烟/状态.json" >/dev/null
+  "$WORKFLOW_SCENARIO_DIR/开发文档/CX工作流/功能/共享工作流冒烟/状态.json" >/dev/null
 jq -e '.lifecycle.stage == "archived" and .workflow.current_phase == "summary" and .workflow.completion_status == "done" and .workflow.next_route == null and .worktree.binding_status == "released"' \
-  "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/features/workflow-smoke.json" >/dev/null
+  "$WORKFLOW_SCENARIO_DIR/.cx/core/features/workflow-smoke.json" >/dev/null
 jq -e '.current_feature == null and .features["workflow-smoke"].status == "summarized"' \
-  "$WORKFLOW_SCENARIO_DIR/.claude/cx/状态.json" >/dev/null
+  "$WORKFLOW_SCENARIO_DIR/开发文档/CX工作流/状态.json" >/dev/null
 jq -e '.current_feature == null and .features["workflow-smoke"].lifecycle == "archived" and .features["workflow-smoke"].lease_session_id == null and .active_sessions["codex-exec-001"].claimed_feature == null and .active_sessions["codex-exec-001"].claimed_tasks == []' \
-  "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/projects/project.json" >/dev/null
+  "$WORKFLOW_SCENARIO_DIR/.cx/core/projects/project.json" >/dev/null
 jq -e '.binding_status == "released"' \
-  "$WORKFLOW_SCENARIO_DIR/.claude/cx/core/worktrees/workflow-smoke.json" >/dev/null
+  "$WORKFLOW_SCENARIO_DIR/.cx/core/worktrees/workflow-smoke.json" >/dev/null
 rm -rf "$WORKFLOW_SCENARIO_DIR"
 
 echo "[check] workflow fix runner writes standalone fix record"
@@ -724,9 +724,9 @@ CX_CORE_NOW=2026-03-20T10:16:30Z CX_WORKFLOW_NOW=2026-03-20T10:16:30Z bash scrip
   --verification-command "bash scripts/validate-cx-workflow.sh" \
   --verification-result "通过" \
   --commit abcfix >/dev/null
-test -f "$FIX_SCENARIO_DIR/.claude/cx/修复/共享状态小修复/修复记录.md"
+test -f "$FIX_SCENARIO_DIR/开发文档/CX工作流/修复/共享状态小修复/修复记录.md"
 jq -e '.fixes["core-fix-smoke"].title == "共享状态小修复" and .fixes["core-fix-smoke"].path == "修复/共享状态小修复"' \
-  "$FIX_SCENARIO_DIR/.claude/cx/状态.json" >/dev/null
+  "$FIX_SCENARIO_DIR/开发文档/CX工作流/状态.json" >/dev/null
 rm -rf "$FIX_SCENARIO_DIR"
 
 echo "[check] core worktree binding rejects wrong checkout for same feature"
@@ -815,7 +815,7 @@ jq -n '{
     "cx-core-dual-runner": {
       "slug": "cx-core-dual-runner",
       "title": "Shared cx core control plane",
-      "path": ".claude/cx/core/features/cx-core-dual-runner.json",
+      "path": ".cx/core/features/cx-core-dual-runner.json",
       "lifecycle": "executing",
       "worktree_path": "/worktrees/codex-cx-core-dual-runner",
       "lease_session_id": "codex-20260320-001",
@@ -835,15 +835,15 @@ jq -n '{
     }
   },
   "runtime_roots": {
-    "projects": ".claude/cx/core/projects",
-    "features": ".claude/cx/core/features",
-    "sessions": ".claude/cx/core/sessions",
-    "handoffs": ".claude/cx/core/handoffs",
-    "worktrees": ".claude/cx/core/worktrees",
+    "projects": ".cx/core/projects",
+    "features": ".cx/core/features",
+    "sessions": ".cx/core/sessions",
+    "handoffs": ".cx/core/handoffs",
+    "worktrees": ".cx/core/worktrees",
     "artifacts": {
-      "cx": ".claude/cx/runtime/cx",
-      "cc": ".claude/cx/runtime/cc",
-      "codex": ".claude/cx/runtime/codex"
+      "cx": ".cx/runtime/cx",
+      "cc": ".cx/runtime/cc",
+      "codex": ".cx/runtime/codex"
     }
   }
 }' > "$CORE_TMP_DIR/core-project.json"
@@ -889,9 +889,11 @@ rm -rf "$CORE_TMP_DIR"
 if [[ -d tests/fixtures/minimal-project ]]; then
   echo "[check] fixture json parses"
   jq empty \
-    tests/fixtures/minimal-project/.claude/cx/配置.json \
-    tests/fixtures/minimal-project/.claude/cx/状态.json \
-    tests/fixtures/minimal-project/.claude/cx/功能/示例功能/状态.json
+    tests/fixtures/minimal-project/开发文档/CX工作流/配置.json \
+    tests/fixtures/minimal-project/开发文档/CX工作流/状态.json \
+    tests/fixtures/minimal-project/开发文档/CX工作流/功能/示例功能/状态.json \
+    tests/fixtures/minimal-project/.cx/core/projects/minimal-project.json \
+    tests/fixtures/minimal-project/.cx/core/features/sample-feature.json
 
   echo "[check] cx-init per-project developer_id prompt"
   rg '每个项目都单独确认 developer_id' skills/cx-init/SKILL.md
@@ -933,12 +935,11 @@ if [[ -d tests/fixtures/minimal-project ]]; then
   printf '%s\n' "$SESSION_OUTPUT" | rg '1/2'
 
   echo "[check] pre-compact writes snapshot"
-  rm -f tests/fixtures/minimal-project/.claude/cx/context-snapshot.md
-  rm -f tests/fixtures/minimal-project/.claude/cx/runtime/cc/context-snapshot.md
+  rm -f tests/fixtures/minimal-project/.cx/runtime/cc/context-snapshot.md
   PROJECT_ROOT=tests/fixtures/minimal-project bash hooks/pre-compact.sh
-  test -f tests/fixtures/minimal-project/.claude/cx/runtime/cc/context-snapshot.md
+  test -f tests/fixtures/minimal-project/.cx/runtime/cc/context-snapshot.md
   ! test -f tests/fixtures/minimal-project/.claude/cx/context-snapshot.md
-  rg 'sample-feature' tests/fixtures/minimal-project/.claude/cx/runtime/cc/context-snapshot.md
+  rg 'sample-feature' tests/fixtures/minimal-project/.cx/runtime/cc/context-snapshot.md
 
   echo "[check] prompt-submit stays quiet during normal execution"
   PROMPT_OUTPUT=$(PROJECT_ROOT=tests/fixtures/minimal-project bash hooks/prompt-submit.sh)
@@ -949,33 +950,33 @@ if [[ -d tests/fixtures/minimal-project ]]; then
   printf '%s\n' "$STOP_OUTPUT" | rg '/cx:cx-exec'
 
   echo "[check] stop-failure writes failure snapshot"
-  rm -f tests/fixtures/minimal-project/.claude/cx/runtime/cc/最近失败.json
+  rm -f tests/fixtures/minimal-project/.cx/runtime/cc/最近失败.json
   printf '%s' '{"error":"rate_limit","message":"Too many requests"}' | PROJECT_ROOT=tests/fixtures/minimal-project bash hooks/stop-failure.sh
-  test -f tests/fixtures/minimal-project/.claude/cx/runtime/cc/最近失败.json
-  rg '"error": "rate_limit"' tests/fixtures/minimal-project/.claude/cx/runtime/cc/最近失败.json
-  rg '"runner": "cc"' tests/fixtures/minimal-project/.claude/cx/runtime/cc/最近失败.json
+  test -f tests/fixtures/minimal-project/.cx/runtime/cc/最近失败.json
+  rg '"error": "rate_limit"' tests/fixtures/minimal-project/.cx/runtime/cc/最近失败.json
+  rg '"runner": "cc"' tests/fixtures/minimal-project/.cx/runtime/cc/最近失败.json
 
   echo "[check] config-change writes config snapshot"
-  rm -f tests/fixtures/minimal-project/.claude/cx/runtime/cc/最近配置变更.json
+  rm -f tests/fixtures/minimal-project/.cx/runtime/cc/最近配置变更.json
   printf '%s' '{"source":"project_settings","file_path":".claude/settings.json"}' | PROJECT_ROOT=tests/fixtures/minimal-project bash hooks/config-change.sh
-  test -f tests/fixtures/minimal-project/.claude/cx/runtime/cc/最近配置变更.json
-  rg '"source": "project_settings"' tests/fixtures/minimal-project/.claude/cx/runtime/cc/最近配置变更.json
-  rg '"runner": "cc"' tests/fixtures/minimal-project/.claude/cx/runtime/cc/最近配置变更.json
+  test -f tests/fixtures/minimal-project/.cx/runtime/cc/最近配置变更.json
+  rg '"source": "project_settings"' tests/fixtures/minimal-project/.cx/runtime/cc/最近配置变更.json
+  rg '"runner": "cc"' tests/fixtures/minimal-project/.cx/runtime/cc/最近配置变更.json
 
   echo "[check] prompt-submit surfaces blocked reason only when needed"
   TMP_DIR=$(mktemp -d)
   trap 'rm -rf "$TMP_DIR"' EXIT
   cp -R tests/fixtures/minimal-project/. "$TMP_DIR"
-  jq '.status = "blocked"
-    | .blocked = {"reason_type":"needs_decision","message":"等待用户确认接口行为"}
-    | .tasks = (.tasks | map(if .number == 2 then . + {"status":"blocked","reason_type":"needs_decision"} else . end))' \
-    "$TMP_DIR/.claude/cx/功能/示例功能/状态.json" > "$TMP_DIR/feature-status.json"
-  mv "$TMP_DIR/feature-status.json" "$TMP_DIR/.claude/cx/功能/示例功能/状态.json"
+  jq '.lifecycle.stage = "blocked"
+    | .lifecycle.blocked_reason = "needs_decision"
+    | .tasks = (.tasks | map(if .id == 2 then . + {"status":"blocked"} else . end))' \
+    "$TMP_DIR/.cx/core/features/sample-feature.json" > "$TMP_DIR/feature-status.json"
+  mv "$TMP_DIR/feature-status.json" "$TMP_DIR/.cx/core/features/sample-feature.json"
   BLOCKED_PROMPT=$(PROJECT_ROOT="$TMP_DIR" bash hooks/prompt-submit.sh)
   printf '%s\n' "$BLOCKED_PROMPT" | rg 'needs_decision'
-  rm -f tests/fixtures/minimal-project/.claude/cx/context-snapshot.md
+  rm -f tests/fixtures/minimal-project/.cx/runtime/cc/context-snapshot.md
 else
-  echo "[skip] minimal-project fixture absent; legacy hook smoke checks skipped"
+  echo "[skip] minimal-project fixture absent; hook smoke checks skipped"
 fi
 
 echo "[check] prd and plan follow pure cx 3.1 flow"
@@ -1077,18 +1078,18 @@ MIGRATION_TMP_DIR=$(mktemp -d)
 cp -R tests/fixtures/core-dual-runner/legacy-project/. "$MIGRATION_TMP_DIR"
 CX_CORE_NOW=2026-03-20T10:20:00Z PROJECT_ROOT="$MIGRATION_TMP_DIR" bash scripts/cx-core-migrate.sh
 jq empty \
-  "$MIGRATION_TMP_DIR/.claude/cx/core/projects/project.json" \
-  "$MIGRATION_TMP_DIR/.claude/cx/core/features/vector-memory.json" \
-  "$MIGRATION_TMP_DIR/.claude/cx/core/worktrees/vector-memory.json"
-jq -e '.current_feature == "vector-memory"' "$MIGRATION_TMP_DIR/.claude/cx/core/projects/project.json" >/dev/null
-jq -e '.features["vector-memory"].slug == "vector-memory"' "$MIGRATION_TMP_DIR/.claude/cx/core/projects/project.json" >/dev/null
+  "$MIGRATION_TMP_DIR/.cx/core/projects/project.json" \
+  "$MIGRATION_TMP_DIR/.cx/core/features/vector-memory.json" \
+  "$MIGRATION_TMP_DIR/.cx/core/worktrees/vector-memory.json"
+jq -e '.current_feature == "vector-memory"' "$MIGRATION_TMP_DIR/.cx/core/projects/project.json" >/dev/null
+jq -e '.features["vector-memory"].slug == "vector-memory"' "$MIGRATION_TMP_DIR/.cx/core/projects/project.json" >/dev/null
 jq -e '.title == "向量记忆" and .docs.prd == "需求.md" and .docs.design == "设计.md" and .docs.summary == "总结.md"' \
-  "$MIGRATION_TMP_DIR/.claude/cx/core/features/vector-memory.json" >/dev/null
+  "$MIGRATION_TMP_DIR/.cx/core/features/vector-memory.json" >/dev/null
 jq -e '.tasks[0].id == 1 and .tasks[1].status == "in_progress"' \
-  "$MIGRATION_TMP_DIR/.claude/cx/core/features/vector-memory.json" >/dev/null
-test -f "$MIGRATION_TMP_DIR/.claude/cx/runtime/cc/最近失败.json"
-test -f "$MIGRATION_TMP_DIR/.claude/cx/runtime/cc/最近配置变更.json"
-test -f "$MIGRATION_TMP_DIR/.claude/cx/runtime/cc/context-snapshot.md"
+  "$MIGRATION_TMP_DIR/.cx/core/features/vector-memory.json" >/dev/null
+test -f "$MIGRATION_TMP_DIR/.cx/runtime/cc/最近失败.json"
+test -f "$MIGRATION_TMP_DIR/.cx/runtime/cc/最近配置变更.json"
+test -f "$MIGRATION_TMP_DIR/.cx/runtime/cc/context-snapshot.md"
 ! test -f "$MIGRATION_TMP_DIR/.claude/cx/最近失败.json"
 ! test -f "$MIGRATION_TMP_DIR/.claude/cx/最近配置变更.json"
 ! test -f "$MIGRATION_TMP_DIR/.claude/cx/context-snapshot.md"
@@ -1179,16 +1180,18 @@ cat > "$LEGACY_EN_TMP_DIR/.claude/cx/features/vector-memory/tasks/task-1.md" <<'
 EOF
 CX_CORE_NOW=2026-03-20T10:20:00Z PROJECT_ROOT="$LEGACY_EN_TMP_DIR" bash scripts/cx-core-migrate.sh
 jq empty \
-  "$LEGACY_EN_TMP_DIR/.claude/cx/配置.json" \
-  "$LEGACY_EN_TMP_DIR/.claude/cx/状态.json" \
-  "$LEGACY_EN_TMP_DIR/.claude/cx/功能/向量记忆/状态.json"
-jq -e '.current_feature == "vector-memory"' "$LEGACY_EN_TMP_DIR/.claude/cx/配置.json" >/dev/null
-jq -e '.current_feature == "vector-memory"' "$LEGACY_EN_TMP_DIR/.claude/cx/状态.json" >/dev/null
-jq -e '.features["vector-memory"].path == "功能/向量记忆"' "$LEGACY_EN_TMP_DIR/.claude/cx/状态.json" >/dev/null
-test -f "$LEGACY_EN_TMP_DIR/.claude/cx/功能/向量记忆/需求.md"
-test -f "$LEGACY_EN_TMP_DIR/.claude/cx/功能/向量记忆/设计.md"
-test -f "$LEGACY_EN_TMP_DIR/.claude/cx/功能/向量记忆/总结.md"
-test -f "$LEGACY_EN_TMP_DIR/.claude/cx/功能/向量记忆/任务/任务-1.md"
+  "$LEGACY_EN_TMP_DIR/开发文档/CX工作流/配置.json" \
+  "$LEGACY_EN_TMP_DIR/开发文档/CX工作流/状态.json" \
+  "$LEGACY_EN_TMP_DIR/开发文档/CX工作流/功能/向量记忆/状态.json"
+jq -e '.current_feature == "vector-memory"' "$LEGACY_EN_TMP_DIR/开发文档/CX工作流/配置.json" >/dev/null
+jq -e '.current_feature == "vector-memory"' "$LEGACY_EN_TMP_DIR/开发文档/CX工作流/状态.json" >/dev/null
+jq -e '.features["vector-memory"].path == "功能/向量记忆"' "$LEGACY_EN_TMP_DIR/开发文档/CX工作流/状态.json" >/dev/null
+test -f "$LEGACY_EN_TMP_DIR/开发文档/CX工作流/功能/向量记忆/需求.md"
+test -f "$LEGACY_EN_TMP_DIR/开发文档/CX工作流/功能/向量记忆/设计.md"
+test -f "$LEGACY_EN_TMP_DIR/开发文档/CX工作流/功能/向量记忆/总结.md"
+test -f "$LEGACY_EN_TMP_DIR/开发文档/CX工作流/功能/向量记忆/任务/任务-1.md"
+test -f "$LEGACY_EN_TMP_DIR/.cx/core/projects/project.json"
+test -f "$LEGACY_EN_TMP_DIR/.cx/core/features/vector-memory.json"
 rm -rf "$LEGACY_EN_TMP_DIR"
 rg 'cx-core-migrate.sh|先迁移' README.md references/workflow-guide.md skills/cx-init/SKILL.md
 
@@ -1282,12 +1285,12 @@ cat > "$SPARSE_MIGRATION_TMP_DIR/.claude/cx/features/chengxuan-vector-memory/tas
 # Task 1
 EOF
 CX_CORE_NOW=2026-03-20T10:20:00Z PROJECT_ROOT="$SPARSE_MIGRATION_TMP_DIR" bash scripts/cx-core-migrate.sh
-jq -e '.current_feature == "vector-memory"' "$SPARSE_MIGRATION_TMP_DIR/.claude/cx/状态.json" >/dev/null
-jq -e '.features["vector-memory"].title == "向量记忆检索功能"' "$SPARSE_MIGRATION_TMP_DIR/.claude/cx/状态.json" >/dev/null
-jq -e '.features["vector-memory"].path == "功能/向量记忆检索功能"' "$SPARSE_MIGRATION_TMP_DIR/.claude/cx/状态.json" >/dev/null
-jq -e '.features["vector-memory"].slug == "vector-memory"' "$SPARSE_MIGRATION_TMP_DIR/.claude/cx/core/projects/project.json" >/dev/null
-test -f "$SPARSE_MIGRATION_TMP_DIR/.claude/cx/功能/向量记忆检索功能/状态.json"
-test -f "$SPARSE_MIGRATION_TMP_DIR/.claude/cx/功能/向量记忆检索功能/需求.md"
+jq -e '.current_feature == "vector-memory"' "$SPARSE_MIGRATION_TMP_DIR/开发文档/CX工作流/状态.json" >/dev/null
+jq -e '.features["vector-memory"].title == "向量记忆检索功能"' "$SPARSE_MIGRATION_TMP_DIR/开发文档/CX工作流/状态.json" >/dev/null
+jq -e '.features["vector-memory"].path == "功能/向量记忆检索功能"' "$SPARSE_MIGRATION_TMP_DIR/开发文档/CX工作流/状态.json" >/dev/null
+jq -e '.features["vector-memory"].slug == "vector-memory"' "$SPARSE_MIGRATION_TMP_DIR/.cx/core/projects/project.json" >/dev/null
+test -f "$SPARSE_MIGRATION_TMP_DIR/开发文档/CX工作流/功能/向量记忆检索功能/状态.json"
+test -f "$SPARSE_MIGRATION_TMP_DIR/开发文档/CX工作流/功能/向量记忆检索功能/需求.md"
 rm -rf "$SPARSE_MIGRATION_TMP_DIR"
 
 echo "[check] public docs and metadata present pure cx 3.1"

@@ -4,7 +4,7 @@ description: >
   CX 工作流 — 架构决策记录。当用户提到"架构决策"、"技术选型"、
   "ADR"、"为什么选择 X"、"架构方案对比"时可能触发（通常由 cx-design 自动调用）。
   仅在 L 规模或重大架构取舍出现时记录，保存到本地
-  .claude/cx/功能/{feature_title}/架构决策.md。
+  开发文档/CX工作流/功能/{feature_title}/架构决策.md。
 ---
 
 # cx-adr: 架构决策记录
@@ -37,7 +37,7 @@ Claude Code 侧写 ADR 时仍然只是在共享 core 上补充文档，不改变
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
-CX_DIR="$PROJECT_ROOT/.claude/cx"
+CX_DIR="$PROJECT_ROOT/开发文档/CX工作流"
 FEATURE_TITLE="{功能标题}"
 FEATURE_DIR="$CX_DIR/功能/$FEATURE_TITLE"
 ADR_FILE="$FEATURE_DIR/架构决策.md"

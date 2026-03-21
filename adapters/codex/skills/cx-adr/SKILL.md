@@ -18,4 +18,4 @@ description: "Codex 侧 CX 架构决策记录。沉淀设计取舍，不改变 l
 
 - ADR 是文档补充，不代表接管 feature
 - 如果当前 feature 的执行 owner 是 `cc`，Codex 仍然只能补文档，不能借机改 lease
-- 保持 `.claude/cx/core/features/<slug>.json` 中 docs 元信息与文档路径一致
+- 保持 `.cx/core/features/<slug>.json` 中 docs 元信息与文档路径一致

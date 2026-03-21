@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "cx-workflow 3.0 Config Schema",
-  "description": "Configuration schema for .claude/cx/配置.json — public project-level settings for cx-workflow",
+  "description": "Configuration schema for 开发文档/CX工作流/配置.json — public project-level settings for cx-workflow",
   "type": "object",
   "required": [
     "version",
@@ -159,9 +159,9 @@
     }
   ],
   "notes": [
-    "This schema describes the public project-level configuration file .claude/cx/配置.json.",
-    "Project-level state lives in .claude/cx/状态.json and .claude/cx/功能/*/状态.json, not in config.",
+    "This schema describes the public project-level configuration file 开发文档/CX工作流/配置.json.",
+    "Project-level state lives in 开发文档/CX工作流/状态.json and 开发文档/CX工作流/功能/*/状态.json, not in config.",
     "current_feature always stores the stable feature slug, not the Chinese display title.",
-    "GitHub remains a synchronization mirror. Project-local .claude/cx is the runtime source of truth."
+    "GitHub remains a synchronization mirror. Project-local 开发文档/CX工作流 + .cx is the runtime source of truth."
   ]
 }

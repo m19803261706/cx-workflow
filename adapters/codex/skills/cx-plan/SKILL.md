@@ -40,7 +40,7 @@ check_output=$(bash ../cx-shared/scripts/cx-worktree.sh check \
 
 ## 目标
 
-- 生成任务拆分与 `.claude/cx/功能/<标题>/任务/任务-*.md`
+- 生成任务拆分与 `开发文档/CX工作流/功能/<标题>/任务/任务-*.md`
 - 更新 feature 的任务状态与共享 core 任务列表
 - 给出 preferred worktree 建议，但不自动 claim
 

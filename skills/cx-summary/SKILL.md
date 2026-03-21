@@ -29,7 +29,7 @@ description: >
 
 - feature 完成后再进入 summary
 - `cx:summary` 不负责补救执行问题
-- `GitHub 为同步镜像`，项目级 `.claude/cx` 才是真相
+- `GitHub 为同步镜像`，项目级 `开发文档/CX工作流 + .cx` 才是真相
 - 这是 Claude Code 侧的 `cc` adapter 收尾动作，不会擅自改写其他 runner 的 lease
 - 允许在用户明确确认“开始收尾”后，由工作流自动衔接到本 skill
 
@@ -87,7 +87,7 @@ bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-workflow-summary.sh \
 输出到：
 
 ```text
-.claude/cx/功能/{功能标题}/总结.md
+开发文档/CX工作流/功能/{功能标题}/总结.md
 ```
 
 总结只回答这些问题：

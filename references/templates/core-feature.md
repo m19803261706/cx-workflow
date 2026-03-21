@@ -1,6 +1,6 @@
 # Core Feature: {title}
 
-- 保存路径：`.claude/cx/core/features/{slug}.json`
+- 保存路径：`.cx/core/features/{slug}.json`
 - 当前 owner：`{execution_owner_runner}` / `{execution_owner_session_id}`
 - worktree：`{worktree_branch}` @ `{worktree_path}` (`{binding_status}`)
 - latest handoff：`{latest_handoff_summary}`

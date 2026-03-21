@@ -15,11 +15,11 @@ description: >
 **所有文件读写必须使用绝对路径。** 禁止使用 `../` 相对路径操作文件。在 worktree 中工作时，先用 `git rev-parse --show-toplevel` 获取 worktree 根目录的绝对路径，所有 Read/Write/Edit 操作基于该绝对路径。
 
 违反这条规则的行为：
-- ❌ `Edit("../../../../.worktrees/xxx/.claude/cx/状态.json", ...)`
+- ❌ `Edit("../../../../.worktrees/xxx/开发文档/CX工作流/状态.json", ...)`
 - ❌ 使用相对路径操作 worktree 外的文件
 
 正确的行为：
-- ✅ `PROJECT_ROOT=$(git rev-parse --show-toplevel)` 然后 `Edit("$PROJECT_ROOT/.claude/cx/功能/{title}/状态.json", ...)`
+- ✅ `PROJECT_ROOT=$(git rev-parse --show-toplevel)` 然后 `Edit("$PROJECT_ROOT/开发文档/CX工作流/功能/{title}/状态.json", ...)`
 
 **禁止跳过工作区选择。** 执行前先调用 worktree 检测：
 
@@ -69,7 +69,7 @@ check_output=$(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-worktree.sh check \
 
 ## 运行原则
 
-- 项目级 `.claude/cx/配置.json` 和 feature 级 `状态.json` 是执行真相
+- 项目级 `开发文档/CX工作流/配置.json` 和 feature 级 `状态.json` 是执行真相
 - `/cx:cx-exec` 默认自动推进，直到完成、阻塞或关键决策点
 - `/cx:cx-exec --all` 才进入高自治团队模式
 - GitHub 不参与执行态主控，闭环同步交给 `/cx:cx-summary`
@@ -80,9 +80,9 @@ check_output=$(bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-worktree.sh check \
 
 ### Step 0: 读取当前功能和任务图
 
-- 从 `.claude/cx/配置.json` 读取 `current_feature` 和 `worktree_isolation`
-- 从项目级 `.claude/cx/状态.json` 找到对应中文目录
-- 从 `.claude/cx/功能/{功能标题}/状态.json` 读取 `tasks / phases / execution_order`
+- 从 `开发文档/CX工作流/配置.json` 读取 `current_feature` 和 `worktree_isolation`
+- 从项目级 `开发文档/CX工作流/状态.json` 找到对应中文目录
+- 从 `开发文档/CX工作流/功能/{功能标题}/状态.json` 读取 `tasks / phases / execution_order`
 
 ### Step 0.3: 工作区选择（每个 feature 首次执行时询问一次）
 

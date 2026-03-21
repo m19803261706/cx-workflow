@@ -40,7 +40,7 @@ check_output=$(bash ../cx-shared/scripts/cx-worktree.sh check \
 
 ## 目标
 
-- 生成 `.claude/cx/功能/<标题>/设计.md`
+- 生成 `开发文档/CX工作流/功能/<标题>/设计.md`
 - 明确 API、状态枚举、字段映射、测试重点
 - 保持共享 `cx core` 的 docs 元信息与 feature 标题一致
 

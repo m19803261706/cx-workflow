@@ -1,0 +1,8 @@
+{
+  "failed_at": "2026-03-21T10:43:04Z",
+  "error": "rate_limit",
+  "message": "Too many requests",
+  "current_feature": "sample-feature",
+  "feature_title": "示例功能",
+  "runner": "cc"
+}

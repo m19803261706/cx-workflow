@@ -23,10 +23,10 @@ bash ${CLAUDE_PLUGIN_ROOT}/scripts/cx-workflow-status.sh \
   --runner cc
 ```
 
-- `.claude/cx/配置.json`
-- `.claude/cx/状态.json`
-- `.claude/cx/功能/{功能标题}/状态.json`
-- `.claude/cx/修复/*/修复记录.md`（如需要）
+- `开发文档/CX工作流/配置.json`
+- `开发文档/CX工作流/状态.json`
+- `开发文档/CX工作流/功能/{功能标题}/状态.json`
+- `开发文档/CX工作流/修复/*/修复记录.md`（如需要）
 
 ## 展示重点
 

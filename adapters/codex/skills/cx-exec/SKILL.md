@@ -53,7 +53,7 @@ check_output=$(bash ../cx-shared/scripts/cx-worktree.sh check \
 
 已绑定 worktree 时不再重复询问。
 
-1. 读取 `.claude/cx/core/projects/*.json` 与目标 feature 文件
+1. 读取 `.cx/core/projects/*.json` 与目标 feature 文件
 2. 确认当前 feature、owner、claimed tasks
 3. 先跑 shared dispatch helper，判断是继续、提问并行、阻塞还是收尾：
 
@@ -86,7 +86,7 @@ bash ../cx-shared/scripts/cx-core-claim.sh --runner codex --session-id <session-
 
 - 如果 `cc` 已持有该 feature，先提示 handoff，不要静默抢占
 - 同一 feature 未经 handoff 不能跨 worktree 并行执行
-- Codex 运行时快照只写 `.claude/cx/runtime/codex/`
+- Codex 运行时快照只写 `.cx/runtime/codex/`
 - 如果用户明确要求 `--all`，可以进入高自治并行模式，但仍不能绕过 lease / worktree 规则
 - 不能在“完成一个 task”之后自然停下；必须重新 dispatch，除非已经 blocked、completed 或遇到关键决策点
 

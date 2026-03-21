@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "$SCRIPT_DIR/cx-lib.sh"
+
 PROJECT_ROOT="${PROJECT_ROOT:-$(pwd)}"
 PROJECT_FILE="${PROJECT_FILE:-}"
 RUNNER=""
@@ -24,15 +27,6 @@ die() {
   exit 1
 }
 
-resolve_path() {
-  local path="$1"
-  if [[ "$path" = /* ]]; then
-    printf '%s\n' "$path"
-  else
-    printf '%s/%s\n' "$PROJECT_ROOT" "$path"
-  fi
-}
-
 now_iso() {
   if [[ -n "${CX_CORE_NOW:-}" ]]; then
     printf '%s\n' "$CX_CORE_NOW"
@@ -49,25 +43,15 @@ plus_hours() {
 
 find_project_file() {
   if [[ -n "$PROJECT_FILE" ]]; then
-    resolve_path "$PROJECT_FILE"
+    cx_resolve_path "$PROJECT_FILE" "$PROJECT_ROOT"
     return
   fi
 
-  local candidate="$PROJECT_ROOT/.claude/cx/core/project.json"
-  if [[ -f "$candidate" ]]; then
+  local candidate=""
+  candidate=$(cx_core_project_file "$PROJECT_ROOT")
+  if [[ -n "$candidate" && -f "$candidate" ]]; then
     printf '%s\n' "$candidate"
     return
-  fi
-
-  local project_dir="$PROJECT_ROOT/.claude/cx/core/projects"
-  local matches=("$project_dir"/*.json)
-  if [[ ${#matches[@]} -eq 1 && -f "${matches[0]}" ]]; then
-    printf '%s\n' "${matches[0]}"
-    return
-  fi
-
-  if [[ ${#matches[@]} -gt 1 ]]; then
-    die "multiple project registry files found under $project_dir; pass --project-file"
   fi
 
   die "no project registry file found; pass --project-file"
@@ -187,11 +171,11 @@ main() {
 
   local feature_rel_path feature_file sessions_root now expires requested_tasks_json existing_lease_session existing_session_feature existing_session_branch existing_session_worktree existing_session_started_at existing_session_file feature_json
   feature_rel_path=$(jq -re --arg feature "$FEATURE_SLUG" '.features[$feature].path' <<< "$project_json") || die "feature $FEATURE_SLUG is missing from project registry"
-  feature_file=$(resolve_path "$feature_rel_path")
+  feature_file=$(cx_resolve_path "$feature_rel_path" "$PROJECT_ROOT")
   [[ -f "$feature_file" ]] || die "feature file not found: $feature_file"
 
-  sessions_root=$(jq -r '.runtime_roots.sessions // ".claude/cx/core/sessions"' <<< "$project_json")
-  sessions_root=$(resolve_path "$sessions_root")
+  sessions_root=$(jq -r --arg fallback ".cx/core/sessions" '.runtime_roots.sessions // $fallback' <<< "$project_json")
+  sessions_root=$(cx_resolve_path "$sessions_root" "$PROJECT_ROOT")
   existing_session_file="$sessions_root/$SESSION_ID.json"
 
   now=$(now_iso)
@@ -257,7 +241,7 @@ main() {
   TMP_DIR=$(mktemp -d)
   trap 'rm -rf "$TMP_DIR"' EXIT
 
-  target_runtime_root=$(jq -r --arg runner "$RUNNER" '.runtime_roots.artifacts[$runner] // (".claude/cx/runtime/" + $runner)' <<< "$project_json")
+  target_runtime_root=$(jq -r --arg runner "$RUNNER" '.runtime_roots.artifacts[$runner] // (".cx/runtime/" + $runner)' <<< "$project_json")
   session_source="$existing_session_file"
   feature_source="$feature_file"
   [[ -f "$session_source" ]] || session_source=/dev/null

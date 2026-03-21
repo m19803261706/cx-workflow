@@ -43,4 +43,4 @@ bash scripts/install-codex.sh --scope project --project-root /path/to/project
 
 - 最新推荐路径：`.agents/skills` / `~/.agents/skills`
 - 如需兼容旧的本地约定，可额外安装到 `.codex/skills` / `~/.codex/skills`
-- 共享真相始终是项目里的 `.claude/cx` 与 `.claude/cx/core`
+- 共享真相始终是项目里的 `开发文档/CX工作流` 与 `.cx/core`

@@ -17,10 +17,10 @@ bash ../cx-shared/scripts/cx-workflow-status.sh \
   --runner codex
 ```
 
-- `.claude/cx/core/projects/*.json`
-- `.claude/cx/core/features/*.json`
-- `.claude/cx/core/worktrees/*.json`
-- `.claude/cx/core/handoffs/**/*.json`
+- `.cx/core/projects/*.json`
+- `.cx/core/features/*.json`
+- `.cx/core/worktrees/*.json`
+- `.cx/core/handoffs/**/*.json`
 
 ## 输出重点
 
