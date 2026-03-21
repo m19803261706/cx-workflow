@@ -16,6 +16,10 @@ description: >
 - `${CLAUDE_PLUGIN_ROOT}/core/workflow/README.md`
 - `${CLAUDE_PLUGIN_ROOT}/core/workflow/protocols/plan.md`
 
+## 强制规则
+
+**所有文件读写必须使用绝对路径。** 禁止使用 `../` 相对路径。先用 `git rev-parse --show-toplevel` 获取绝对路径。
+
 ## Worktree 检测（强制）
 
 <HARD-GATE>

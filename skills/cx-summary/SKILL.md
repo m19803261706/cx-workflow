@@ -21,6 +21,10 @@ description: >
 /cx:cx-summary {功能名}
 ```
 
+## 强制规则
+
+**所有文件读写必须使用绝对路径。** 禁止使用 `../` 相对路径。先用 `git rev-parse --show-toplevel` 获取绝对路径。
+
 ## 运行原则
 
 - feature 完成后再进入 summary

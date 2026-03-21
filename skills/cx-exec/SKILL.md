@@ -12,6 +12,15 @@ description: >
 
 ## 强制规则
 
+**所有文件读写必须使用绝对路径。** 禁止使用 `../` 相对路径操作文件。在 worktree 中工作时，先用 `git rev-parse --show-toplevel` 获取 worktree 根目录的绝对路径，所有 Read/Write/Edit 操作基于该绝对路径。
+
+违反这条规则的行为：
+- ❌ `Edit("../../../../.worktrees/xxx/.claude/cx/状态.json", ...)`
+- ❌ 使用相对路径操作 worktree 外的文件
+
+正确的行为：
+- ✅ `PROJECT_ROOT=$(git rev-parse --show-toplevel)` 然后 `Edit("$PROJECT_ROOT/.claude/cx/功能/{title}/状态.json", ...)`
+
 **禁止跳过工作区选择。** 执行前先调用 worktree 检测：
 
 ```bash

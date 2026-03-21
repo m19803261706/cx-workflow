@@ -9,6 +9,10 @@ description: >
 
 先快修，只有问题明显复杂时才升级成更重的调查。
 
+## 强制规则
+
+**所有文件读写必须使用绝对路径。** 禁止使用 `../` 相对路径。先用 `git rev-parse --show-toplevel` 获取绝对路径。
+
 ## Worktree 检测
 
 cx-fix 对 worktree 的要求比其他 skill 宽松：
